@@ -16,7 +16,7 @@ jobs:
     outputs:
       rust: ${{ steps.filter.outputs.rust }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
@@ -62,7 +62,7 @@ jobs:
       # só deixa a compilação mais lenta.
       CARGO_CI_FLAGS: --config profile.dev.package."*".opt-level=0
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Linux deps
         if: runner.os == 'Linux'
         run: |
