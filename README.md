@@ -89,7 +89,7 @@ Detalhes e convenções em [PLAN.md §4](PLAN.md#4-estrutura-de-pastas).
    git push --follow-tags
    ```
 
-O workflow [release.yml](.github/workflows/release.yml) gera **`.exe` (NSIS)** e **`.msi`** para Windows e o **`.apk`** para Android e publica tudo no GitHub Release da tag. Tags com sufixo (`v0.1.0-beta.1`) viram pre-release.
+O workflow [release.yml](.github/workflows/release.yml) gera **`.exe` (NSIS)** e **`.msi`** para Windows e o **`.apk`** para Android e publica tudo no GitHub Release da tag. Tags com sufixo viram pre-release — use sufixo **numérico** (ex.: `v0.1.0-1`), pois o instalador MSI (WiX) não aceita sufixos como `-beta`.
 
 ### Assinatura do APK
 

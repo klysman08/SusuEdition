@@ -2,7 +2,7 @@ name: Release
 
 # Dispara ao enviar uma tag vX.Y.Z:
 #   pnpm version:bump 0.1.0 --tag && git push --follow-tags
-# Tags com sufixo (ex.: v0.1.0-beta.1) geram pre-release.
+# Tags com sufixo numérico (ex.: v0.1.0-1) geram pre-release (o MSI não aceita "-beta").
 on:
   push:
     tags: ["v*"]
