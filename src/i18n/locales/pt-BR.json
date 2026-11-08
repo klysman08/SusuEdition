@@ -1,6 +1,14 @@
 {
-  "app": { "name": "SusuEdition", "tagline": "Seus momentos, no ritmo da música." },
-  "nav": { "home": "Início", "videoMaker": "Vídeo", "photoCollage": "Colagem", "settings": "Ajustes" },
+  "app": {
+    "name": "SusuEdition",
+    "tagline": "Seus momentos, no ritmo da música."
+  },
+  "nav": {
+    "home": "Início",
+    "videoMaker": "Vídeo",
+    "photoCollage": "Colagem",
+    "settings": "Ajustes"
+  },
   "home": {
     "greeting": "O que vamos criar hoje?",
     "subtitle": "Tudo é processado no seu dispositivo — rápido e privado.",
@@ -21,31 +29,115 @@
     "title": "Video Maker",
     "subtitle": "Monte seu vídeo em cinco passos.",
     "steps": {
-      "format": { "title": "Formato", "description": "Aspect ratio (9:16, 16:9, 4:3…) e enquadramento fit ou cover." },
-      "media": { "title": "Mídias", "description": "Carregue fotos e vídeos — mesmo centenas deles." },
-      "music": { "title": "Música", "description": "Escolha a faixa e o trecho exato que você quer usar." },
-      "timing": { "title": "Tempo", "description": "Duração total, tempo por foto/vídeo e sincronia com as batidas." },
-      "export": { "title": "Exportar", "description": "MP4 até 4K, a 30 ou 60 fps." }
-    }
+      "format": {
+        "title": "Formato",
+        "description": "Aspect ratio (9:16, 16:9, 4:3…) e enquadramento fit ou cover."
+      },
+      "media": {
+        "title": "Mídias",
+        "description": "Carregue fotos e vídeos — mesmo centenas deles."
+      },
+      "music": {
+        "title": "Música",
+        "description": "Escolha a faixa e o trecho exato que você quer usar."
+      },
+      "timing": {
+        "title": "Tempo",
+        "description": "Duração total, tempo por foto/vídeo e sincronia com as batidas."
+      },
+      "export": {
+        "title": "Exportar",
+        "description": "MP4 até 4K, a 30 ou 60 fps."
+      }
+    },
+    "comingSoonDescription": "Esta etapa chega nas próximas versões."
   },
   "photoCollage": {
     "title": "Photo Collage",
     "subtitle": "Crie colagens com layouts e filtros.",
     "steps": {
-      "photos": { "title": "Fotos", "description": "Selecione as fotos da colagem." },
-      "layout": { "title": "Layout", "description": "Aspect ratio, grade e posição de cada foto." },
-      "spacing": { "title": "Margens", "description": "Margem externa e espaçamento interno (0 por padrão)." },
-      "filters": { "title": "Filtros", "description": "Brilho, contraste, saturação, P&B e mais." },
-      "export": { "title": "Exportar", "description": "PNG ou JPEG em alta resolução." }
+      "photos": {
+        "title": "Fotos",
+        "description": "Selecione as fotos da colagem."
+      },
+      "layout": {
+        "title": "Layout",
+        "description": "Aspect ratio, grade e posição de cada foto."
+      },
+      "spacing": {
+        "title": "Margens",
+        "description": "Margem externa e espaçamento interno (0 por padrão)."
+      },
+      "filters": {
+        "title": "Filtros",
+        "description": "Brilho, contraste, saturação, P&B e mais."
+      },
+      "export": {
+        "title": "Exportar",
+        "description": "PNG ou JPEG em alta resolução."
+      }
     }
   },
   "settings": {
     "title": "Ajustes",
     "subtitle": "Personalize o SusuEdition.",
-    "appearance": { "title": "Aparência", "description": "Escolha entre tema claro, escuro ou do sistema." },
-    "language": { "title": "Idioma", "description": "Idioma da interface." },
-    "about": { "title": "Sobre", "version": "Versão {{version}}", "platform": "Plataforma: {{platform}}" }
+    "appearance": {
+      "title": "Aparência",
+      "description": "Escolha entre tema claro, escuro ou do sistema."
+    },
+    "language": {
+      "title": "Idioma",
+      "description": "Idioma da interface."
+    },
+    "about": {
+      "title": "Sobre",
+      "version": "Versão {{version}}",
+      "platform": "Plataforma: {{platform}}"
+    }
   },
-  "theme": { "light": "Claro", "dark": "Escuro", "system": "Sistema", "toggle": "Alternar tema" },
-  "common": { "comingSoon": "Em breve", "step": "Passo {{n}}" }
+  "theme": {
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema",
+    "toggle": "Alternar tema"
+  },
+  "common": {
+    "comingSoon": "Em breve",
+    "step": "Passo {{n}}"
+  },
+  "mediaLibrary": {
+    "add": "Adicionar",
+    "addMedia": "Adicionar fotos e vídeos",
+    "emptyTitle": "Adicione fotos e vídeos",
+    "emptyDescription": "Arraste arquivos para cá ou escolha no seu dispositivo. Centenas de arquivos? Sem problema.",
+    "dropHere": "Solte para adicionar",
+    "summary": "{{photos}} fotos · {{videos}} vídeos",
+    "videoTotal": "{{duration}} de vídeo",
+    "processing": "Processando {{done}} de {{total}}",
+    "sort": "Ordenar",
+    "sortDateAsc": "Data (mais antigas primeiro)",
+    "sortDateDesc": "Data (mais recentes primeiro)",
+    "sortNameAsc": "Nome",
+    "shuffle": "Embaralhar",
+    "select": "Selecionar",
+    "selectAll": "Selecionar tudo",
+    "cancel": "Cancelar",
+    "removeSelected": "Remover ({{count}})",
+    "more": "Mais opções",
+    "clearAll": "Remover tudo",
+    "clearConfirmTitle": "Remover todas as mídias?",
+    "clearConfirmDescription": "Os arquivos originais não serão apagados — apenas retirados deste projeto.",
+    "confirm": "Remover",
+    "added_one": "{{count}} mídia adicionada",
+    "added_other": "{{count}} mídias adicionadas",
+    "duplicates_one": "{{count}} já estava no projeto",
+    "duplicates_other": "{{count}} já estavam no projeto",
+    "failed_one": "{{count}} arquivo não pôde ser importado",
+    "failed_other": "{{count}} arquivos não puderam ser importados",
+    "unsupported": "Formato não suportado",
+    "notDecodable": "Este vídeo usa um codec que o dispositivo não consegue decodificar.",
+    "error": "Não foi possível ler este arquivo",
+    "dragHint": "Arraste para reordenar",
+    "position": "Posição {{n}}"
+  }
 }

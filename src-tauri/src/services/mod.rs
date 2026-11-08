@@ -1,7 +1,15 @@
-//! Lógica nativa pesada, independente de Tauri sempre que possível (testável com `cargo test`).
+//! Lógica nativa, independente do frontend (testável com `cargo test`).
 //!
-//! Planejado:
-//! - `cache`      — diretório de cache, chaves `blake3(path+size+mtime)`, limpeza (M1)
-//! - `thumbnails` — geração paralela de thumbnails WebP (M1)
-//! - `waveform`   — picos de áudio para a UI de recorte (M2)
-//! - `beat`       — onset (spectral flux) + BPM + beat tracking (M2)
+//! - `media_types` — tipos serializados para o frontend
+//! - `registry`    — mídias importadas na sessão (`id → caminho/content://`)
+//! - `cache`       — thumbnails e metadados em disco
+//! - `image`       — EXIF, dimensões e thumbnails de fotos
+//! - `jobs`        — fila paralela de processamento
+//!
+//! Planejado: `waveform` e `beat` (M2).
+
+pub mod cache;
+pub mod image;
+pub mod jobs;
+pub mod media_types;
+pub mod registry;

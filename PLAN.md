@@ -57,8 +57,13 @@ Princípios:
 
 ### 3.1 Pipeline de mídia (estratégia de performance)
 
-1. **Nunca carregar arquivos inteiros no JS.** Um protocolo `susu://media/<id>` registrado em Rust serve bytes com **HTTP Range**: caminhos locais no Windows e `content://` no Android (via plugin Kotlin). O Mediabunny lê por ranges.
-2. **Import**: metadados (duração, dimensão, rotação, fps, áudio, data) extraídos em Web Worker; thumbnails gerados em Rust com paralelismo limitado, salvos em WebP pequeno em **cache em disco** (`blake3(path+size+mtime)`). A grade é **virtualizada** e mostra skeleton → thumb progressivamente.
+1. **Nunca carregar arquivos inteiros no JS.** Um protocolo `susu://media/<id>` registrado em Rust serve bytes com **HTTP Range**: caminhos locais no Windows e `content://` no Android (aberto via `tauri-plugin-fs`, que devolve um descritor do ContentResolver). Mantém até 24 arquivos abertos para não reabrir a cada Range. O Mediabunny lê por ranges.
+2. **Import** (implementado no M1):
+   - registro rápido (abre o arquivo e lê 64 bytes para detectar o tipo) → itens aparecem na hora como *pendentes*;
+   - **fotos em Rust**: dimensões pelo cabeçalho, EXIF (orientação/data), JPEG decodificado já reduzido no domínio DCT (1/2–1/8), thumbnail JPEG de 320 px, N−1 threads puxando de uma fila (termina na ordem da grade);
+   - **vídeos em Web Worker** (Mediabunny + WebCodecs, 2–3 workers): duração, rotação, áudio, codec, `canDecode`, thumbnail WebP;
+   - **cache em disco** (`<app_cache>/media/{thumbs,meta}`) por `blake3(uri|tamanho|data)`: reabrir é instantâneo;
+   - atualizações aplicadas no store em lotes (≈120 ms) e cada tile assina só o próprio item; a grade é **virtualizada** (só as linhas visíveis existem no DOM).
 3. **Imagens** decodificadas só quando necessárias, já redimensionadas para a resolução de saída (`createImageBitmap` com `resizeWidth/Height`); orientação EXIF respeitada; **cache LRU** de texturas; pré-carga apenas dos próximos N itens.
 4. **Preview** em resolução reduzida (~540p) com pool de no máximo 2–3 decoders (clipe atual + próximo).
 5. **Export** em **Worker + OffscreenCanvas**: agendador de frames → `VideoDecoder` (frame-accurate) → composição WebGL → `VideoEncoder` H.264 (`prefer-hardware`, fallback software) com **backpressure** → mux MP4 em **streaming para disco** (chunks enviados ao Rust). Progresso, ETA, cancelamento, checagem de espaço livre e wake lock no Android.

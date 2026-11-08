@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Permissões da janela principal (desktop e mobile).",
   "windows": ["main"],
-  "permissions": ["core:default", "opener:default", "os:default", "log:default"]
+  "permissions": ["core:default", "opener:default", "os:default", "log:default", "dialog:default"]
 }

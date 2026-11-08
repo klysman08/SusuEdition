@@ -1,14 +1,26 @@
 /**
- * Decodificação de mídia (M1/M4).
+ * Decodificação de mídia.
  *
- * - Vídeos: Mediabunny (demux por HTTP Range via `susu://`) + WebCodecs `VideoDecoder`.
- * - Fotos: `createImageBitmap` já redimensionado para a resolução de saída.
- * - Cache LRU de frames/texturas com orçamento de memória e pré-carga limitada.
+ * M1: probe de metadados e thumbnails de vídeos em Web Workers (Mediabunny + WebCodecs).
+ * M3/M4: decoders de frames para preview/export, com cache LRU e pré-carga limitada.
  */
-export interface FrameRequest {
-  mediaId: string;
-  /** Tempo no arquivo de origem (s). */
-  sourceTimeSec: number;
+import type { ProbeRequest, ProbeResult } from "./probe-protocol";
+import { WorkerPool } from "./worker-pool";
+
+export * from "./probe-protocol";
+export { WorkerPool } from "./worker-pool";
+
+export type ProbePool = WorkerPool<ProbeRequest, ProbeResult>;
+
+/**
+ * Pool de probe. Poucos workers: cada um usa um decoder de vídeo (hardware) e
+ * abrir muitos em paralelo piora o desempenho, principalmente no Android.
+ */
+export function createProbePool(size: number): ProbePool {
+  return new WorkerPool<ProbeRequest, ProbeResult>(
+    () => new Worker(new URL("./media-probe.worker.ts", import.meta.url), { type: "module", name: "susu-probe" }),
+    size,
+  );
 }
 
 export interface DecoderPoolOptions {

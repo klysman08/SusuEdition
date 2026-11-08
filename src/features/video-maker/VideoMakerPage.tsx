@@ -1,49 +1,64 @@
-import { Clock, Download, Images, Music, RectangleVertical } from "lucide-react";
+import { Clock, Download, Images, Music, RectangleVertical, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "@/components/common/PageHeader";
-import { WorkflowSteps, type WorkflowStep } from "@/components/common/WorkflowSteps";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MediaLibrary } from "@/features/media-library";
+
+import { videoMediaStore } from "./store";
+
+type StepId = "format" | "media" | "music" | "timing" | "export";
+
+const STEPS: { id: StepId; icon: LucideIcon; ready: boolean }[] = [
+  { id: "format", icon: RectangleVertical, ready: false },
+  { id: "media", icon: Images, ready: true },
+  { id: "music", icon: Music, ready: false },
+  { id: "timing", icon: Clock, ready: false },
+  { id: "export", icon: Download, ready: false },
+];
+
+function ComingSoon({ step, icon: Icon }: { step: StepId; icon: LucideIcon }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
+      <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <Icon className="size-6" aria-hidden />
+      </span>
+      <div>
+        <p className="font-medium">{t(`videoMaker.steps.${step}.title`)}</p>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">{t(`videoMaker.steps.${step}.description`)}</p>
+      </div>
+      <Badge variant="secondary">{t("common.comingSoon")}</Badge>
+      <p className="text-xs text-muted-foreground">{t("videoMaker.comingSoonDescription")}</p>
+    </div>
+  );
+}
 
 export function VideoMakerPage() {
   const { t } = useTranslation();
 
-  const steps: WorkflowStep[] = [
-    {
-      id: "format",
-      icon: RectangleVertical,
-      title: t("videoMaker.steps.format.title"),
-      description: t("videoMaker.steps.format.description"),
-    },
-    {
-      id: "media",
-      icon: Images,
-      title: t("videoMaker.steps.media.title"),
-      description: t("videoMaker.steps.media.description"),
-    },
-    {
-      id: "music",
-      icon: Music,
-      title: t("videoMaker.steps.music.title"),
-      description: t("videoMaker.steps.music.description"),
-    },
-    {
-      id: "timing",
-      icon: Clock,
-      title: t("videoMaker.steps.timing.title"),
-      description: t("videoMaker.steps.timing.description"),
-    },
-    {
-      id: "export",
-      icon: Download,
-      title: t("videoMaker.steps.export.title"),
-      description: t("videoMaker.steps.export.description"),
-    },
-  ];
-
   return (
     <>
       <PageHeader title={t("videoMaker.title")} subtitle={t("videoMaker.subtitle")} />
-      <WorkflowSteps steps={steps} />
+      <Tabs defaultValue="media" className="gap-4">
+        <div className="-mx-4 [scrollbar-width:none] overflow-x-auto overflow-y-hidden px-4 sm:mx-0 sm:px-0">
+          <TabsList variant="line" className="w-max">
+            {STEPS.map(({ id, icon: Icon }, i) => (
+              <TabsTrigger key={id} value={id} className="gap-2 px-3">
+                <span className="text-xs text-muted-foreground tabular-nums">{i + 1}</span>
+                <Icon aria-hidden />
+                {t(`videoMaker.steps.${id}.title`)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        {STEPS.map(({ id, icon, ready }) => (
+          <TabsContent key={id} value={id}>
+            {ready ? <MediaLibrary store={videoMediaStore} /> : <ComingSoon step={id} icon={icon} />}
+          </TabsContent>
+        ))}
+      </Tabs>
     </>
   );
 }

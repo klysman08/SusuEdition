@@ -31,6 +31,28 @@ export interface MediaItem {
   capturedAt?: number;
 }
 
+/**
+ * Metadados extraídos do conteúdo de uma mídia (espelha `MediaMeta` do Rust).
+ * Persistidos em cache junto com o thumbnail.
+ */
+export interface MediaMeta {
+  kind: MediaKind;
+  /** Dimensões de exibição (rotação/orientação já aplicadas). */
+  width: number;
+  height: number;
+  /** Rotação que o renderizador ainda precisa aplicar (vídeos). Fotos: 0. */
+  rotation: 0 | 90 | 180 | 270;
+  /** Orientação EXIF original (fotos), 1..8. */
+  orientation?: number;
+  durationSec?: number;
+  hasAudio?: boolean;
+  capturedAt?: number;
+  codec?: string;
+  /** `false` quando o WebView não consegue decodificar (ex.: HEVC sem extensão no Windows). */
+  decodable?: boolean;
+  thumbExt: "jpg" | "webp" | "png";
+}
+
 export type QualityPreset = "720p" | "1080p" | "4k";
 export type FrameRate = 30 | 60;
 

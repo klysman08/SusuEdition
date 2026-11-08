@@ -39,3 +39,6 @@ src-tauri/gen/android/keystore.properties
 
 # Claude Code (local)
 .claude/settings.local.json
+
+# Mídias de teste locais (junction)
+public/__testmedia
