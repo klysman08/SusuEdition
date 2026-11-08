@@ -6,7 +6,7 @@
 
 | ID | Requisito |
 | --- | --- |
-| RF-G1 | Plataformas: Windows 11 (x64, instalador NSIS `.exe` e `.msi`) e Android 8.0+ (API 26+, APK arm64-v8a / armeabi-v7a / x86_64). |
+| RF-G1 | Plataformas: Windows 11 (x64, instalador NSIS `.exe` e `.msi`) e Android 8.0+ (API 26+, APK arm64-v8a / armeabi-v7a). |
 | RF-G2 | Tema **claro, escuro e sistema**, persistido entre sessões. |
 | RF-G3 | Idiomas **pt-BR** (padrão) e **en**, alternáveis em Configurações. |
 | RF-G4 | Layout responsivo: sidebar em telas ≥ 768px; bottom-nav em telas menores; respeita safe-area no Android. |
