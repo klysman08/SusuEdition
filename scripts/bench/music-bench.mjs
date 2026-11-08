@@ -5,12 +5,27 @@ const [port, file, out] = process.argv.slice(2);
 const page = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((t) => t.type === "page");
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((r) => (ws.onopen = r));
-let seq = 0; const waiting = new Map();
-ws.onmessage = (e) => { const m = JSON.parse(e.data); if (m.id && waiting.has(m.id)) { waiting.get(m.id)(m); waiting.delete(m.id); } };
-const send = (method, params = {}) => new Promise((r) => { const id = ++seq; waiting.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
-const ev = async (expression) => (await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.result?.value;
+let seq = 0;
+const waiting = new Map();
+ws.onmessage = (e) => {
+  const m = JSON.parse(e.data);
+  if (m.id && waiting.has(m.id)) {
+    waiting.get(m.id)(m);
+    waiting.delete(m.id);
+  }
+};
+const send = (method, params = {}) =>
+  new Promise((r) => {
+    const id = ++seq;
+    waiting.set(id, r);
+    ws.send(JSON.stringify({ id, method, params }));
+  });
+const ev = async (expression) =>
+  (await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true })).result?.result?.value;
 await ev(`location.hash = "#/video-maker"; new Promise(r => setTimeout(r, 1200))`);
-await ev(`(async () => { const t = [...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes('Música')); t.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true})); t.dispatchEvent(new MouseEvent('mousedown', {bubbles: true})); t.click(); await new Promise(r => setTimeout(r, 600)); })()`);
+await ev(
+  `(async () => { const t = [...document.querySelectorAll('[role=tab]')].find(t => t.textContent.includes('Música')); t.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true})); t.dispatchEvent(new MouseEvent('mousedown', {bubbles: true})); t.click(); await new Promise(r => setTimeout(r, 600)); })()`,
+);
 const res = await ev(`(async () => {
   const t0 = performance.now();
   const r = await window.__susuMusic.loadPath(${JSON.stringify(file)});
