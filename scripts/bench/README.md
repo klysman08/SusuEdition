@@ -25,3 +25,13 @@ Saída: tempo total, primeiro item visível, primeira miniatura, status por item
 | Data | Máquina | Cenário | Frio | Quente |
 | --- | --- | --- | --- | --- |
 | 2026-11-08 | Windows 11, desktop | 100 fotos + 50 vídeos (479 MB) | 3,7 s | 56 ms |
+
+## Música
+
+```bash
+node scripts/bench/music-bench.mjs 9333 caminho/para/musica.mp3 musica.png
+```
+
+| Data | Máquina | Arquivo | Frio | Quente | Resultado |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-08 | Windows 11, desktop | MP3 sintético 3 min, 124 BPM | 243 ms | 13 ms | 123,6 BPM, 362 batidas |

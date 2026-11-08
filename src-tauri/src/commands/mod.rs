@@ -9,4 +9,5 @@
 //! - `export`  — escrita em streaming do MP4 e salvar na galeria (M4)
 
 pub mod app;
+pub mod audio;
 pub mod media;

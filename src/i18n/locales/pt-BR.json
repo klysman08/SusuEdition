@@ -139,5 +139,32 @@
     "error": "Não foi possível ler este arquivo",
     "dragHint": "Arraste para reordenar",
     "position": "Posição {{n}}"
+  },
+  "music": {
+    "emptyTitle": "Escolha a música do vídeo",
+    "emptyDescription": "MP3, M4A, WAV, OGG ou FLAC. Depois você escolhe exatamente o trecho que quer usar.",
+    "choose": "Escolher música",
+    "replace": "Trocar",
+    "remove": "Remover música",
+    "analyzing": "Analisando…",
+    "analyzingHint": "Lendo a música e detectando as batidas…",
+    "bpm": "{{bpm}} BPM",
+    "beats_one": "{{count}} batida",
+    "beats_other": "{{count}} batidas",
+    "noBeats": "Sem batidas detectadas",
+    "error": "Não foi possível ler esta música",
+    "unsupported": "Escolha um arquivo de áudio (MP3, M4A, WAV, OGG ou FLAC).",
+    "selectionTitle": "Trecho da música",
+    "selectionHint": "Arraste as alças ou o trecho. As marcas na base são as batidas.",
+    "selectionLength": "duração do trecho",
+    "playSelection": "Ouvir trecho",
+    "pause": "Pausar",
+    "start": "Início",
+    "end": "Fim",
+    "earlier": "{{label}}: 0,1 s antes",
+    "later": "{{label}}: 0,1 s depois",
+    "quickLength": "Duração rápida",
+    "full": "Inteira",
+    "snap": "Alinhar às batidas"
   }
 }

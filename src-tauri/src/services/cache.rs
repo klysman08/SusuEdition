@@ -5,14 +5,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::media_types::MediaMeta;
+use super::media_types::{AudioAnalysis, MediaMeta};
 use crate::error::AppResult;
 
 #[derive(Debug, Clone)]
 pub struct MediaCache {
     thumbs: PathBuf,
     meta: PathBuf,
+    audio: PathBuf,
 }
+
+/// Versão do formato da análise de áudio: mudar o algoritmo invalida o cache antigo.
+const AUDIO_ANALYSIS_VERSION: u32 = 1;
 
 /// Ids são hex gerados por nós; qualquer outra coisa é rejeitada (evita path traversal).
 pub fn is_valid_id(id: &str) -> bool {
@@ -27,9 +31,15 @@ impl MediaCache {
     pub fn new(root: &Path) -> AppResult<Self> {
         let thumbs = root.join("media").join("thumbs");
         let meta = root.join("media").join("meta");
+        let audio = root.join("media").join("audio");
         fs::create_dir_all(&thumbs)?;
         fs::create_dir_all(&meta)?;
-        Ok(Self { thumbs, meta })
+        fs::create_dir_all(&audio)?;
+        Ok(Self {
+            thumbs,
+            meta,
+            audio,
+        })
     }
 
     pub fn get_meta(&self, id: &str) -> Option<MediaMeta> {
@@ -55,6 +65,29 @@ impl MediaCache {
         write_atomic(&thumb_path, thumb)?;
         let json = serde_json::to_vec(meta).expect("MediaMeta é serializável");
         write_atomic(&self.meta.join(format!("{id}.json")), &json)?;
+        Ok(())
+    }
+
+    fn audio_path(&self, id: &str) -> Option<PathBuf> {
+        is_valid_id(id).then(|| {
+            self.audio
+                .join(format!("{id}.v{AUDIO_ANALYSIS_VERSION}.json"))
+        })
+    }
+
+    pub fn get_audio(&self, id: &str) -> Option<AudioAnalysis> {
+        let bytes = fs::read(self.audio_path(id)?).ok()?;
+        serde_json::from_slice(&bytes).ok()
+    }
+
+    pub fn put_audio(&self, id: &str, analysis: &AudioAnalysis) -> AppResult<()> {
+        let Some(path) = self.audio_path(id) else {
+            return Err(crate::error::AppError::Unsupported(format!(
+                "cache key inválida: {id}"
+            )));
+        };
+        let json = serde_json::to_vec(analysis).expect("AudioAnalysis é serializável");
+        write_atomic(&path, &json)?;
         Ok(())
     }
 

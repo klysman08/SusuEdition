@@ -8,6 +8,8 @@
 //!
 //! Planejado: `waveform` e `beat` (M2).
 
+pub mod audio;
+pub mod beat;
 pub mod cache;
 pub mod image;
 pub mod jobs;

@@ -38,6 +38,8 @@ imagesize = "0.15.0"
 blake3 = "1.8.7"
 infer = "0.22.0"
 percent-encoding = "2.3.2"
+symphonia = { version = "0.6.1", features = ["mp3", "aac", "isomp4"] }
+rustfft = "6.4.1"
 
 
 [lints.clippy]

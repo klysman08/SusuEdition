@@ -42,3 +42,4 @@ src-tauri/gen/android/keystore.properties
 
 # Mídias de teste locais (junction)
 public/__testmedia
+public/__testmusic

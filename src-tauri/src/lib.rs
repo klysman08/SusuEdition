@@ -33,6 +33,7 @@ pub fn run() {
         .register_asynchronous_uri_scheme_protocol(protocol::SCHEME, protocol::handle)
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
+            commands::audio::audio_analyze,
             commands::media::media_register,
             commands::media::media_unregister,
             commands::media::media_process_images,

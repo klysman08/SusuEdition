@@ -75,7 +75,7 @@ Módulo TS puro (`src/engine/timeline`), determinístico e coberto por testes. R
 
 ### 3.3 Detecção de batidas
 
-Rust (`services/beat`): symphonia → mono → reamostragem 22,05 kHz → envelope de onset (spectral flux) → BPM por autocorrelação → beat tracking por programação dinâmica (Ellis, 2007) → `{bpm, beats[{t, strength}]}` + picos de waveform. Resultado em cache.
+Rust (`services/audio` + `services/beat`, implementado no M2): Symphonia → mono a **11.025 Hz** em streaming (média por janela, ~8× menos memória que PCM estéreo 44,1 kHz) → envelope de onset (spectral flux, STFT 1024/hop 256 ≈ 43 quadros/s) → BPM por autocorrelação com prioridade log-normal em 120 BPM (evita erros de oitava) → beat tracking por programação dinâmica (Ellis, 2007) → `{bpm, beats[{timeSec, strength}]}` + 4.000 picos de waveform. Resultado em cache (`media/audio/<id>.v1.json`). Uma música de 3 min é analisada em ~0,25 s no desktop.
 
 ## 4. Estrutura de pastas
 

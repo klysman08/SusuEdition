@@ -7,6 +7,16 @@ export function formatDuration(totalSec: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
 }
 
+/** 65.34 → "1:05.3" (com décimos) ou "1:05". */
+export function formatTime(sec: number, tenths = true): string {
+  const s = Math.max(0, sec);
+  const m = Math.floor(s / 60);
+  const rest = s - m * 60;
+  const whole = Math.floor(rest);
+  const base = `${m}:${String(whole).padStart(2, "0")}`;
+  return tenths ? `${base}.${Math.floor((rest - whole) * 10)}` : base;
+}
+
 const UNITS = ["B", "KB", "MB", "GB", "TB"];
 
 export function formatBytes(bytes: number, locale?: string): string {

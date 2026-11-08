@@ -1,8 +1,9 @@
 import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 
+import type { AudioAnalysis } from "@/engine/audio";
 import type { MediaMeta } from "@/engine/types";
 
-import { SUPPORTED_EXTENSIONS } from "./formats";
+import { AUDIO_EXTENSIONS, SUPPORTED_EXTENSIONS } from "./formats";
 import type { MediaBackend, PickedMedia, ProcessEvent, RegisterOutcome } from "./types";
 
 const susu = (path: string) => convertFileSrc(path, "susu");
@@ -21,6 +22,20 @@ export function createTauriBackend(isMobile: boolean): MediaBackend {
       });
       const uris = result === null ? [] : Array.isArray(result) ? result : [result];
       return uris.map((uri): PickedMedia => ({ type: "native", uri }));
+    },
+
+    async pickAudio() {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const result = await open({
+        multiple: false,
+        pickerMode: "document",
+        filters: [{ name: "Música", extensions: [...AUDIO_EXTENSIONS] }],
+      });
+      return typeof result === "string" ? [{ type: "native", uri: result }] : [];
+    },
+
+    analyzeAudio(id) {
+      return invoke<AudioAnalysis>("audio_analyze", { id });
     },
 
     register(picked) {

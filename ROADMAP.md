@@ -25,9 +25,10 @@
 > Movidos para o M4 (export): plugin nativo `tauri-plugin-susu-media` (MediaStore, wake lock) e versionar `src-tauri/gen/android` (exige Android SDK local).
 
 ## M2 — Música · `v0.2.0`
-- [ ] Import e decode (symphonia) — RF-V9
-- [ ] Waveform + seleção de faixa com preview de áudio — RF-V10
-- [ ] Detecção de batidas/BPM em Rust com cache — RF-V11
+- [x] Import e decode (Symphonia: MP3, M4A/AAC, WAV, OGG, FLAC e trilha de áudio de MP4/MOV) — RF-V9
+- [x] Waveform + seleção do trecho (alças, arrastar, ±0,1 s, 15/30/60 s/inteira) com prévia de áudio — RF-V10
+- [x] Detecção de batidas/BPM em Rust com cache; "alinhar às batidas" ao ajustar o trecho — RF-V11
+- [ ] Validar com músicas reais variadas (gêneros, BPM lento/rápido) e no Android
 
 ## M3 — Timeline + Preview · `v0.3.0`
 - [ ] Aspect ratios e fit/cover/fill/fundo desfocado — RF-V1, RF-V2

@@ -1,4 +1,5 @@
 import type { MediaKind, MediaMeta } from "@/engine/types";
+import type { AudioAnalysis } from "@/engine/audio";
 import type { ProbeSource } from "@/engine/decode";
 
 /** Arquivo escolhido pelo usuário, antes do registro. */
@@ -9,8 +10,8 @@ export interface RegisteredMedia {
   id: string;
   uri: string;
   name: string;
-  /** `unknown`: não é foto nem vídeo (rejeitado no import). */
-  kind: MediaKind | "unknown";
+  /** `unknown`: formato não reconhecido. `audio`: só aceito como música. */
+  kind: MediaKind | "audio" | "unknown";
   mime: string;
   size: number;
   modifiedMs?: number;
@@ -30,6 +31,10 @@ export interface MediaBackend {
   readonly name: "tauri" | "web";
   /** Abre o seletor nativo. Retorna lista vazia se o usuário cancelar. */
   pick(): Promise<PickedMedia[]>;
+  /** Seletor de música (um arquivo). */
+  pickAudio(): Promise<PickedMedia[]>;
+  /** Waveform, BPM e batidas da música (Rust; no navegador só a waveform). */
+  analyzeAudio(id: string): Promise<AudioAnalysis>;
   register(picked: PickedMedia[]): Promise<RegisterOutcome[]>;
   unregister(ids: string[]): Promise<void>;
   /** Processa fotos (metadados + thumbnail); eventos chegam conforme ficam prontos. */

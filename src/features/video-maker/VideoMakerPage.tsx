@@ -5,15 +5,16 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaLibrary } from "@/features/media-library";
+import { MusicPanel } from "@/features/music";
 
-import { videoMediaStore } from "./store";
+import { videoMediaStore, videoMusicStore } from "./store";
 
 type StepId = "format" | "media" | "music" | "timing" | "export";
 
 const STEPS: { id: StepId; icon: LucideIcon; ready: boolean }[] = [
   { id: "format", icon: RectangleVertical, ready: false },
   { id: "media", icon: Images, ready: true },
-  { id: "music", icon: Music, ready: false },
+  { id: "music", icon: Music, ready: true },
   { id: "timing", icon: Clock, ready: false },
   { id: "export", icon: Download, ready: false },
 ];
@@ -55,7 +56,13 @@ export function VideoMakerPage() {
         </div>
         {STEPS.map(({ id, icon, ready }) => (
           <TabsContent key={id} value={id}>
-            {ready ? <MediaLibrary store={videoMediaStore} /> : <ComingSoon step={id} icon={icon} />}
+            {!ready ? (
+              <ComingSoon step={id} icon={icon} />
+            ) : id === "media" ? (
+              <MediaLibrary store={videoMediaStore} />
+            ) : (
+              <MusicPanel store={videoMusicStore} />
+            )}
           </TabsContent>
         ))}
       </Tabs>

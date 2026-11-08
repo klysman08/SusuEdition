@@ -4,6 +4,21 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-11-08 · M2 Música
+
+### Added
+- Passo **Música** no Video Maker: escolher a faixa (MP3, M4A/AAC, WAV, OGG, FLAC ou a trilha de áudio de um MP4/MOV).
+- Waveform interativa: arrastar alças de início/fim, mover o trecho, tocar fora para levar a borda até lá, ajuste fino de ±0,1 s, atalhos 15/30/60 s/inteira e navegação por teclado.
+- Detecção de BPM e batidas em Rust (Symphonia + spectral flux + programação dinâmica), com cache; as batidas aparecem na waveform e as bordas podem "grudar" nelas.
+- Seleção inicial inteligente: pula a introdução em silêncio e termina numa batida.
+- Prévia do trecho com cursor de reprodução (streaming por HTTP Range).
+
+### Performance
+- Música de 3 min: análise em ~0,25 s (cache frio) e 13 ms (cache quente) no desktop.
+
+### Changed
+- CI: jobs Rust ~10× mais rápidos (filtro de caminhos, dependências sem otimização, clippy só no Linux); APK de release só para arm64/armv7.
+
 ## [0.1.0] — 2026-11-08 · M1 Mídia & I/O
 
 ### Added

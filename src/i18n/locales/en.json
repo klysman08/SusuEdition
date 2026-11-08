@@ -139,5 +139,32 @@
     "error": "Couldn't read this file",
     "dragHint": "Drag to reorder",
     "position": "Position {{n}}"
+  },
+  "music": {
+    "emptyTitle": "Choose the video's music",
+    "emptyDescription": "MP3, M4A, WAV, OGG or FLAC. Then pick exactly the section you want.",
+    "choose": "Choose music",
+    "replace": "Replace",
+    "remove": "Remove music",
+    "analyzing": "Analyzing…",
+    "analyzingHint": "Reading the track and detecting beats…",
+    "bpm": "{{bpm}} BPM",
+    "beats_one": "{{count}} beat",
+    "beats_other": "{{count}} beats",
+    "noBeats": "No beats detected",
+    "error": "Couldn't read this track",
+    "unsupported": "Pick an audio file (MP3, M4A, WAV, OGG or FLAC).",
+    "selectionTitle": "Track section",
+    "selectionHint": "Drag the handles or the section. Marks at the bottom are beats.",
+    "selectionLength": "section length",
+    "playSelection": "Play section",
+    "pause": "Pause",
+    "start": "Start",
+    "end": "End",
+    "earlier": "{{label}}: 0.1 s earlier",
+    "later": "{{label}}: 0.1 s later",
+    "quickLength": "Quick length",
+    "full": "Full",
+    "snap": "Snap to beats"
   }
 }

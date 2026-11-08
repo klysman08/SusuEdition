@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub enum MediaKind {
     Image,
     Video,
+    Audio,
     Unknown,
 }
 
@@ -61,4 +62,17 @@ pub enum ProcessEvent {
     Done { id: String, meta: MediaMeta },
     #[serde(rename_all = "camelCase")]
     Failed { id: String, error: String },
+}
+
+/// Resultado da análise de uma música (persistido em cache).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AudioAnalysis {
+    pub duration_sec: f64,
+    pub source_rate: u32,
+    pub channels: usize,
+    /// Picos normalizados 0..1 para desenhar a waveform.
+    pub peaks: Vec<f32>,
+    pub bpm: Option<f64>,
+    pub beats: Vec<super::beat::Beat>,
 }

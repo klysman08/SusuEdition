@@ -69,6 +69,7 @@ pub fn sniff_kind(header: &[u8], name: &str) -> (MediaKind, String) {
         let kind = match t.matcher_type() {
             infer::MatcherType::Image => MediaKind::Image,
             infer::MatcherType::Video => MediaKind::Video,
+            infer::MatcherType::Audio => MediaKind::Audio,
             _ => MediaKind::Unknown,
         };
         if kind != MediaKind::Unknown {
@@ -86,6 +87,11 @@ pub fn sniff_kind(header: &[u8], name: &str) -> (MediaKind, String) {
         "mov" => (MediaKind::Video, "video/quicktime".into()),
         "webm" => (MediaKind::Video, "video/webm".into()),
         "mkv" => (MediaKind::Video, "video/x-matroska".into()),
+        "mp3" => (MediaKind::Audio, "audio/mpeg".into()),
+        "m4a" | "aac" => (MediaKind::Audio, "audio/mp4".into()),
+        "wav" => (MediaKind::Audio, "audio/wav".into()),
+        "ogg" | "oga" => (MediaKind::Audio, "audio/ogg".into()),
+        "flac" => (MediaKind::Audio, "audio/flac".into()),
         _ => (MediaKind::Unknown, "application/octet-stream".into()),
     }
 }
@@ -248,5 +254,10 @@ mod tests {
         assert_eq!(sniff_kind(&mp4, "content://x/1").0, MediaKind::Video);
         assert_eq!(sniff_kind(&[], "clip.MOV").1, "video/quicktime");
         assert_eq!(sniff_kind(&[], "doc.pdf").0, MediaKind::Unknown);
+        assert_eq!(
+            sniff_kind(b"ID3      ", "content://x/9").0,
+            MediaKind::Audio
+        );
+        assert_eq!(sniff_kind(&[], "song.flac").0, MediaKind::Audio);
     }
 }

@@ -1,7 +1,8 @@
+import { computePeaks, type AudioAnalysis } from "@/engine/audio";
 import { createProbePool, type ProbePool } from "@/engine/decode";
 import type { MediaKind } from "@/engine/types";
 
-import { ACCEPT_ATTRIBUTE } from "./formats";
+import { ACCEPT_ATTRIBUTE, AUDIO_ACCEPT_ATTRIBUTE } from "./formats";
 import type { MediaBackend, PickedMedia, RegisterOutcome } from "./types";
 
 /** Hash FNV-1a de 64 bits em hex — id estável para arquivos do navegador. */
@@ -14,18 +15,19 @@ function fnv1a(input: string): string {
   return h.toString(16).padStart(16, "0");
 }
 
-function kindOf(file: File): MediaKind | "unknown" {
+function kindOf(file: File): MediaKind | "audio" | "unknown" {
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
   return "unknown";
 }
 
-function pickFiles(): Promise<File[]> {
+function pickFiles(accept = ACCEPT_ATTRIBUTE, multiple = true): Promise<File[]> {
   return new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
-    input.multiple = true;
-    input.accept = ACCEPT_ATTRIBUTE;
+    input.multiple = multiple;
+    input.accept = accept;
     input.onchange = () => resolve(Array.from(input.files ?? []));
     input.oncancel = () => resolve([]);
     input.click();
@@ -48,6 +50,31 @@ export function createWebBackend(): MediaBackend {
 
     async pick() {
       return (await pickFiles()).map((file): PickedMedia => ({ type: "web", file }));
+    },
+
+    async pickAudio() {
+      return (await pickFiles(AUDIO_ACCEPT_ATTRIBUTE, false)).map((file): PickedMedia => ({ type: "web", file }));
+    },
+
+    /** Navegador: só a waveform (a detecção de batidas roda no Rust, no app nativo). */
+    async analyzeAudio(id): Promise<AudioAnalysis> {
+      const file = files.get(id);
+      if (!file) throw new Error(`arquivo não registrado: ${id}`);
+      const ctx = new OfflineAudioContext({ numberOfChannels: 1, length: 1, sampleRate: 11025 });
+      const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+      const mono = new Float32Array(buffer.length);
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const ch = buffer.getChannelData(c);
+        for (let i = 0; i < ch.length; i++) mono[i]! += ch[i]! / buffer.numberOfChannels;
+      }
+      return {
+        durationSec: buffer.duration,
+        sourceRate: buffer.sampleRate,
+        channels: buffer.numberOfChannels,
+        peaks: computePeaks(mono, 4000),
+        bpm: null,
+        beats: [],
+      };
     },
 
     async register(picked) {

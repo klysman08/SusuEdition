@@ -55,21 +55,23 @@ export async function importMedia(
   const outcomes = await backend.register(picked);
   const existing = store.getState().items;
   const fresh: LibraryItem[] = [];
+  const seen = new Set<string>();
   for (const o of outcomes) {
     if (o.status === "error") {
       report.failed.push({ name: o.uri, error: o.error });
       continue;
     }
-    if (o.kind === "unknown") {
+    // A biblioteca aceita só fotos e vídeos (música tem seu próprio passo).
+    if (o.kind !== "image" && o.kind !== "video") {
       report.failed.push({ name: o.name, error: "unsupported" });
       continue;
     }
-    if (existing[o.id] || fresh.some((f) => f.id === o.id)) {
+    if (existing[o.id] || seen.has(o.id)) {
       report.duplicates++;
       continue;
     }
-    const kind = o.kind;
-    fresh.push({ id: o.id, kind, name: o.name, size: o.size, modifiedMs: o.modifiedMs, status: "pending" });
+    seen.add(o.id);
+    fresh.push({ id: o.id, kind: o.kind, name: o.name, size: o.size, modifiedMs: o.modifiedMs, status: "pending" });
   }
   report.added = fresh.length;
   if (fresh.length === 0) return report;
