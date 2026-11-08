@@ -1,0 +1,51 @@
+{
+  "app": { "name": "SusuEdition", "tagline": "Your moments, on the beat." },
+  "nav": { "home": "Home", "videoMaker": "Video", "photoCollage": "Collage", "settings": "Settings" },
+  "home": {
+    "greeting": "What are we creating today?",
+    "subtitle": "Everything runs on your device — fast and private.",
+    "videoMaker": {
+      "title": "Video Maker",
+      "description": "Photos, videos and music synced to the beat.",
+      "cta": "Create video"
+    },
+    "photoCollage": {
+      "title": "Photo Collage",
+      "description": "Layouts, margins and filters in an elegant collage.",
+      "cta": "Create collage"
+    },
+    "recent": "Recent projects",
+    "noRecent": "Your projects will show up here."
+  },
+  "videoMaker": {
+    "title": "Video Maker",
+    "subtitle": "Build your video in five steps.",
+    "steps": {
+      "format": { "title": "Format", "description": "Aspect ratio (9:16, 16:9, 4:3…) and fit or cover framing." },
+      "media": { "title": "Media", "description": "Load photos and videos — even hundreds of them." },
+      "music": { "title": "Music", "description": "Pick the track and the exact section you want." },
+      "timing": { "title": "Timing", "description": "Total length, time per photo/video and beat sync." },
+      "export": { "title": "Export", "description": "MP4 up to 4K, at 30 or 60 fps." }
+    }
+  },
+  "photoCollage": {
+    "title": "Photo Collage",
+    "subtitle": "Create collages with layouts and filters.",
+    "steps": {
+      "photos": { "title": "Photos", "description": "Select the photos for your collage." },
+      "layout": { "title": "Layout", "description": "Aspect ratio, grid and position of each photo." },
+      "spacing": { "title": "Margins", "description": "Outer margin and inner spacing (0 by default)." },
+      "filters": { "title": "Filters", "description": "Brightness, contrast, saturation, B&W and more." },
+      "export": { "title": "Export", "description": "High-resolution PNG or JPEG." }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Make SusuEdition yours.",
+    "appearance": { "title": "Appearance", "description": "Choose light, dark or system theme." },
+    "language": { "title": "Language", "description": "Interface language." },
+    "about": { "title": "About", "version": "Version {{version}}", "platform": "Platform: {{platform}}" }
+  },
+  "theme": { "light": "Light", "dark": "Dark", "system": "System", "toggle": "Toggle theme" },
+  "common": { "comingSoon": "Coming soon", "step": "Step {{n}}" }
+}

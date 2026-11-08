@@ -36,3 +36,6 @@ src-tauri/gen/android/keystore.properties
 .env
 .env.*
 !.env.example
+
+# Claude Code (local)
+.claude/settings.local.json

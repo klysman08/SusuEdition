@@ -1,0 +1,154 @@
+name: Release
+
+# Dispara ao enviar uma tag vX.Y.Z:
+#   pnpm version:bump 0.1.0 --tag && git push --follow-tags
+# Tags com sufixo (ex.: v0.1.0-beta.1) geram pre-release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  create-release:
+    name: Criar release (draft)
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release.outputs.id }}
+      tag: ${{ github.ref_name }}
+    steps:
+      - id: meta
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+      - id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: SusuEdition ${{ github.ref_name }}
+          draft: true
+          prerelease: ${{ steps.meta.outputs.prerelease == 'true' }}
+          generate_release_notes: true
+
+  windows:
+    name: Windows (.exe / .msi)
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - run: pnpm install --frozen-lockfile
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+
+  android:
+    name: Android (.apk)
+    needs: create-release
+    runs-on: ubuntu-latest
+    env:
+      NDK_VERSION: 27.2.12479018
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - name: Instalar NDK e build-tools
+        run: sdkmanager --install "ndk;${NDK_VERSION}" "build-tools;35.0.0" "platforms;android-35"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - run: pnpm install --frozen-lockfile
+
+      - name: Gerar projeto Android (se não versionado)
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+        shell: bash
+        run: |
+          if [ ! -d src-tauri/gen/android ]; then
+            pnpm tauri android init --ci
+            pnpm tauri icon src-tauri/icons/icon.png
+          fi
+
+      - name: Build APK (release, não assinado)
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+        run: pnpm tauri android build --apk --target aarch64 --target armv7 --target x86_64
+
+      - name: Assinar APK
+        id: sign
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          UNSIGNED=$(find src-tauri/gen/android/app/build/outputs/apk -name "*release*.apk" | head -n 1)
+          echo "APK gerado: $UNSIGNED"
+          if [ -n "${KEYSTORE_BASE64}" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.jks
+          else
+            echo "::warning::Secrets de keystore ausentes — assinando com chave temporária (não permite atualizar por cima de versões anteriores)."
+            KEYSTORE_PASSWORD=temporary KEY_PASSWORD=temporary KEY_ALIAS=susu
+            keytool -genkeypair -v -keystore release.jks -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" \
+              -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=SusuEdition CI"
+          fi
+          "$BT/zipalign" -f -p 4 "$UNSIGNED" aligned.apk
+          OUT="SusuEdition_${GITHUB_REF_NAME}_android.apk"
+          "$BT/apksigner" sign --ks release.jks --ks-pass "pass:$KEYSTORE_PASSWORD" --key-pass "pass:$KEY_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" --out "$OUT" aligned.apk
+          "$BT/apksigner" verify "$OUT"
+          rm -f release.jks
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: ${{ steps.sign.outputs.path }}
+
+  publish:
+    name: Publicar release
+    needs: [create-release, windows, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: Number("${{ needs.create-release.outputs.release_id }}"),
+              draft: false,
+            });

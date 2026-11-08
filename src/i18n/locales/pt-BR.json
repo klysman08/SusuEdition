@@ -1,0 +1,51 @@
+{
+  "app": { "name": "SusuEdition", "tagline": "Seus momentos, no ritmo da música." },
+  "nav": { "home": "Início", "videoMaker": "Vídeo", "photoCollage": "Colagem", "settings": "Ajustes" },
+  "home": {
+    "greeting": "O que vamos criar hoje?",
+    "subtitle": "Tudo é processado no seu dispositivo — rápido e privado.",
+    "videoMaker": {
+      "title": "Video Maker",
+      "description": "Fotos, vídeos e música sincronizados com as batidas.",
+      "cta": "Criar vídeo"
+    },
+    "photoCollage": {
+      "title": "Photo Collage",
+      "description": "Layouts, margens e filtros em uma colagem elegante.",
+      "cta": "Criar colagem"
+    },
+    "recent": "Projetos recentes",
+    "noRecent": "Seus projetos aparecerão aqui."
+  },
+  "videoMaker": {
+    "title": "Video Maker",
+    "subtitle": "Monte seu vídeo em cinco passos.",
+    "steps": {
+      "format": { "title": "Formato", "description": "Aspect ratio (9:16, 16:9, 4:3…) e enquadramento fit ou cover." },
+      "media": { "title": "Mídias", "description": "Carregue fotos e vídeos — mesmo centenas deles." },
+      "music": { "title": "Música", "description": "Escolha a faixa e o trecho exato que você quer usar." },
+      "timing": { "title": "Tempo", "description": "Duração total, tempo por foto/vídeo e sincronia com as batidas." },
+      "export": { "title": "Exportar", "description": "MP4 até 4K, a 30 ou 60 fps." }
+    }
+  },
+  "photoCollage": {
+    "title": "Photo Collage",
+    "subtitle": "Crie colagens com layouts e filtros.",
+    "steps": {
+      "photos": { "title": "Fotos", "description": "Selecione as fotos da colagem." },
+      "layout": { "title": "Layout", "description": "Aspect ratio, grade e posição de cada foto." },
+      "spacing": { "title": "Margens", "description": "Margem externa e espaçamento interno (0 por padrão)." },
+      "filters": { "title": "Filtros", "description": "Brilho, contraste, saturação, P&B e mais." },
+      "export": { "title": "Exportar", "description": "PNG ou JPEG em alta resolução." }
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Personalize o SusuEdition.",
+    "appearance": { "title": "Aparência", "description": "Escolha entre tema claro, escuro ou do sistema." },
+    "language": { "title": "Idioma", "description": "Idioma da interface." },
+    "about": { "title": "Sobre", "version": "Versão {{version}}", "platform": "Plataforma: {{platform}}" }
+  },
+  "theme": { "light": "Claro", "dark": "Escuro", "system": "Sistema", "toggle": "Alternar tema" },
+  "common": { "comingSoon": "Em breve", "step": "Passo {{n}}" }
+}

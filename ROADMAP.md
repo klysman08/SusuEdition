@@ -4,14 +4,17 @@
 
 ## M0 — Fundação · `v0.0.x`
 - [x] PLAN.md, SPEC.md, ROADMAP.md e ADRs
-- [ ] Repositório privado no GitHub
-- [ ] Scaffold Tauri v2 + React + TS + Vite + Tailwind v4 + shadcn/ui
-- [ ] Tema dark/light/sistema, i18n pt-BR/en, shell responsivo (sidebar / bottom-nav)
-- [ ] Estrutura de módulos (`engine/`, `features/`, `platform/`, Rust `commands/services/protocol`)
-- [ ] Lint, typecheck, Vitest, fmt, clippy, cargo test
-- [ ] CI (`ci.yml`) e Release por tag (`release.yml`: Windows `.exe/.msi` + Android `.apk`)
+- [x] Repositório privado no GitHub
+- [x] Scaffold Tauri v2 + React + TS + Vite + Tailwind v4 + shadcn/ui
+- [x] Tema dark/light/sistema, i18n pt-BR/en, shell responsivo (sidebar / bottom-nav)
+- [x] Estrutura de módulos (`engine/`, `features/`, `platform/`, Rust `commands/services/protocol`)
+- [x] Lint, typecheck, Vitest, fmt, clippy, cargo test
+- [x] Motor de timeline: durações, excesso de mídia (drop/fit), fade-out de 3s (testado)
+- [x] CI (`ci.yml`) e Release por tag (`release.yml`: Windows `.exe/.msi` + Android `.apk`)
 
 ## M1 — Mídia & I/O · `v0.1.0`
+- [ ] Plugin nativo `plugins/tauri-plugin-susu-media` (Kotlin: `content://`, MediaStore, wake lock)
+- [ ] Versionar `src-tauri/gen/android` (gerado com o Android SDK local)
 - [ ] Picker multi-seleção (fotos/vídeos) — RF-V4
 - [ ] Protocolo `susu://media` com HTTP Range (Windows + `content://` Android) — RNF-6
 - [ ] Probe de metadados em Worker; EXIF/rotação — RF-V7
