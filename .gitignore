@@ -1,0 +1,38 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.pnpm-store/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Rust / Tauri
+src-tauri/target/
+target/
+src-tauri/gen/schemas/
+
+# Android build outputs and secrets
+src-tauri/gen/android/**/build/
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/local.properties
+src-tauri/gen/android/keystore.properties
+*.keystore
+*.jks
+
+# Env
+.env
+.env.*
+!.env.example
