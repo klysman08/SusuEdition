@@ -30,7 +30,7 @@ jobs:
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
       - id: release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: SusuEdition ${{ github.ref_name }}
@@ -137,7 +137,7 @@ jobs:
           rm -f release.jks
           echo "path=$OUT" >> "$GITHUB_OUTPUT"
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
