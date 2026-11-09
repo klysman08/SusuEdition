@@ -33,7 +33,7 @@ function useGridLayout(width: number) {
  * Grade virtualizada e ordenável. Só as linhas visíveis (+ overscan) existem no DOM,
  * então 1.000 itens custam o mesmo que 50. Arrastar: mouse direto; toque com pressão longa.
  */
-export function MediaGrid({ store }: { store: MediaLibraryStore }) {
+export function MediaGrid({ store, onOpenItem }: { store: MediaLibraryStore; onOpenItem?: (id: string) => void }) {
   const order = useLibrary(store, (s) => s.order);
   const selectMode = useLibrary(store, (s) => s.selectMode);
   const scrollRef = useScrollContainer();
@@ -103,7 +103,14 @@ export function MediaGrid({ store }: { store: MediaLibraryStore }) {
                 }}
               >
                 {order.slice(start, start + cols).map((id, j) => (
-                  <MediaTile key={id} store={store} id={id} index={start + j} selectMode={selectMode} />
+                  <MediaTile
+                    key={id}
+                    store={store}
+                    id={id}
+                    index={start + j}
+                    selectMode={selectMode}
+                    onOpen={onOpenItem}
+                  />
                 ))}
               </div>
             );

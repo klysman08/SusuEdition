@@ -65,7 +65,7 @@ Princípios:
    - **cache em disco** (`<app_cache>/media/{thumbs,meta}`) por `blake3(uri|tamanho|data)`: reabrir é instantâneo;
    - atualizações aplicadas no store em lotes (≈120 ms) e cada tile assina só o próprio item; a grade é **virtualizada** (só as linhas visíveis existem no DOM).
 3. **Imagens** decodificadas só quando necessárias, já redimensionadas para a resolução de saída (`createImageBitmap` com `resizeWidth/Height`); orientação EXIF respeitada; **cache LRU** de texturas; pré-carga apenas dos próximos N itens.
-4. **Preview** em resolução reduzida (~540p) com pool de no máximo 2–3 decoders (clipe atual + próximo).
+4. **Preview** (implementado no M3): canvas WebGL2 limitado a 720 px no lado menor; vídeos em elementos `<video>` reaproveitados (pool de 4, leitura por HTTP Range, decodificação por hardware) sincronizados a um relógio próprio; fotos decodificadas já reduzidas (`createImageBitmap`, LRU de 192 MB, thumbnail como placeholder imediato); pré-carga dos próximos 6 s; música num `<audio>` com volume calculado a cada quadro (fade-out e ducking). O agendamento de camadas (`engine/render/schedule`) e o compositor são os mesmos que o export usará.
 5. **Export** em **Worker + OffscreenCanvas**: agendador de frames → `VideoDecoder` (frame-accurate) → composição WebGL → `VideoEncoder` H.264 (`prefer-hardware`, fallback software) com **backpressure** → mux MP4 em **streaming para disco** (chunks enviados ao Rust). Progresso, ETA, cancelamento, checagem de espaço livre e wake lock no Android.
 6. **Áudio** mixado em blocos: música recortada + áudio dos vídeos com ganho por clipe + volume da música nos trechos de vídeo; fades; `AudioEncoder` AAC 48 kHz estéreo.
 

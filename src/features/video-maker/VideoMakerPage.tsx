@@ -1,4 +1,5 @@
 import { Clock, Download, Images, Music, RectangleVertical, type LucideIcon } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "@/components/common/PageHeader";
@@ -7,17 +8,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaLibrary } from "@/features/media-library";
 import { MusicPanel } from "@/features/music";
 
+import { FormatPanel } from "./components/FormatPanel";
+import { ItemSheet } from "./components/ItemSheet";
+import { TimingPanel } from "./components/TimingPanel";
+import { useVideoTimeline } from "./hooks";
+import { PreviewPanel } from "./preview/PreviewPanel";
 import { videoMediaStore, videoMusicStore } from "./store";
 
 type StepId = "format" | "media" | "music" | "timing" | "export";
 
-const STEPS: { id: StepId; icon: LucideIcon; ready: boolean }[] = [
-  { id: "format", icon: RectangleVertical, ready: false },
-  { id: "media", icon: Images, ready: true },
-  { id: "music", icon: Music, ready: true },
-  { id: "timing", icon: Clock, ready: false },
-  { id: "export", icon: Download, ready: false },
+const STEPS: { id: StepId; icon: LucideIcon }[] = [
+  { id: "format", icon: RectangleVertical },
+  { id: "media", icon: Images },
+  { id: "music", icon: Music },
+  { id: "timing", icon: Clock },
+  { id: "export", icon: Download },
 ];
+
+/** Passos que mostram a prévia ao lado (ou acima, no celular). */
+const WITH_PREVIEW: ReadonlySet<StepId> = new Set(["format", "timing"]);
 
 function ComingSoon({ step, icon: Icon }: { step: StepId; icon: LucideIcon }) {
   const { t } = useTranslation();
@@ -38,11 +47,15 @@ function ComingSoon({ step, icon: Icon }: { step: StepId; icon: LucideIcon }) {
 
 export function VideoMakerPage() {
   const { t } = useTranslation();
+  const [step, setStep] = useState<StepId>("media");
+  const [openItem, setOpenItem] = useState<string | null>(null);
+  const timeline = useVideoTimeline();
+  const showPreview = WITH_PREVIEW.has(step);
 
   return (
     <>
       <PageHeader title={t("videoMaker.title")} subtitle={t("videoMaker.subtitle")} />
-      <Tabs defaultValue="media" className="gap-4">
+      <Tabs value={step} onValueChange={(v) => setStep(v as StepId)} className="gap-4">
         <div className="-mx-4 [scrollbar-width:none] overflow-x-auto overflow-y-hidden px-4 sm:mx-0 sm:px-0">
           <TabsList variant="line" className="w-max">
             {STEPS.map(({ id, icon: Icon }, i) => (
@@ -54,18 +67,35 @@ export function VideoMakerPage() {
             ))}
           </TabsList>
         </div>
-        {STEPS.map(({ id, icon, ready }) => (
-          <TabsContent key={id} value={id}>
-            {!ready ? (
-              <ComingSoon step={id} icon={icon} />
-            ) : id === "media" ? (
-              <MediaLibrary store={videoMediaStore} />
-            ) : (
+
+        <div
+          className={showPreview ? "grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] xl:items-start" : ""}
+        >
+          {showPreview && (
+            <div className="xl:sticky xl:top-4 xl:order-2">
+              <PreviewPanel timeline={timeline} />
+            </div>
+          )}
+          <div className="min-w-0">
+            <TabsContent value="format">
+              <FormatPanel />
+            </TabsContent>
+            <TabsContent value="media">
+              <MediaLibrary store={videoMediaStore} onOpenItem={setOpenItem} />
+            </TabsContent>
+            <TabsContent value="music">
               <MusicPanel store={videoMusicStore} />
-            )}
-          </TabsContent>
-        ))}
+            </TabsContent>
+            <TabsContent value="timing">
+              <TimingPanel timeline={timeline} />
+            </TabsContent>
+            <TabsContent value="export">
+              <ComingSoon step="export" icon={Download} />
+            </TabsContent>
+          </div>
+        </div>
       </Tabs>
+      <ItemSheet id={openItem} timeline={timeline} onClose={() => setOpenItem(null)} />
     </>
   );
 }

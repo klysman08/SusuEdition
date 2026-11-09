@@ -35,3 +35,15 @@ node scripts/bench/music-bench.mjs 9333 caminho/para/musica.mp3 musica.png
 | Data | Máquina | Arquivo | Frio | Quente | Resultado |
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-08 | Windows 11, desktop | MP3 sintético 3 min, 124 BPM | 243 ms | 13 ms | 123,6 BPM, 362 batidas |
+
+## Reprodução do preview
+
+Com mídias e música já carregadas no Video Maker (aba Formato ou Tempo):
+
+```bash
+node scripts/bench/playback-bench.mjs 9333
+```
+
+| Data | Máquina | Cenário | fps | Pior quadro | Tarefas longas | Heap JS |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | Windows 11, desktop (tela 100 Hz) | 12 fotos + 3 vídeos, fundo desfocado | 99 | 65 ms | 2 (máx. 56 ms) | 7 MB |

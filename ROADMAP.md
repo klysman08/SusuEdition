@@ -31,11 +31,12 @@
 - [ ] Validar com músicas reais variadas (gêneros, BPM lento/rápido) e no Android
 
 ## M3 — Timeline + Preview · `v0.3.0`
-- [ ] Aspect ratios e fit/cover/fill/fundo desfocado — RF-V1, RF-V2
-- [ ] Motor de timeline (regras §2.6) com testes — RF-V13…RF-V16
-- [ ] Compositor WebGL2 + transições corte/fade — RF-V19
-- [ ] Preview com play/scrub — RF-V20
-- [ ] Áudio dos vídeos + volumes + ducking — RF-V8, RF-V12
+- [x] Aspect ratios e fit/cover/fill/fundo desfocado ou cor — RF-V1, RF-V2
+- [x] Passo Tempo: duração total (música/personalizada/soma), tempo por foto/vídeo, excesso (deixar de fora/encurtar) — RF-V13…RF-V16
+- [x] Compositor WebGL2 + transições corte/fade (fade centrado no corte, mistura exata via framebuffer) — RF-V19
+- [x] Preview com play/scrub e faixa da timeline — RF-V20
+- [x] Áudio dos vídeos + volumes + ducking; ajustes por mídia (início, duração, enquadramento, som, volume) — RF-V8, RF-V12
+- [ ] Validar o preview no Android (WebView + `content://` em `<video>`)
 
 ## M4 — Export · `v0.4.0`
 - [ ] Plugin nativo `plugins/tauri-plugin-susu-media` (Kotlin: MediaStore, wake lock, nome real de `content://`)

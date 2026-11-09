@@ -4,6 +4,20 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-11-09 · M3 Timeline + Preview
+
+### Added
+- Passo **Formato**: proporções 9:16, 16:9, 4:3, 1:1, 4:5, 3:4; enquadramento Inteira/Preencher/Esticar; fundo desfocado ou cor.
+- Passo **Tempo**: duração total (trecho da música, personalizada ou soma das mídias), tempo por foto e por vídeo, o que fazer com mídia excedente, corte seco ou fade (0,2–2 s), som dos vídeos, volumes da música/vídeos e ducking; resumo com avisos (mídias de fora, música cortada com fade-out de 3 s).
+- **Prévia** ao vivo (WebGL2) com play/pausa, barra de posição e faixa da timeline com miniaturas.
+- **Ajustes por mídia** (toque numa mídia): início do vídeo, duração própria, enquadramento, manter som e volume.
+
+### Fixed
+- `susu://` agora entrega o arquivo inteiro quando não há cabeçalho Range (fotos acima de 8 MB eram cortadas).
+
+### Performance
+- Reprodução de 30 s no Windows: ~99 fps (taxa da tela), 2 tarefas longas (~56 ms) nas trocas de vídeo, heap JS de 7 MB.
+
 ## [0.2.0] — 2026-11-08 · M2 Música
 
 ### Added

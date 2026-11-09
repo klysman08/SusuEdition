@@ -19,6 +19,8 @@ pub const SCHEME: &str = "susu";
 
 /// Tamanho máximo de uma resposta para Range aberto (`bytes=N-`).
 const MAX_CHUNK: u64 = 8 * 1024 * 1024;
+/// Tamanho máximo servido de uma vez quando não há cabeçalho Range.
+const MAX_FULL_BODY: u64 = 128 * 1024 * 1024;
 
 pub fn handle<R: Runtime>(
     ctx: UriSchemeContext<'_, R>,
@@ -109,7 +111,22 @@ fn serve_media<R: Runtime>(
                 .body(Vec::new())
                 .unwrap();
         }
-        // Sem Range: trata como `bytes=0-` (resposta parcial limitada).
+        // Sem Range (ex.: `fetch` de uma foto): arquivo inteiro com 200, até um limite.
+        // Arquivos maiores (vídeos) respondem em pedaços — o <video> sempre pede Range.
+        None if size <= MAX_FULL_BODY && req.method() != tauri::http::Method::HEAD => {
+            return match registry.read_range(app, id, 0, size as usize) {
+                Ok(bytes) => base(StatusCode::OK)
+                    .header(header::CONTENT_TYPE, entry.mime.as_str())
+                    .header(header::ACCEPT_RANGES, "bytes")
+                    .header(header::CONTENT_LENGTH, bytes.len().to_string())
+                    .body(bytes)
+                    .unwrap(),
+                Err(e) => {
+                    log::warn!("susu:// falha ao ler {id}: {e}");
+                    error(StatusCode::INTERNAL_SERVER_ERROR, "falha ao ler a mídia")
+                }
+            };
+        }
         None => ByteRange {
             start: 0,
             end: size.saturating_sub(1),

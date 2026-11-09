@@ -98,10 +98,11 @@ interface MediaTileProps {
   id: string;
   index: number;
   selectMode: boolean;
+  onOpen?: (id: string) => void;
 }
 
 /** Tile ordenável. Assina apenas o próprio item: atualizar um item não re-renderiza a grade inteira. */
-export const MediaTile = memo(function MediaTile({ store, id, index, selectMode }: MediaTileProps) {
+export const MediaTile = memo(function MediaTile({ store, id, index, selectMode, onOpen }: MediaTileProps) {
   const { t } = useTranslation();
   const item = useLibrary(store, (s) => s.items[id]);
   const selected = useLibrary(store, (s) => s.selected[id] === true);
@@ -127,11 +128,14 @@ export const MediaTile = memo(function MediaTile({ store, id, index, selectMode 
       aria-checked={selectMode ? selected : undefined}
       aria-label={`${t("mediaLibrary.position", { n: index + 1 })}: ${item.name}`}
       title={selectMode ? item.name : `${item.name} — ${t("mediaLibrary.dragHint")}`}
-      onClick={selectMode ? () => store.getState().toggleSelected(id) : undefined}
+      onClick={selectMode ? () => store.getState().toggleSelected(id) : onOpen ? () => onOpen(id) : undefined}
       onKeyDown={(e) => {
         if (selectMode && (e.key === " " || e.key === "Enter")) {
           e.preventDefault();
           store.getState().toggleSelected(id);
+        } else if (onOpen && e.key === "Enter") {
+          e.preventDefault();
+          onOpen(id);
         } else {
           listeners?.onKeyDown?.(e);
         }

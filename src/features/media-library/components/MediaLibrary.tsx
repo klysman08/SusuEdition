@@ -15,7 +15,7 @@ import { MediaGrid } from "./MediaGrid";
 import { MediaToolbar } from "./MediaToolbar";
 
 /** Biblioteca de mídias: importar, visualizar, reordenar, ordenar e remover. */
-export function MediaLibrary({ store }: { store: MediaLibraryStore }) {
+export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; onOpenItem?: (id: string) => void }) {
   const { t } = useTranslation();
   const count = useLibrary(store, (s) => s.order.length);
   const [dragging, setDragging] = useState(false);
@@ -107,7 +107,7 @@ export function MediaLibrary({ store }: { store: MediaLibraryStore }) {
       ) : (
         <>
           <MediaToolbar store={store} onAdd={() => void pick()} onRemove={(ids) => void remove(ids)} />
-          <MediaGrid store={store} />
+          <MediaGrid store={store} onOpenItem={onOpenItem} />
         </>
       )}
 

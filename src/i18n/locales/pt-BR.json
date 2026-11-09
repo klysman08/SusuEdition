@@ -166,5 +166,104 @@
     "quickLength": "Duração rápida",
     "full": "Inteira",
     "snap": "Alinhar às batidas"
+  },
+  "format": {
+    "aspectTitle": "Proporção",
+    "aspectDescription": "Escolha onde o vídeo vai ser publicado.",
+    "aspects": {
+      "9x16": "Stories · Reels · TikTok",
+      "16x9": "YouTube · TV",
+      "4x3": "Clássico",
+      "1x1": "Quadrado",
+      "4x5": "Feed",
+      "3x4": "Retrato"
+    },
+    "fitTitle": "Enquadramento",
+    "fitDescription": "Como fotos e vídeos ocupam o quadro quando a proporção é diferente.",
+    "fit": {
+      "fit": "Inteira",
+      "cover": "Preencher",
+      "fill": "Esticar"
+    },
+    "fitHint": {
+      "fit": "Mostra tudo, com fundo nas sobras",
+      "cover": "Preenche o quadro cortando as bordas",
+      "fill": "Distorce para ocupar o quadro"
+    },
+    "backgroundTitle": "Fundo",
+    "background": {
+      "blur": "Desfocado",
+      "color": "Cor"
+    },
+    "customColor": "Outra cor"
+  },
+  "timing": {
+    "summaryTitle": "Resultado",
+    "videoLength": "duração do vídeo",
+    "itemsUsed": "{{used}} de {{total}} mídias",
+    "warnDropped_one": "{{count}} mídia ficou de fora por falta de tempo.",
+    "warnDropped_other": "{{count}} mídias ficaram de fora por falta de tempo.",
+    "warnShort": "As mídias somam {{content}} — a música será cortada aí, com fade-out de 3 s.",
+    "warnMusicShort": "A música ({{music}}) acaba antes do vídeo.",
+    "noMedia": "Adicione fotos ou vídeos no passo 2.",
+    "totalTitle": "Duração total",
+    "total": {
+      "music": "Trecho da música",
+      "custom": "Personalizada",
+      "items": "Soma das mídias"
+    },
+    "totalHint": {
+      "music": "O vídeo acompanha o trecho escolhido ({{duration}}).",
+      "musicMissing": "Escolha uma música no passo 3 — por enquanto, usa a soma das mídias.",
+      "custom": "Defina a duração exata do vídeo.",
+      "items": "Cada mídia com seu tempo, sem cortes."
+    },
+    "seconds": "segundos",
+    "perItemTitle": "Tempo de cada mídia",
+    "photo": "Fotos",
+    "video": "Vídeos",
+    "videoHint": "Vídeos mais curtos usam a própria duração.",
+    "overflowTitle": "Quando sobrar mídia",
+    "overflow": {
+      "drop": "Deixar de fora",
+      "fit": "Encurtar para caber"
+    },
+    "overflowHint": {
+      "drop": "Usa as mídias na ordem até o fim do vídeo.",
+      "fit": "Reduz o tempo de todas (mínimo 0,5 s cada)."
+    },
+    "transitionTitle": "Transição",
+    "transition": {
+      "cut": "Corte seco",
+      "fade": "Fade"
+    },
+    "fadeDuration": "Duração do fade",
+    "audioTitle": "Áudio",
+    "keepVideoAudio": "Manter o som dos vídeos",
+    "musicVolume": "Volume da música",
+    "videoVolume": "Volume dos vídeos",
+    "ducking": "Música durante vídeos com som"
+  },
+  "preview": {
+    "title": "Prévia",
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "empty": "A prévia aparece quando houver fotos ou vídeos.",
+    "unsupported": "Seu dispositivo não suporta WebGL2 — a prévia não está disponível.",
+    "seek": "Posição"
+  },
+  "item": {
+    "title": "Ajustes da mídia",
+    "photo": "Foto",
+    "video": "Vídeo",
+    "duration": "Duração",
+    "useDefault": "Usar padrão ({{seconds}} s)",
+    "fit": "Enquadramento",
+    "fitDefault": "Padrão",
+    "start": "Começar em",
+    "keepAudio": "Manter o som deste vídeo",
+    "volume": "Volume",
+    "reset": "Restaurar padrões",
+    "excluded": "Esta mídia não está no vídeo atual (sem tempo disponível)."
   }
 }

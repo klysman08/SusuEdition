@@ -166,5 +166,104 @@
     "quickLength": "Quick length",
     "full": "Full",
     "snap": "Snap to beats"
+  },
+  "format": {
+    "aspectTitle": "Aspect ratio",
+    "aspectDescription": "Pick where the video will be posted.",
+    "aspects": {
+      "9x16": "Stories · Reels · TikTok",
+      "16x9": "YouTube · TV",
+      "4x3": "Classic",
+      "1x1": "Square",
+      "4x5": "Feed",
+      "3x4": "Portrait"
+    },
+    "fitTitle": "Framing",
+    "fitDescription": "How photos and videos fill the frame when proportions differ.",
+    "fit": {
+      "fit": "Whole",
+      "cover": "Fill",
+      "fill": "Stretch"
+    },
+    "fitHint": {
+      "fit": "Shows everything, background in the gaps",
+      "cover": "Fills the frame, cropping edges",
+      "fill": "Distorts to fill the frame"
+    },
+    "backgroundTitle": "Background",
+    "background": {
+      "blur": "Blurred",
+      "color": "Color"
+    },
+    "customColor": "Custom color"
+  },
+  "timing": {
+    "summaryTitle": "Result",
+    "videoLength": "video length",
+    "itemsUsed": "{{used}} of {{total}} items",
+    "warnDropped_one": "{{count}} item was left out for lack of time.",
+    "warnDropped_other": "{{count}} items were left out for lack of time.",
+    "warnShort": "Your media adds up to {{content}} — the music will be cut there with a 3 s fade-out.",
+    "warnMusicShort": "The music ({{music}}) ends before the video.",
+    "noMedia": "Add photos or videos in step 2.",
+    "totalTitle": "Total length",
+    "total": {
+      "music": "Music section",
+      "custom": "Custom",
+      "items": "Sum of media"
+    },
+    "totalHint": {
+      "music": "The video follows the chosen section ({{duration}}).",
+      "musicMissing": "Pick a track in step 3 — meanwhile, the sum of media is used.",
+      "custom": "Set the exact video length.",
+      "items": "Each item with its own time, no cuts."
+    },
+    "seconds": "seconds",
+    "perItemTitle": "Time per item",
+    "photo": "Photos",
+    "video": "Videos",
+    "videoHint": "Shorter videos use their own length.",
+    "overflowTitle": "When there's too much media",
+    "overflow": {
+      "drop": "Leave out",
+      "fit": "Shorten to fit"
+    },
+    "overflowHint": {
+      "drop": "Uses items in order until the video ends.",
+      "fit": "Shortens all of them (at least 0.5 s each)."
+    },
+    "transitionTitle": "Transition",
+    "transition": {
+      "cut": "Hard cut",
+      "fade": "Fade"
+    },
+    "fadeDuration": "Fade length",
+    "audioTitle": "Audio",
+    "keepVideoAudio": "Keep video sound",
+    "musicVolume": "Music volume",
+    "videoVolume": "Video volume",
+    "ducking": "Music during videos with sound"
+  },
+  "preview": {
+    "title": "Preview",
+    "play": "Play",
+    "pause": "Pause",
+    "empty": "The preview shows up once there are photos or videos.",
+    "unsupported": "Your device doesn't support WebGL2 — preview unavailable.",
+    "seek": "Position"
+  },
+  "item": {
+    "title": "Item settings",
+    "photo": "Photo",
+    "video": "Video",
+    "duration": "Duration",
+    "useDefault": "Use default ({{seconds}} s)",
+    "fit": "Framing",
+    "fitDefault": "Default",
+    "start": "Start at",
+    "keepAudio": "Keep this video's sound",
+    "volume": "Volume",
+    "reset": "Reset to defaults",
+    "excluded": "This item isn't in the current video (no time left)."
   }
 }

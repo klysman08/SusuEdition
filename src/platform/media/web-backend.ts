@@ -41,6 +41,7 @@ function pickFiles(accept = ACCEPT_ATTRIBUTE, multiple = true): Promise<File[]> 
 export function createWebBackend(): MediaBackend {
   const files = new Map<string, File>();
   const thumbs = new Map<string, string>();
+  const mediaUrls = new Map<string, string>();
   let imagePool: ProbePool | null = null;
   const pool = () => (imagePool ??= createProbePool(Math.max(2, Math.min(4, navigator.hardwareConcurrency >> 1))));
 
@@ -101,9 +102,11 @@ export function createWebBackend(): MediaBackend {
     async unregister(ids) {
       for (const id of ids) {
         files.delete(id);
-        const url = thumbs.get(id);
-        if (url) URL.revokeObjectURL(url);
-        thumbs.delete(id);
+        for (const map of [thumbs, mediaUrls]) {
+          const url = map.get(id);
+          if (url) URL.revokeObjectURL(url);
+          map.delete(id);
+        }
       }
     },
 
@@ -142,8 +145,13 @@ export function createWebBackend(): MediaBackend {
 
     thumbUrl: (id) => thumbs.get(id) ?? "",
     mediaUrl: (id) => {
+      const cached = mediaUrls.get(id);
+      if (cached) return cached;
       const f = files.get(id);
-      return f ? URL.createObjectURL(f) : "";
+      if (!f) return "";
+      const url = URL.createObjectURL(f);
+      mediaUrls.set(id, url);
+      return url;
     },
 
     async onFileDrop(cb, onHover) {
