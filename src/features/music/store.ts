@@ -1,6 +1,7 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 
 import { defaultSelection, type AudioAnalysis, type Selection } from "@/engine/audio";
+import { trackMediaUsage } from "@/platform/media/usage";
 
 export interface MusicTrack {
   id: string;
@@ -32,7 +33,7 @@ export interface MusicState {
 export type MusicStore = StoreApi<MusicState>;
 
 export function createMusicStore(): MusicStore {
-  return createStore<MusicState>()((set) => ({
+  const store = createStore<MusicState>()((set) => ({
     track: null,
     status: "idle",
     analysis: null,
@@ -47,4 +48,9 @@ export function createMusicStore(): MusicStore {
     setSnapToBeats: (snapToBeats) => set({ snapToBeats }),
     clear: () => set({ track: null, status: "idle", error: undefined, analysis: null, selection: null }),
   }));
+  trackMediaUsage(() => {
+    const id = store.getState().track?.id;
+    return id ? [id] : [];
+  });
+  return store;
 }

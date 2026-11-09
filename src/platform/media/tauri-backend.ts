@@ -3,7 +3,7 @@ import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 import type { AudioAnalysis } from "@/engine/audio";
 import type { MediaMeta } from "@/engine/types";
 
-import { AUDIO_EXTENSIONS, SUPPORTED_EXTENSIONS } from "./formats";
+import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, SUPPORTED_EXTENSIONS } from "./formats";
 import type { MediaBackend, PickedMedia, ProcessEvent, RegisterOutcome } from "./types";
 
 const susu = (path: string) => convertFileSrc(path, "susu");
@@ -13,12 +13,17 @@ export function createTauriBackend(isMobile: boolean): MediaBackend {
     name: "tauri",
     videoProbeConcurrency: isMobile ? 2 : 3,
 
-    async pick() {
+    async pick(opts) {
       const { open } = await import("@tauri-apps/plugin-dialog");
+      const images = opts?.imagesOnly ?? false;
       const result = await open({
         multiple: true,
-        pickerMode: "media",
-        filters: [{ name: "Fotos e vídeos", extensions: [...SUPPORTED_EXTENSIONS] }],
+        pickerMode: images ? "image" : "media",
+        filters: [
+          images
+            ? { name: "Fotos", extensions: [...IMAGE_EXTENSIONS] }
+            : { name: "Fotos e vídeos", extensions: [...SUPPORTED_EXTENSIONS] },
+        ],
       });
       const uris = result === null ? [] : Array.isArray(result) ? result : [result];
       return uris.map((uri): PickedMedia => ({ type: "native", uri }));

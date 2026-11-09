@@ -9,7 +9,7 @@ import {
 import type { AudioPlan, TimelineSegment } from "@/engine/timeline";
 import type { FitBackground, FitMode, Size } from "@/engine/types";
 
-import { ImageCache } from "./image-cache";
+import { ImageCache } from "@/engine/decode/image-cache";
 import { VideoPool } from "./video-pool";
 
 export interface PreviewMedia {

@@ -25,7 +25,11 @@ fn not_found(id: &str) -> AppError {
     AppError::Unsupported(format!("exportação desconhecida: {id}"))
 }
 
-/// Nome de arquivo seguro (sem separadores de caminho), terminando em `.mp4`.
+/// Extensões aceitas na saída (vídeo e colagem).
+const EXTENSIONS: [&str; 4] = [".mp4", ".jpg", ".jpeg", ".png"];
+
+/// Nome de arquivo seguro (sem separadores de caminho), com extensão de saída
+/// conhecida (`.mp4` se não houver).
 pub fn sanitize_file_name(name: &str) -> String {
     let base: String = name
         .chars()
@@ -43,7 +47,8 @@ pub fn sanitize_file_name(name: &str) -> String {
     } else {
         base
     };
-    if base.to_ascii_lowercase().ends_with(".mp4") {
+    let lower = base.to_ascii_lowercase();
+    if EXTENSIONS.iter().any(|ext| lower.ends_with(ext)) {
         base
     } else {
         format!("{base}.mp4")
@@ -177,6 +182,9 @@ mod tests {
         assert_eq!(sanitize_file_name("a/b\\c:d"), "a_b_c_d.mp4");
         assert_eq!(sanitize_file_name("  "), "SusuEdition.mp4");
         assert_eq!(sanitize_file_name("clip.MP4"), "clip.MP4");
+        assert_eq!(sanitize_file_name("colagem.jpg"), "colagem.jpg");
+        assert_eq!(sanitize_file_name("colagem.png"), "colagem.png");
+        assert_eq!(sanitize_file_name("x.exe"), "x.exe.mp4");
     }
 
     #[test]

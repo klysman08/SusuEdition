@@ -138,7 +138,13 @@
     "notDecodable": "Este vídeo usa um codec que o dispositivo não consegue decodificar.",
     "error": "Não foi possível ler este arquivo",
     "dragHint": "Arraste para reordenar",
-    "position": "Posição {{n}}"
+    "position": "Posição {{n}}",
+    "addPhotos": "Adicionar fotos",
+    "emptyTitlePhotos": "Adicione fotos",
+    "emptyDescriptionPhotos": "Arraste fotos para cá ou escolha no seu dispositivo. De 2 a dezenas de fotos.",
+    "summaryPhotos_one": "{{count}} foto",
+    "summaryPhotos_other": "{{count}} fotos",
+    "onlyPhotos": "A colagem aceita apenas fotos"
   },
   "music": {
     "emptyTitle": "Escolha a música do vídeo",
@@ -303,5 +309,96 @@
     "retry": "Tentar de novo",
     "fallback": "Este dispositivo não codifica nessa qualidade — exportado em {{width}}×{{height}}.",
     "hint4k": "4K exige um encoder de hardware compatível; se não houver, o app usa 1080p automaticamente."
+  },
+  "collage": {
+    "emptyPreview": "Adicione fotos para ver a colagem.",
+    "loadingPhotos": "Carregando fotos…",
+    "canvasLabel": "Colagem. Toque numa foto para ajustar; setas movem, + e − dão zoom.",
+    "hint": "Toque numa foto para ajustar · arraste para reposicionar · segure e arraste para trocar",
+    "zoom": "Zoom",
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "swap": "Trocar",
+    "swapHint": "Escolha outra foto para trocar de lugar",
+    "swapPick": "Toque na foto que vai trocar de lugar com esta.",
+    "resetCrop": "Redefinir enquadramento",
+    "removePhoto": "Remover foto da colagem",
+    "deselect": "Fechar",
+    "aspectDescription": "Formato da imagem final. Os enquadramentos se adaptam.",
+    "layoutTitle": "Layout",
+    "layoutDescription_one": "Opções para {{count}} foto.",
+    "layoutDescription_other": "Opções para {{count}} fotos. Mudar a quantidade adapta o layout.",
+    "layoutEmpty": "Adicione fotos para ver as opções de layout.",
+    "layoutAutoHint": "Automático: organiza as linhas pelas proporções das fotos para cortar o mínimo possível.",
+    "layouts": {
+      "auto": "Automático",
+      "grid": "Grade",
+      "feature-left": "Destaque à esquerda",
+      "feature-top": "Destaque no topo",
+      "feature-right": "Destaque à direita",
+      "feature-bottom": "Destaque embaixo",
+      "rows": "Linhas: {{counts}}",
+      "cols": "Colunas: {{counts}}"
+    },
+    "spacingTitle": "Margem e espaçamento",
+    "spacingDescription": "Medidas numa imagem de 1080 px; acompanham a resolução exportada.",
+    "margin": "Margem externa",
+    "spacing": "Espaço entre fotos",
+    "radius": "Cantos arredondados",
+    "reset": "Zerar",
+    "backgroundTitle": "Fundo",
+    "backgroundDescription": "Aparece na margem, nos espaços e atrás dos cantos arredondados.",
+    "filtersTitle": "Filtros",
+    "filtersDescription": "Aplicados sobre a colagem inteira.",
+    "intensity": "Intensidade",
+    "presets": {
+      "none": "Original",
+      "vivid": "Vívido",
+      "warm": "Quente",
+      "cool": "Frio",
+      "mono": "P&B",
+      "noir": "Noir",
+      "sepia": "Sépia",
+      "vintage": "Vintage",
+      "dramatic": "Dramático",
+      "soft": "Suave"
+    },
+    "adjustTitle": "Ajustes",
+    "adjustDescription": "Somados ao filtro. Duplo clique zera um ajuste.",
+    "adjust": {
+      "brightness": "Brilho",
+      "contrast": "Contraste",
+      "saturation": "Saturação",
+      "temperature": "Temperatura",
+      "vignette": "Vinheta",
+      "grayscale": "Preto e branco",
+      "sepia": "Sépia",
+      "fade": "Desbotado"
+    },
+    "export": {
+      "formatTitle": "Formato",
+      "formatHint": {
+        "jpeg": "JPEG: arquivo menor, ideal para compartilhar.",
+        "png": "PNG: sem perdas, arquivo maior."
+      },
+      "jpegQuality": "Qualidade",
+      "sizeTitle": "Resolução",
+      "quality": {
+        "standard": "Padrão",
+        "high": "Alta",
+        "max": "Máxima"
+      },
+      "gpuLimit": "Este dispositivo renderiza até {{max}} px no lado maior.",
+      "photos": "Fotos",
+      "noPhotos": "Adicione fotos para exportar.",
+      "start": "Exportar imagem",
+      "running": "Gerando a colagem…",
+      "loading": "Lendo fotos ({{done}} de {{total}})",
+      "encoding": "Codificando a imagem…",
+      "doneTitle": "Colagem pronta!",
+      "open": "Abrir imagem",
+      "summaryTitle": "Resumo",
+      "download": "Downloads do navegador"
+    }
   }
 }

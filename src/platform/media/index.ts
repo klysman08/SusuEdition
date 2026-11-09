@@ -4,6 +4,7 @@ import type { MediaBackend } from "./types";
 import { createWebBackend } from "./web-backend";
 
 export * from "./formats";
+export { releaseMedia, trackMediaUsage } from "./usage";
 export type * from "./types";
 
 let backend: Promise<MediaBackend> | null = null;

@@ -16,6 +16,9 @@
           "path": "$VIDEO/**"
         },
         {
+          "path": "$PICTURE/**"
+        },
+        {
           "path": "$HOME/**"
         }
       ]

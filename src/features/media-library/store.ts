@@ -1,6 +1,7 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 
 import type { MediaKind, MediaMeta } from "@/engine/types";
+import { trackMediaUsage } from "@/platform/media/usage";
 
 export type ItemStatus = "pending" | "ready" | "error";
 
@@ -37,6 +38,8 @@ export interface MediaLibraryState {
   remove: (ids: string[]) => void;
   clear: () => void;
   move: (activeId: string, overId: string) => void;
+  /** Troca duas mídias de posição (colagem: trocar fotos de célula). */
+  swap: (a: string, b: string) => void;
   sort: (mode: SortMode) => void;
   setSelectMode: (on: boolean) => void;
   toggleSelected: (id: string) => void;
@@ -81,7 +84,7 @@ export function sortOrder(
 }
 
 export function createMediaLibraryStore(): MediaLibraryStore {
-  return createStore<MediaLibraryState>()((set) => ({
+  const store = createStore<MediaLibraryState>()((set) => ({
     order: [],
     items: {},
     selected: {},
@@ -134,6 +137,17 @@ export function createMediaLibraryStore(): MediaLibraryStore {
         return { order };
       }),
 
+    swap: (a, b) =>
+      set((s) => {
+        const i = s.order.indexOf(a);
+        const j = s.order.indexOf(b);
+        if (i < 0 || j < 0 || i === j) return s;
+        const order = s.order.slice();
+        order[i] = b;
+        order[j] = a;
+        return { order };
+      }),
+
     sort: (mode) => set((s) => ({ order: sortOrder(s.order, s.items, mode) })),
 
     setSelectMode: (on) => set(on ? { selectMode: true } : { selectMode: false, selected: {} }),
@@ -155,6 +169,8 @@ export function createMediaLibraryStore(): MediaLibraryStore {
     advanceProgress: (count) =>
       set((s) => ({ progress: { ...s.progress, done: Math.min(s.progress.total, s.progress.done + count) } })),
   }));
+  trackMediaUsage(() => Object.keys(store.getState().items));
+  return store;
 }
 
 export interface LibrarySummary {

@@ -16,7 +16,7 @@ import { getMediaBackend } from "@/platform/media";
 
 import { useProject } from "../hooks";
 import { videoMediaStore, videoProjectStore } from "../store";
-import { LabeledValue } from "./Section";
+import { LabeledValue } from "@/components/common/Section";
 
 const secs = (v: number) => `${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`;
 

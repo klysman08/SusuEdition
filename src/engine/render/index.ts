@@ -5,3 +5,4 @@
 export * from "./fit";
 export * from "./schedule";
 export { createWebGLCompositor, type Compositor, type CompositorLayer } from "./webgl-compositor";
+export * from "./filters";

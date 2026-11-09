@@ -49,8 +49,9 @@ export function createWebBackend(): MediaBackend {
     name: "web",
     videoProbeConcurrency: 2,
 
-    async pick() {
-      return (await pickFiles()).map((file): PickedMedia => ({ type: "web", file }));
+    async pick(opts) {
+      const accept = opts?.imagesOnly ? "image/*" : ACCEPT_ATTRIBUTE;
+      return (await pickFiles(accept)).map((file): PickedMedia => ({ type: "web", file }));
     },
 
     async pickAudio() {

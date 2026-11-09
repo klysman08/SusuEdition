@@ -48,6 +48,7 @@ export async function importMedia(
   store: MediaLibraryStore,
   backend: MediaBackend,
   picked: PickedMedia[],
+  opts: { imagesOnly?: boolean } = {},
 ): Promise<ImportReport> {
   const report: ImportReport = { added: 0, duplicates: 0, failed: [] };
   if (picked.length === 0) return report;
@@ -64,6 +65,10 @@ export async function importMedia(
     // A biblioteca aceita só fotos e vídeos (música tem seu próprio passo).
     if (o.kind !== "image" && o.kind !== "video") {
       report.failed.push({ name: o.name, error: "unsupported" });
+      continue;
+    }
+    if (opts.imagesOnly && o.kind !== "image") {
+      report.failed.push({ name: o.name, error: "imagesOnly" });
       continue;
     }
     if (existing[o.id] || seen.has(o.id)) {

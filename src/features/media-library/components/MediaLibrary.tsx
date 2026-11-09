@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getMediaBackend, type PickedMedia } from "@/platform/media";
+import { getMediaBackend, releaseMedia, type PickedMedia } from "@/platform/media";
 
 import { installDevHooks } from "../dev-hooks";
 import { useLibrary } from "../hooks";
@@ -15,7 +15,16 @@ import { MediaGrid } from "./MediaGrid";
 import { MediaToolbar } from "./MediaToolbar";
 
 /** Biblioteca de mídias: importar, visualizar, reordenar, ordenar e remover. */
-export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; onOpenItem?: (id: string) => void }) {
+export function MediaLibrary({
+  store,
+  onOpenItem,
+  imagesOnly = false,
+}: {
+  store: MediaLibraryStore;
+  onOpenItem?: (id: string) => void;
+  /** Photo Collage: aceita só fotos. */
+  imagesOnly?: boolean;
+}) {
   const { t } = useTranslation();
   const count = useLibrary(store, (s) => s.order.length);
   const [dragging, setDragging] = useState(false);
@@ -25,7 +34,7 @@ export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; 
       if (picked.length === 0) return;
       const backend = await getMediaBackend();
       try {
-        const report = await importMedia(store, backend, picked);
+        const report = await importMedia(store, backend, picked, { imagesOnly });
         const lines = [
           report.added > 0 && t("mediaLibrary.added", { count: report.added }),
           report.duplicates > 0 && t("mediaLibrary.duplicates", { count: report.duplicates }),
@@ -34,7 +43,16 @@ export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; 
           toast.warning(t("mediaLibrary.failed", { count: report.failed.length }), {
             description: report.failed
               .slice(0, 4)
-              .map((f) => `${f.name}: ${f.error === "unsupported" ? t("mediaLibrary.unsupported") : f.error}`)
+              .map(
+                (f) =>
+                  `${f.name}: ${
+                    f.error === "unsupported"
+                      ? t("mediaLibrary.unsupported")
+                      : f.error === "imagesOnly"
+                        ? t("mediaLibrary.onlyPhotos")
+                        : f.error
+                  }`,
+              )
               .join("\n"),
           });
         }
@@ -43,13 +61,13 @@ export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; 
         toast.error(t("mediaLibrary.error"), { description: String(err) });
       }
     },
-    [store, t],
+    [store, t, imagesOnly],
   );
 
   const pick = useCallback(async () => {
     const backend = await getMediaBackend();
-    await runImport(await backend.pick());
-  }, [runImport]);
+    await runImport(await backend.pick({ imagesOnly }));
+  }, [runImport, imagesOnly]);
 
   const remove = useCallback(
     async (ids: string[]) => {
@@ -57,7 +75,7 @@ export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; 
       cancelPendingVideos(ids);
       store.getState().remove(ids);
       store.getState().setSelectMode(false);
-      await (await getMediaBackend()).unregister(ids);
+      await releaseMedia(ids);
     },
     [store],
   );
@@ -92,21 +110,28 @@ export function MediaLibrary({ store, onOpenItem }: { store: MediaLibraryStore; 
             <ImagePlus className="size-7" aria-hidden />
           </span>
           <span>
-            <span className="block text-lg font-semibold">{t("mediaLibrary.emptyTitle")}</span>
+            <span className="block text-lg font-semibold">
+              {imagesOnly ? t("mediaLibrary.emptyTitlePhotos") : t("mediaLibrary.emptyTitle")}
+            </span>
             <span className="mx-auto mt-1 block max-w-md text-sm text-muted-foreground">
-              {t("mediaLibrary.emptyDescription")}
+              {imagesOnly ? t("mediaLibrary.emptyDescriptionPhotos") : t("mediaLibrary.emptyDescription")}
             </span>
           </span>
           <Button asChild size="lg" className="pointer-events-none">
             <span>
               <Upload />
-              {t("mediaLibrary.addMedia")}
+              {imagesOnly ? t("mediaLibrary.addPhotos") : t("mediaLibrary.addMedia")}
             </span>
           </Button>
         </button>
       ) : (
         <>
-          <MediaToolbar store={store} onAdd={() => void pick()} onRemove={(ids) => void remove(ids)} />
+          <MediaToolbar
+            store={store}
+            imagesOnly={imagesOnly}
+            onAdd={() => void pick()}
+            onRemove={(ids) => void remove(ids)}
+          />
           <MediaGrid store={store} onOpenItem={onOpenItem} />
         </>
       )}

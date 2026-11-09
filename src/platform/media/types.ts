@@ -30,7 +30,7 @@ export type ProcessEvent =
 export interface MediaBackend {
   readonly name: "tauri" | "web";
   /** Abre o seletor nativo. Retorna lista vazia se o usuário cancelar. */
-  pick(): Promise<PickedMedia[]>;
+  pick(opts?: { imagesOnly?: boolean }): Promise<PickedMedia[]>;
   /** Seletor de música (um arquivo). */
   pickAudio(): Promise<PickedMedia[]>;
   /** Waveform, BPM e batidas da música (Rust; no navegador só a waveform). */

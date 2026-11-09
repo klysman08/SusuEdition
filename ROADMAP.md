@@ -56,11 +56,12 @@
 - [ ] Testar com músicas reais (gêneros variados) e ajustar pesos força × distância
 
 ## M6 — Photo Collage · `v0.6.0`
-- [ ] Layouts e aspect ratios — RF-C2, RF-C3
-- [ ] Margem/espaçamento/raio/fundo — RF-C4
-- [ ] Pan/zoom e troca de células — RF-C5
-- [ ] Filtros WebGL compartilhados — RF-C6
-- [ ] Export PNG/JPEG — RF-C7
+- [x] Layouts e aspect ratios: automático (linhas justificadas pelas proporções), grade, destaque (4 lados) e linhas/colunas por quantidade — RF-C2, RF-C3
+- [x] Margem/espaçamento/raio/fundo (0 por padrão, escalam com a resolução) — RF-C4
+- [x] Pan/zoom (arrastar, pinça, roda, slider, teclado) e troca de células (segurar e arrastar ou "Trocar") — RF-C5
+- [x] Filtros WebGL (`engine/render/filters`): 10 presets com intensidade + 8 ajustes — RF-C6
+- [x] Export PNG/JPEG em Worker até 4096 px, `Imagens/SusuEdition` ou "Salvar como" — RF-C7
+- [ ] Usar os mesmos filtros no Video Maker
 
 ## M7 — Polimento · `v1.0.0`
 - [ ] Projetos, autosave/recuperação, undo/redo — RF-G5, RF-G6

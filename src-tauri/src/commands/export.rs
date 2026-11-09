@@ -21,21 +21,27 @@ pub struct ExportInfo {
     pub default_dir: Option<String>,
 }
 
-fn default_dir<R: Runtime>(app: &AppHandle<R>) -> Option<std::path::PathBuf> {
+/// Pasta padrão no desktop: `Vídeos/SusuEdition` ou, para `kind = "image"`, `Imagens/SusuEdition`.
+fn default_dir<R: Runtime>(app: &AppHandle<R>, kind: Option<&str>) -> Option<std::path::PathBuf> {
     if cfg!(mobile) {
         return None;
     }
-    app.path().video_dir().ok().map(|d| d.join("SusuEdition"))
+    let base = match kind {
+        Some("image") => app.path().picture_dir(),
+        _ => app.path().video_dir(),
+    };
+    base.ok().map(|d| d.join("SusuEdition"))
 }
 
 #[tauri::command]
 pub fn export_info<R: Runtime>(
     app: AppHandle<R>,
     registry: State<'_, ExportRegistry>,
+    kind: Option<String>,
 ) -> ExportInfo {
     ExportInfo {
         free_bytes: fs4::available_space(registry.temp_dir()).ok(),
-        default_dir: default_dir(&app).map(|d| d.to_string_lossy().into_owned()),
+        default_dir: default_dir(&app, kind.as_deref()).map(|d| d.to_string_lossy().into_owned()),
     }
 }
 
@@ -80,7 +86,7 @@ pub fn export_finish(registry: State<'_, ExportRegistry>, id: String) -> AppResu
     })
 }
 
-/// Salva no destino: `None` = pasta padrão (Vídeos/SusuEdition), caminho local ou URI `content://`.
+/// Salva no destino: `None` = pasta padrão (Vídeos ou Imagens/SusuEdition), caminho local ou URI `content://`.
 /// Retorna o caminho/URI final.
 #[tauri::command]
 pub async fn export_save<R: Runtime>(
@@ -88,12 +94,13 @@ pub async fn export_save<R: Runtime>(
     id: String,
     file_name: String,
     destination: Option<String>,
+    kind: Option<String>,
 ) -> AppResult<String> {
     tauri::async_runtime::spawn_blocking(move || {
         let registry = app.state::<ExportRegistry>();
         match destination {
             None => {
-                let dir = default_dir(&app).ok_or_else(|| {
+                let dir = default_dir(&app, kind.as_deref()).ok_or_else(|| {
                     AppError::Unsupported("sem pasta padrão: escolha o destino".into())
                 })?;
                 let dest = unique_path(&dir, &sanitize_file_name(&file_name));

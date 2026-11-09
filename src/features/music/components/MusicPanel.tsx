@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { setEdge, withLength, type Selection } from "@/engine/audio";
 import { formatTime } from "@/lib/format";
-import { getMediaBackend } from "@/platform/media";
+import { getMediaBackend, releaseMedia } from "@/platform/media";
 
 import { installMusicDevHooks } from "../dev-hooks";
 import { loadMusic } from "../load-music";
@@ -64,7 +64,7 @@ export function MusicPanel({ store }: { store: MusicStore }) {
     preview.stop();
     const id = store.getState().track?.id;
     store.getState().clear();
-    if (id) await (await getMediaBackend()).unregister([id]);
+    if (id) await releaseMedia([id]);
   }, [store, preview]);
 
   const update = (sel: Selection) => store.getState().setSelection(sel);

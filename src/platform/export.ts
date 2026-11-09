@@ -6,6 +6,18 @@
  */
 import { getPlatform, isMobilePlatform, isTauri } from "./index";
 
+/** `video` → Vídeos/SusuEdition · `image` → Imagens/SusuEdition. */
+export type ExportKind = "video" | "image";
+
+const FILTERS: Record<string, { name: string; extensions: string[] }> = {
+  mp4: { name: "MP4", extensions: ["mp4"] },
+  jpg: { name: "JPEG", extensions: ["jpg", "jpeg"] },
+  png: { name: "PNG", extensions: ["png"] },
+};
+
+const MIME: Record<string, string> = { mp4: "video/mp4", jpg: "image/jpeg", png: "image/png" };
+const ext = (fileName: string) => fileName.split(".").pop()?.toLowerCase() ?? "";
+
 export interface ExportTargetInfo {
   freeBytes: number | null;
   /** Pasta padrão (desktop). `null`: o usuário escolhe ao salvar. */
@@ -25,13 +37,13 @@ export interface SavedExport {
 export interface ExportSink {
   write(position: number, data: Uint8Array): Promise<void>;
   finish(): Promise<{ bytes: number }>;
-  /** `destination`: caminho/URI escolhido; `null` = pasta padrão. */
-  save(fileName: string, destination: string | null): Promise<SavedExport>;
+  /** `destination`: caminho/URI escolhido; `null` = pasta padrão do `kind`. */
+  save(fileName: string, destination: string | null, kind?: ExportKind): Promise<SavedExport>;
   discard(): Promise<void>;
 }
 
 export interface ExportPlatform {
-  info(): Promise<ExportTargetInfo>;
+  info(kind?: ExportKind): Promise<ExportTargetInfo>;
   createSink(): Promise<ExportSink>;
   /** Diálogo "Salvar como". `null` se cancelado. */
   pickDestination(fileName: string): Promise<string | null>;
@@ -44,8 +56,8 @@ async function tauriPlatform(): Promise<ExportPlatform> {
   const mobile = isMobilePlatform(await getPlatform());
 
   return {
-    async info() {
-      const r = await invoke<{ freeBytes: number | null; defaultDir: string | null }>("export_info");
+    async info(kind = "video") {
+      const r = await invoke<{ freeBytes: number | null; defaultDir: string | null }>("export_info", { kind });
       return { ...r, mustPickDestination: mobile || !r.defaultDir, canReveal: !mobile, canOpen: true };
     },
 
@@ -59,8 +71,8 @@ async function tauriPlatform(): Promise<ExportPlatform> {
           const r = await invoke<{ tempPath: string; bytes: number }>("export_finish", { id });
           return { bytes: r.bytes };
         },
-        async save(fileName, destination) {
-          const location = await invoke<string>("export_save", { id, fileName, destination });
+        async save(fileName, destination, kind = "video") {
+          const location = await invoke<string>("export_save", { id, fileName, destination, kind });
           return { location };
         },
         async discard() {
@@ -71,7 +83,8 @@ async function tauriPlatform(): Promise<ExportPlatform> {
 
     async pickDestination(fileName) {
       const { save } = await import("@tauri-apps/plugin-dialog");
-      return save({ defaultPath: fileName, filters: [{ name: "MP4", extensions: ["mp4"] }] });
+      const filter = FILTERS[ext(fileName)];
+      return save({ defaultPath: fileName, filters: filter ? [filter] : [] });
     },
 
     async open(location) {
@@ -96,7 +109,7 @@ function webPlatform(): ExportPlatform {
     },
     async createSink() {
       let chunks: { position: number; data: Uint8Array }[] = [];
-      let blob: Blob | null = null;
+      let bytes: Uint8Array<ArrayBuffer> | null = null;
       return {
         async write(position, data) {
           chunks.push({ position, data });
@@ -106,11 +119,12 @@ function webPlatform(): ExportPlatform {
           const out = new Uint8Array(size);
           for (const c of chunks) out.set(c.data, c.position);
           chunks = [];
-          blob = new Blob([out], { type: "video/mp4" });
+          bytes = out;
           return { bytes: size };
         },
         async save(fileName) {
-          if (!blob) throw new Error("exportação não finalizada");
+          if (!bytes) throw new Error("exportação não finalizada");
+          const blob = new Blob([bytes], { type: MIME[ext(fileName)] ?? "application/octet-stream" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -121,7 +135,7 @@ function webPlatform(): ExportPlatform {
         },
         async discard() {
           chunks = [];
-          blob = null;
+          bytes = null;
         },
       };
     },

@@ -12,7 +12,7 @@ import { formatTime } from "@/lib/format";
 
 import { useProject } from "../hooks";
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "../store";
-import { LabeledValue, Section } from "./Section";
+import { LabeledValue, Section } from "@/components/common/Section";
 
 const QUICK = [15, 30, 60] as const;
 const pct = (v: number) => `${Math.round(v * 100)}%`;

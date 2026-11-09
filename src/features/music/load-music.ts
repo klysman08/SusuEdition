@@ -1,4 +1,4 @@
-import type { MediaBackend, PickedMedia } from "@/platform/media";
+import { releaseMedia, type MediaBackend, type PickedMedia } from "@/platform/media";
 
 import type { MusicStore } from "./store";
 
@@ -31,7 +31,7 @@ export async function loadMusic(
     size: outcome.size,
     url: backend.mediaUrl(outcome.id),
   });
-  if (previous && previous.id !== outcome.id) void backend.unregister([previous.id]);
+  if (previous && previous.id !== outcome.id) void releaseMedia([previous.id]);
 
   try {
     const analysis = await backend.analyzeAudio(outcome.id);

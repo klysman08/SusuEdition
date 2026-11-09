@@ -62,3 +62,17 @@ Com `IMPORT=0` reaproveita o projeto já aberto (só troca a qualidade e exporta
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-09 | Windows 11, desktop | 1 min, 1080p30, só fotos | 10 s | 29 MB | 24 MB |
 | 2026-11-09 | Windows 11, desktop | 1 min, 4K30, fotos + vídeos | 21 s | 191 MB | 40 MB |
+
+## Colagem
+
+Importa as fotos da pasta na Photo Collage e exporta pela UI (rótulos em pt-BR; o script ajusta o idioma):
+
+```bash
+node scripts/bench/collage-bench.mjs 9333 ../susu-bench-media max jpeg colagem.png
+```
+
+| Data | Máquina | Cenário | Saída | Tempo | Tarefas longas | Heap JS |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | Windows 11, desktop | 14 fotos (12 MP, 2 com EXIF girado), layout auto | JPEG 3277×4096 | 0,87 s | 0 | 8 MB |
+| 2026-11-09 | Windows 11, desktop | 100 fotos (60 × 12 MP) | PNG 3277×4096 | 2,3 s | 0 | 10 MB |
+| 2026-11-09 | Windows 11, desktop | 100 fotos (60 × 12 MP) | JPEG 3277×4096 | 2,5 s | 0 | 10 MB |

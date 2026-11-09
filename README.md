@@ -3,7 +3,7 @@
 Editor de vídeos e fotos para **Windows 11** e **Android**, feito com [Tauri v2](https://v2.tauri.app), React e shadcn/ui.
 
 - **Video Maker** — fotos + vídeos + música, sincronização com as batidas, export MP4 até 4K.
-- **Photo Collage** — layouts, margens e filtros.
+- **Photo Collage** — layouts automáticos ou por template, margens, ajuste de cada foto, filtros e export PNG/JPEG até 4096 px.
 
 📄 [PLAN.md](PLAN.md) (arquitetura) · [SPEC.md](SPEC.md) (especificações) · [ROADMAP.md](ROADMAP.md) (marcos) · [docs/adr](docs/adr) (decisões)
 

@@ -91,10 +91,10 @@ Entrada: mídias ordenadas, `photoSec`, `videoSec`, overrides, duração total `
 | RF-C1 | Selecionar várias fotos (2 a 20+). |
 | RF-C2 | Aspect ratios: 1:1, 4:5, 9:16, 16:9, 4:3, 3:4. |
 | RF-C3 | Layouts: templates de grade/mosaico por quantidade + layout automático. |
-| RF-C4 | **Margem externa** e **espaçamento interno**, ambos **0 por padrão**; raio de canto; cor de fundo. |
+| RF-C4 | **Margem externa** e **espaçamento interno**, ambos **0 por padrão**; raio de canto; cor de fundo. Medidas em px de uma imagem de 1080 no lado menor, escaladas na exportação (a prévia e o arquivo ficam iguais). |
 | RF-C5 | Pan/zoom da foto dentro da célula; trocar fotos de célula arrastando. |
 | RF-C6 | **Filtros sobre a colagem**: brilho, contraste, saturação, temperatura, vinheta, P&B, sépia e presets, com intensidade. |
-| RF-C7 | Export PNG ou JPEG (qualidade ajustável) até 4096px no lado maior; destino como RF-V24 (`Pictures/SusuEdition`). |
+| RF-C7 | Export PNG ou JPEG (qualidade ajustável) até 4096px no lado maior; destino como RF-V24 (`Pictures/SusuEdition`). Resoluções: Padrão (1080 no lado menor), Alta (2160), Máxima (4096 no lado maior), limitadas pela GPU. |
 
 ## 4. Requisitos não-funcionais (orçamentos de performance)
 

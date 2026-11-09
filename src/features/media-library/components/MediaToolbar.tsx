@@ -29,6 +29,7 @@ interface Props {
   store: MediaLibraryStore;
   onAdd: () => void;
   onRemove: (ids: string[]) => void;
+  imagesOnly?: boolean;
 }
 
 const SORTS: { mode: SortMode; key: "sortDateAsc" | "sortDateDesc" | "sortNameAsc" | "shuffle" }[] = [
@@ -38,7 +39,7 @@ const SORTS: { mode: SortMode; key: "sortDateAsc" | "sortDateDesc" | "sortNameAs
   { mode: "shuffle", key: "shuffle" },
 ];
 
-export function MediaToolbar({ store, onAdd, onRemove }: Props) {
+export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Props) {
   const { t } = useTranslation();
   const [confirmClear, setConfirmClear] = useState(false);
   const summary = useLibraryShallow(store, summarize);
@@ -53,7 +54,9 @@ export function MediaToolbar({ store, onAdd, onRemove }: Props) {
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1 text-sm">
           <p className="truncate font-medium">
-            {t("mediaLibrary.summary", { photos: summary.photos, videos: summary.videos })}
+            {imagesOnly
+              ? t("mediaLibrary.summaryPhotos", { count: summary.photos })
+              : t("mediaLibrary.summary", { photos: summary.photos, videos: summary.videos })}
           </p>
           <p className="truncate text-xs text-muted-foreground tabular-nums">
             {busy
@@ -119,7 +122,7 @@ export function MediaToolbar({ store, onAdd, onRemove }: Props) {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onSelect={onAdd}>
                     <Plus />
-                    {t("mediaLibrary.addMedia")}
+                    {imagesOnly ? t("mediaLibrary.addPhotos") : t("mediaLibrary.addMedia")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={() => setConfirmClear(true)}>

@@ -1,37 +1,10 @@
 /**
- * Photo Collage (M6): geometria dos layouts. Valores em pixels da saída.
+ * Photo Collage (M6): layouts, enquadramento por célula, cena e renderizador.
+ * Sem React; usado pelo preview e pelo worker de export.
  */
-import type { AspectRatio } from "../types";
-
-export interface CollageCell {
-  /** Retângulo normalizado 0..1 dentro da área útil (descontada a margem). */
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export interface CollageLayout {
-  id: string;
-  /** Quantidade de fotos que o layout comporta. */
-  slots: number;
-  cells: CollageCell[];
-}
-
-export interface CollageSettings {
-  aspect: AspectRatio;
-  /** Margem externa em px (padrão 0). */
-  marginPx: number;
-  /** Espaçamento entre células em px (padrão 0). */
-  spacingPx: number;
-  cornerRadiusPx: number;
-  backgroundColor: string;
-}
-
-export const DEFAULT_COLLAGE_SETTINGS: CollageSettings = {
-  aspect: "1:1",
-  marginPx: 0,
-  spacingPx: 0,
-  cornerRadiusPx: 0,
-  backgroundColor: "#ffffff",
-};
+export * from "./crop";
+export * from "./export-protocol";
+export * from "./layout";
+export * from "./scene";
+export * from "./templates";
+export { createCollageRenderer, type CollageRenderer, type CollageScene, type SceneCell } from "./renderer";

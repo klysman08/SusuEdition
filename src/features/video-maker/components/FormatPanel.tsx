@@ -1,30 +1,19 @@
 import { Check, Mountain } from "lucide-react";
-import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fitRect } from "@/engine/render";
-import { ASPECT_RATIOS, type AspectRatio, type FitMode } from "@/engine/types";
+import type { AspectRatio, FitMode } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 import { useProject } from "../hooks";
 import { videoProjectStore } from "../store";
-import { Section } from "./Section";
+import { frameStyle } from "@/components/common/aspect-frame";
+import { AspectPicker } from "@/components/common/AspectPicker";
+import { Section } from "@/components/common/Section";
 
 const FIT_MODES: FitMode[] = ["fit", "cover", "fill"];
 const SWATCHES = ["#000000", "#ffffff", "#18181b", "#f43f5e", "#a855f7", "#0ea5e9", "#f59e0b"];
-
-function ratio(aspect: AspectRatio): [number, number] {
-  const [w, h] = aspect.split(":").map(Number) as [number, number];
-  return [w, h];
-}
-
-/** Miniatura de um quadro na proporção dada (lado maior = `max` px). */
-function frameStyle(aspect: AspectRatio, max: number): CSSProperties {
-  const [w, h] = ratio(aspect);
-  const s = max / Math.max(w, h);
-  return { width: w * s, height: h * s };
-}
 
 /** Ilustração do modo de enquadramento: uma foto em paisagem dentro do quadro escolhido. */
 function FitIllustration({ mode, aspect, blur }: { mode: FitMode; aspect: AspectRatio; blur: boolean }) {
@@ -56,38 +45,7 @@ export function FormatPanel() {
   return (
     <div className="space-y-4">
       <Section title={t("format.aspectTitle")} description={t("format.aspectDescription")}>
-        <div role="radiogroup" aria-label={t("format.aspectTitle")} className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-          {ASPECT_RATIOS.map((a) => {
-            const active = a === aspect;
-            return (
-              <button
-                key={a}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => setAspect(a)}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring",
-                  active && "border-primary bg-primary/5 hover:bg-primary/10",
-                )}
-              >
-                <span className="flex h-12 items-center justify-center">
-                  <span
-                    className={cn(
-                      "rounded-[3px] border-2",
-                      active ? "border-primary bg-primary/15" : "border-muted-foreground/50",
-                    )}
-                    style={frameStyle(a, 40)}
-                  />
-                </span>
-                <span className="text-sm font-semibold tabular-nums">{a}</span>
-                <span className="line-clamp-2 text-[10px] leading-tight text-muted-foreground">
-                  {t(`format.aspects.${a.replace(":", "x") as "9x16"}`)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <AspectPicker value={aspect} onChange={setAspect} />
       </Section>
 
       <Section title={t("format.fitTitle")} description={t("format.fitDescription")}>

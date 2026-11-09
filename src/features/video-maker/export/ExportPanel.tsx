@@ -15,7 +15,7 @@ import type { FrameRate, QualityPreset } from "@/engine/types";
 import { formatBytes, formatDuration } from "@/lib/format";
 import { getExportPlatform, type ExportTargetInfo } from "@/platform/export";
 
-import { Section } from "../components/Section";
+import { Section } from "@/components/common/Section";
 import { useProject } from "../hooks";
 import { videoProjectStore } from "../store";
 import { cancelVideoExport, exportStore, resetExport, runVideoExport } from "./export-controller";

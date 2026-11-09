@@ -138,7 +138,13 @@
     "notDecodable": "This video uses a codec your device can't decode.",
     "error": "Couldn't read this file",
     "dragHint": "Drag to reorder",
-    "position": "Position {{n}}"
+    "position": "Position {{n}}",
+    "addPhotos": "Add photos",
+    "emptyTitlePhotos": "Add photos",
+    "emptyDescriptionPhotos": "Drop photos here or pick them from your device. From 2 to dozens of photos.",
+    "summaryPhotos_one": "{{count}} photo",
+    "summaryPhotos_other": "{{count}} photos",
+    "onlyPhotos": "Collages accept photos only"
   },
   "music": {
     "emptyTitle": "Choose the video's music",
@@ -303,5 +309,96 @@
     "retry": "Try again",
     "fallback": "This device can't encode at that quality — exported at {{width}}×{{height}}.",
     "hint4k": "4K needs a compatible hardware encoder; otherwise the app falls back to 1080p."
+  },
+  "collage": {
+    "emptyPreview": "Add photos to see the collage.",
+    "loadingPhotos": "Loading photos…",
+    "canvasLabel": "Collage. Tap a photo to adjust it; arrow keys move, + and − zoom.",
+    "hint": "Tap a photo to adjust · drag to reposition · press and hold, then drag, to swap",
+    "zoom": "Zoom",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "swap": "Swap",
+    "swapHint": "Pick another photo to swap places",
+    "swapPick": "Tap the photo that should swap places with this one.",
+    "resetCrop": "Reset framing",
+    "removePhoto": "Remove photo from collage",
+    "deselect": "Close",
+    "aspectDescription": "Shape of the final image. Framing adapts automatically.",
+    "layoutTitle": "Layout",
+    "layoutDescription_one": "Options for {{count}} photo.",
+    "layoutDescription_other": "Options for {{count}} photos. Changing the count adapts the layout.",
+    "layoutEmpty": "Add photos to see layout options.",
+    "layoutAutoHint": "Automatic: arranges rows by each photo's proportions to crop as little as possible.",
+    "layouts": {
+      "auto": "Automatic",
+      "grid": "Grid",
+      "feature-left": "Featured left",
+      "feature-top": "Featured top",
+      "feature-right": "Featured right",
+      "feature-bottom": "Featured bottom",
+      "rows": "Rows: {{counts}}",
+      "cols": "Columns: {{counts}}"
+    },
+    "spacingTitle": "Margin and spacing",
+    "spacingDescription": "Measured on a 1080 px image; they scale with the exported resolution.",
+    "margin": "Outer margin",
+    "spacing": "Space between photos",
+    "radius": "Rounded corners",
+    "reset": "Reset",
+    "backgroundTitle": "Background",
+    "backgroundDescription": "Shows in the margin, the gaps and behind rounded corners.",
+    "filtersTitle": "Filters",
+    "filtersDescription": "Applied over the whole collage.",
+    "intensity": "Intensity",
+    "presets": {
+      "none": "Original",
+      "vivid": "Vivid",
+      "warm": "Warm",
+      "cool": "Cool",
+      "mono": "B&W",
+      "noir": "Noir",
+      "sepia": "Sepia",
+      "vintage": "Vintage",
+      "dramatic": "Dramatic",
+      "soft": "Soft"
+    },
+    "adjustTitle": "Adjustments",
+    "adjustDescription": "Added on top of the filter. Double-click resets one.",
+    "adjust": {
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "temperature": "Temperature",
+      "vignette": "Vignette",
+      "grayscale": "Black and white",
+      "sepia": "Sepia",
+      "fade": "Fade"
+    },
+    "export": {
+      "formatTitle": "Format",
+      "formatHint": {
+        "jpeg": "JPEG: smaller file, great for sharing.",
+        "png": "PNG: lossless, larger file."
+      },
+      "jpegQuality": "Quality",
+      "sizeTitle": "Resolution",
+      "quality": {
+        "standard": "Standard",
+        "high": "High",
+        "max": "Maximum"
+      },
+      "gpuLimit": "This device renders up to {{max}} px on the longest side.",
+      "photos": "Photos",
+      "noPhotos": "Add photos to export.",
+      "start": "Export image",
+      "running": "Creating the collage…",
+      "loading": "Reading photos ({{done}} of {{total}})",
+      "encoding": "Encoding the image…",
+      "doneTitle": "Collage ready!",
+      "open": "Open image",
+      "summaryTitle": "Summary",
+      "download": "Browser downloads"
+    }
   }
 }

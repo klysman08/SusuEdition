@@ -4,6 +4,26 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-09 · M6 Photo Collage
+
+### Added
+- **Photo Collage** em cinco passos: Fotos, Layout, Margens, Filtros e Exportar, com prévia ao vivo (WebGL2) ao lado no desktop e acima no celular.
+- **Layouts** para qualquer quantidade de fotos: automático (linhas justificadas pelas proporções das fotos, o mínimo de corte), grade, destaque à esquerda/topo/direita/embaixo e combinações de linhas e colunas; proporções 9:16, 16:9, 4:3, 1:1, 4:5 e 3:4.
+- **Margem externa, espaço entre fotos e cantos arredondados** (0 por padrão) e cor de fundo; as medidas escalam com a resolução exportada.
+- **Ajuste de cada foto**: toque para selecionar, arraste para reposicionar, zoom por pinça, roda do mouse, slider ou teclado (setas, + e −); **trocar fotos** segurando e arrastando ou pelo botão "Trocar"; redefinir ou remover a foto.
+- **Filtros** sobre a colagem inteira: 10 presets (Vívido, Quente, Frio, P&B, Noir, Sépia, Vintage, Dramático, Suave) com miniaturas da sua foto e intensidade, mais ajustes de brilho, contraste, saturação, temperatura, vinheta, P&B, sépia e desbotado.
+- **Exportar** JPEG (qualidade 60–100%) ou PNG em Padrão (1080 no lado menor), Alta (2160) ou Máxima (4096 no lado maior), gerado num Worker; salvo em **Imagens/SusuEdition** ou onde você escolher.
+
+### Changed
+- Biblioteca de mídias aceita o modo "só fotos" (seletor, arrastar e soltar e mensagens).
+- Remover uma mídia só libera o arquivo quando nenhuma outra parte do app (vídeo, colagem, música) ainda o usa.
+
+### Fixed
+- Nomes de arquivo exportados aceitam `.jpg`/`.png` (antes tudo virava `.mp4`).
+
+### Performance (Windows, app nativo, resolução máxima 3277×4096)
+- 14 fotos de 12 MP → JPEG em 0,87 s; 100 fotos → PNG em 2,3 s / JPEG em 2,5 s. Nenhuma tarefa longa na interface (tudo no Worker), heap JS ≤ 10 MB.
+
 ## [0.5.0] — 2026-11-09 · M5 Sincronia com as batidas
 
 ### Added

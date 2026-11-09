@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createMediaLibraryStore, sortOrder, summarize, type LibraryItem } from "./store";
 
@@ -106,5 +106,30 @@ describe("summarize", () => {
       },
     });
     expect(s).toEqual({ photos: 1, videos: 2, videoSeconds: 12.5, errors: 1 });
+  });
+});
+
+describe("troca e mídias compartilhadas", () => {
+  it("swap troca duas posições e ignora ids desconhecidos", () => {
+    const store = createMediaLibraryStore();
+    store.getState().addItems([item("a"), item("b"), item("c")]);
+    store.getState().swap("a", "c");
+    expect(store.getState().order).toEqual(["c", "b", "a"]);
+    store.getState().swap("a", "zzz");
+    expect(store.getState().order).toEqual(["c", "b", "a"]);
+  });
+
+  it("releaseMedia só libera arquivos que nenhuma biblioteca usa", async () => {
+    const unregister = vi.fn(async () => {});
+    vi.doMock("@/platform/media/index", () => ({ getMediaBackend: async () => ({ unregister }) }));
+    const { releaseMedia } = await import("@/platform/media/usage");
+    const video = createMediaLibraryStore();
+    const collage = createMediaLibraryStore();
+    video.getState().addItems([item("shared"), item("v")]);
+    collage.getState().addItems([item("shared")]);
+    video.getState().remove(["shared", "v"]);
+    await releaseMedia(["shared", "v"]);
+    expect(unregister).toHaveBeenCalledWith(["v"]);
+    vi.doUnmock("@/platform/media/index");
   });
 });

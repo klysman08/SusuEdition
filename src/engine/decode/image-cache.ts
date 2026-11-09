@@ -1,5 +1,5 @@
-import { decodeSize } from "@/engine/render";
-import type { Size } from "@/engine/types";
+import { decodeSize } from "../render/fit";
+import type { Size } from "../types";
 
 interface Entry {
   thumb: ImageBitmap | null;
@@ -53,7 +53,11 @@ export class ImageCache {
         .then((bmp) => this.store(req.id, "thumb", bmp))
         .catch(() => {});
     }
-    if (!e.full && !e.loadingFull) {
+    // Re-decodifica quando o alvo cresceu (ex.: zoom na colagem) — a versão atual
+    // continua sendo usada até a nova chegar.
+    const want = decodeSize(req.size, target);
+    const enough = !!e.full && e.full.width >= want.width * 0.83 && e.full.height >= want.height * 0.83;
+    if (!enough && !e.loadingFull) {
       e.loadingFull = true;
       const job = { req, target };
       if (priority) this.queue.unshift(job);
@@ -95,6 +99,7 @@ export class ImageCache {
     }
     e[kind]?.close();
     e[kind] = bmp;
+    if (kind === "full") e.loadingFull = false;
     e.bytes = (e.thumb ? e.thumb.width * e.thumb.height * 4 : 0) + (e.full ? e.full.width * e.full.height * 4 : 0);
     this.evict(id);
     this.onLoaded();
