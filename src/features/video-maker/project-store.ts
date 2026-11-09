@@ -2,7 +2,7 @@ import { createStore, type StoreApi } from "zustand/vanilla";
 
 import { DEFAULT_AUDIO_MIX, type AudioMix } from "@/engine/audio";
 import { DEFAULT_TIMELINE_SETTINGS, type ClipOverrides, type TimelineSettings } from "@/engine/timeline";
-import type { AspectRatio, FitBackground, FitMode } from "@/engine/types";
+import type { AspectRatio, FitBackground, FitMode, FrameRate, QualityPreset } from "@/engine/types";
 
 export interface VideoProjectState {
   aspect: AspectRatio;
@@ -12,6 +12,10 @@ export interface VideoProjectState {
   mix: AudioMix;
   /** Ajustes por mídia (duração, enquadramento, trecho e áudio dos vídeos). */
   overrides: Record<string, ClipOverrides>;
+  exportQuality: QualityPreset;
+  exportFps: FrameRate;
+  /** Desktop: perguntar onde salvar (senão vai para Vídeos/SusuEdition). */
+  askDestination: boolean;
 
   setAspect: (aspect: AspectRatio) => void;
   setFit: (fit: FitMode) => void;
@@ -20,6 +24,7 @@ export interface VideoProjectState {
   patchMix: (patch: Partial<AudioMix>) => void;
   patchOverride: (id: string, patch: Partial<ClipOverrides>) => void;
   clearOverride: (id: string) => void;
+  setExport: (patch: Partial<Pick<VideoProjectState, "exportQuality" | "exportFps" | "askDestination">>) => void;
 }
 
 export type VideoProjectStore = StoreApi<VideoProjectState>;
@@ -37,6 +42,9 @@ export function createVideoProjectStore(): VideoProjectStore {
     timeline: DEFAULT_TIMELINE_SETTINGS,
     mix: DEFAULT_AUDIO_MIX,
     overrides: {},
+    exportQuality: "1080p",
+    exportFps: 30,
+    askDestination: false,
 
     setAspect: (aspect) => set({ aspect }),
     setFit: (fit) => set({ fit }),
@@ -51,6 +59,7 @@ export function createVideoProjectStore(): VideoProjectStore {
         else overrides[id] = next;
         return { overrides };
       }),
+    setExport: (patch) => set(patch),
     clearOverride: (id) =>
       set((s) => {
         if (!s.overrides[id]) return s;

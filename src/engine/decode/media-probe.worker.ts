@@ -5,25 +5,13 @@
  *
  * Um vídeo por vez por worker: decoders de hardware são um recurso limitado.
  */
-import { ALL_FORMATS, BlobSource, CanvasSink, Input, UrlSource, type MetadataTags, type Rotation } from "mediabunny";
+import { ALL_FORMATS, CanvasSink, Input, type MetadataTags, type Rotation } from "mediabunny";
 
 import type { MediaMeta } from "../types";
-import {
-  captureDate,
-  posterTime,
-  thumbSize,
-  type ProbeRequest,
-  type ProbeResult,
-  type ProbeSource,
-} from "./probe-protocol";
+import { captureDate, posterTime, thumbSize, type ProbeRequest, type ProbeResult } from "./probe-protocol";
+import { makeSource } from "./source";
 
 declare const self: DedicatedWorkerGlobalScope;
-
-function makeSource(src: ProbeSource) {
-  return src.type === "url"
-    ? new UrlSource(src.url, { maxCacheSize: 8 * 1024 * 1024, getRetryDelay: (n) => (n < 2 ? 0.2 : null) })
-    : new BlobSource(src.blob);
-}
 
 async function toBlob(canvas: OffscreenCanvas | HTMLCanvasElement): Promise<Blob> {
   if ("convertToBlob" in canvas) return canvas.convertToBlob({ type: "image/webp", quality: 0.8 });

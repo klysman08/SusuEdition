@@ -6,8 +6,10 @@
  */
 import type { Beat } from "../types";
 
+export * from "./envelope";
 export * from "./mix";
 export * from "./peaks";
+export * from "./resampler";
 export * from "./selection";
 
 /** Resultado da análise de uma música (espelha `AudioAnalysis` do Rust). */

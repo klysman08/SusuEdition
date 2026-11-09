@@ -11,6 +11,7 @@
 pub mod audio;
 pub mod beat;
 pub mod cache;
+pub mod export;
 pub mod image;
 pub mod jobs;
 pub mod media_types;

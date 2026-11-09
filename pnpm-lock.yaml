@@ -20,6 +20,9 @@ importers:
       '@fontsource-variable/geist':
         specifier: ^5.3.0
         version: 5.3.0
+      '@mediabunny/aac-encoder':
+        specifier: 1.65.2
+        version: 1.65.2(mediabunny@1.65.2)
       '@tanstack/react-virtual':
         specifier: ^3.14.26
         version: 3.14.26(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -437,6 +440,11 @@ packages:
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
+
+  '@mediabunny/aac-encoder@1.65.2':
+    resolution: {integrity: sha512-HsDmtqRf26PwSDl1IYCPz5hHtj3js5u6O1VGdOIPKrln5E0slaPyGue84CWpbbeJ54wrLDJdd/esp17Ot+xh3A==}
+    peerDependencies:
+      mediabunny: ^1.0.0
 
   '@modelcontextprotocol/core@2.4.0':
     resolution: {integrity: sha512-z8QBKqdfXLPzkLQuG4xp8hrVEMm1PZ1IgxMN2sMbJiFiAKOWXnAzogXn2W4aqIBlP1ea6U5yiqVquvUNM1Cj6Q==}
@@ -3534,6 +3542,10 @@ snapshots:
       keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
+
+  '@mediabunny/aac-encoder@1.65.2(mediabunny@1.65.2)':
+    dependencies:
+      mediabunny: 1.65.2
 
   '@modelcontextprotocol/core@2.4.0':
     dependencies:

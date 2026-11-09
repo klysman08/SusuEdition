@@ -4,6 +4,20 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-09 · M4 Exportação
+
+### Added
+- Passo **Exportar**: 720p, 1080p ou 4K a 30/60 fps, resolução final, duração, tamanho máximo estimado e destino.
+- Exportação em Web Worker: vídeos decodificados quadro a quadro (Mediabunny/WebCodecs), mesma composição WebGL2 do preview, H.264 High por hardware e áudio AAC 48 kHz estéreo (música + som dos vídeos com fades e ducking).
+- Fallback automático: se o aparelho não codifica 4K, exporta em 1080p (e avisa); se não há AAC nativo, usa um encoder AAC em WASM.
+- MP4 gravado em streaming num temporário pelo Rust (memória constante) e movido para **Vídeos/SusuEdition** ou para onde você escolher; no Android, o local é escolhido no seletor do sistema.
+- Progresso com porcentagem, tempo restante e velocidade; cancelar a qualquer momento; tela mantida ligada (quando suportado).
+- Abrir o vídeo ou mostrar na pasta ao terminar; checagem de espaço livre antes de começar.
+
+### Performance (Windows, 1 min, 150 mídias importadas)
+- 1080p30: 10 s (~6× tempo real), heap JS máx. 24 MB.
+- 4K30 com fotos e vídeos misturados: 21 s (~2,8× tempo real), heap JS máx. 40 MB.
+
 ## [0.3.0] — 2026-11-09 · M3 Timeline + Preview
 
 ### Added

@@ -39,13 +39,15 @@
 - [ ] Validar o preview no Android (WebView + `content://` em `<video>`)
 
 ## M4 — Export · `v0.4.0`
-- [ ] Plugin nativo `plugins/tauri-plugin-susu-media` (Kotlin: MediaStore, wake lock, nome real de `content://`)
+- [x] Pipeline em Worker + OffscreenCanvas: Mediabunny (decodificação frame-accurate) + compositor WebGL2 do preview + H.264 — RF-V21
+- [x] Áudio mixado em blocos de 1 s (música, som dos vídeos, fades, ducking) → AAC 48 kHz; encoder AAC em WASM quando o WebView não tem — RF-V21
+- [x] 720p / 1080p / 4K × 30/60 fps com fallback automático de qualidade — RF-V3, RF-V23
+- [x] Mux em streaming para um temporário (escrita posicional em Rust), progresso/ETA/velocidade/cancelar; checagem de espaço livre — RF-V22, RF-V23
+- [x] Destino: Vídeos/SusuEdition (Windows) ou "Salvar como"; no Android o usuário escolhe o local (SAF, `content://`) — RF-V24
+- [x] Benchmark export 1 min (Windows): 1080p30 em 10 s, 4K30 em 21 s — RNF-4, RNF-5
+- [ ] Validar a exportação no Android real (encoder de hardware, AAC, salvar via SAF)
+- [ ] Plugin nativo `plugins/tauri-plugin-susu-media` (Kotlin): salvar direto na galeria (MediaStore) e nome real de `content://`
 - [ ] Versionar `src-tauri/gen/android`
-- [ ] Pipeline WebCodecs em Worker + OffscreenCanvas — RF-V21
-- [ ] 720p / 1080p / 4K × 30/60 fps com fallback — RF-V3, RF-V23
-- [ ] Mux em streaming para disco, progresso/ETA/cancelar — RF-V22
-- [ ] Salvar em Vídeos (Windows) / galeria MediaStore (Android) — RF-V24
-- [ ] Benchmark export 1 min — RNF-4, RNF-5
 
 ## M5 — Beat sync · `v0.5.0`
 - [ ] Snapping de cortes com desvio máximo — RF-V17, RF-V18

@@ -92,12 +92,16 @@ function parseColor(color: string): [number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
 }
 
-export function createWebGLCompositor(canvas: HTMLCanvasElement | OffscreenCanvas): Compositor {
+export function createWebGLCompositor(
+  canvas: HTMLCanvasElement | OffscreenCanvas,
+  opts: { preserveDrawingBuffer?: boolean } = {},
+): Compositor {
   const gl = canvas.getContext("webgl2", {
     alpha: false,
     antialias: false,
     premultipliedAlpha: true,
-    preserveDrawingBuffer: false,
+    // Export: o quadro é capturado do canvas depois de desenhado.
+    preserveDrawingBuffer: opts.preserveDrawingBuffer ?? false,
     powerPreference: "high-performance",
   }) as WebGL2RenderingContext | null;
   if (!gl) throw new Error("WebGL2 indisponível");

@@ -47,3 +47,18 @@ node scripts/bench/playback-bench.mjs 9333
 | Data | Máquina | Cenário | fps | Pior quadro | Tarefas longas | Heap JS |
 | --- | --- | --- | --- | --- | --- | --- |
 | 2026-11-09 | Windows 11, desktop (tela 100 Hz) | 12 fotos + 3 vídeos, fundo desfocado | 99 | 65 ms | 2 (máx. 56 ms) | 7 MB |
+
+## Exportação
+
+Importa todas as mídias da pasta + a música, liga fade e som dos vídeos, e exporta pela UI:
+
+```bash
+node scripts/bench/export-bench.mjs 9333 ../susu-bench-media musica.mp3 1080p 30 export.png
+```
+
+Com `IMPORT=0` reaproveita o projeto já aberto (só troca a qualidade e exporta).
+
+| Data | Máquina | Cenário | Tempo | Arquivo | Heap JS máx. |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | Windows 11, desktop | 1 min, 1080p30, só fotos | 10 s | 29 MB | 24 MB |
+| 2026-11-09 | Windows 11, desktop | 1 min, 4K30, fotos + vídeos | 21 s | 191 MB | 40 MB |

@@ -3,13 +3,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PageHeader } from "@/components/common/PageHeader";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaLibrary } from "@/features/media-library";
 import { MusicPanel } from "@/features/music";
 
 import { FormatPanel } from "./components/FormatPanel";
 import { ItemSheet } from "./components/ItemSheet";
+import { ExportPanel } from "./export/ExportPanel";
 import { TimingPanel } from "./components/TimingPanel";
 import { useVideoTimeline } from "./hooks";
 import { PreviewPanel } from "./preview/PreviewPanel";
@@ -26,24 +26,7 @@ const STEPS: { id: StepId; icon: LucideIcon }[] = [
 ];
 
 /** Passos que mostram a prévia ao lado (ou acima, no celular). */
-const WITH_PREVIEW: ReadonlySet<StepId> = new Set(["format", "timing"]);
-
-function ComingSoon({ step, icon: Icon }: { step: StepId; icon: LucideIcon }) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
-      <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-        <Icon className="size-6" aria-hidden />
-      </span>
-      <div>
-        <p className="font-medium">{t(`videoMaker.steps.${step}.title`)}</p>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">{t(`videoMaker.steps.${step}.description`)}</p>
-      </div>
-      <Badge variant="secondary">{t("common.comingSoon")}</Badge>
-      <p className="text-xs text-muted-foreground">{t("videoMaker.comingSoonDescription")}</p>
-    </div>
-  );
-}
+const WITH_PREVIEW: ReadonlySet<StepId> = new Set(["format", "timing", "export"]);
 
 export function VideoMakerPage() {
   const { t } = useTranslation();
@@ -90,7 +73,7 @@ export function VideoMakerPage() {
               <TimingPanel timeline={timeline} />
             </TabsContent>
             <TabsContent value="export">
-              <ComingSoon step="export" icon={Download} />
+              <ExportPanel timeline={timeline} />
             </TabsContent>
           </div>
         </div>

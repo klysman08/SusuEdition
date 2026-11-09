@@ -34,6 +34,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
             commands::audio::audio_analyze,
+            commands::export::export_info,
+            commands::export::export_begin,
+            commands::export::export_write,
+            commands::export::export_finish,
+            commands::export::export_save,
+            commands::export::export_discard,
             commands::media::media_register,
             commands::media::media_unregister,
             commands::media::media_process_images,
@@ -43,6 +49,7 @@ pub fn run() {
         .setup(|app| {
             let cache_root = app.path().app_cache_dir()?;
             app.manage(services::cache::MediaCache::new(&cache_root)?);
+            app.manage(services::export::ExportRegistry::new(&cache_root)?);
             log::info!(
                 "SusuEdition {} iniciado em {}/{}",
                 app.package_info().version,
