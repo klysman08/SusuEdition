@@ -43,6 +43,7 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
   const mix = useProject((s) => s.mix);
   const items = useStore(videoMediaStore, (s) => s.items);
   const musicUrl = useStore(videoMusicStore, (s) => (s.status === "ready" ? (s.track?.url ?? null) : null));
+  const fileBeats = useStore(videoMusicStore, (s) => s.analysis?.beats);
   const [aw, ah] = aspectNumbers(aspect);
 
   useEffect(() => {
@@ -125,6 +126,14 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
   useEffect(() => () => player?.pause(), [player]);
 
   const empty = timeline.segments.length === 0;
+  // Batidas no tempo do vídeo (só as que caem dentro dele).
+  const beats = useMemo(() => {
+    const plan = timeline.audio;
+    if (!plan || !fileBeats) return undefined;
+    return fileBeats
+      .map((b) => ({ timeSec: b.timeSec - plan.musicInSec, strength: b.strength }))
+      .filter((b) => b.timeSec >= 0 && b.timeSec <= timeline.durationSec);
+  }, [fileBeats, timeline.audio, timeline.durationSec]);
 
   return (
     <div
@@ -180,7 +189,9 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
         </span>
       </div>
 
-      {!empty && <TimelineStrip timeline={timeline} timeSec={state.timeSec} onSeek={(v) => player?.seek(v)} />}
+      {!empty && (
+        <TimelineStrip timeline={timeline} timeSec={state.timeSec} onSeek={(v) => player?.seek(v)} beats={beats} />
+      )}
     </div>
   );
 }

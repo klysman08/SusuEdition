@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock } from "lucide-react";
+import { Activity, AlertTriangle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
@@ -72,7 +72,11 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
   const settings = useProject((s) => s.timeline);
   const mix = useProject((s) => s.mix);
   const selection = useStore(videoMusicStore, (s) => (s.status === "ready" ? s.selection : null));
+  const bpm = useStore(videoMusicStore, (s) => s.analysis?.bpm ?? null);
+  const beatCount = useStore(videoMusicStore, (s) => s.analysis?.beats.length ?? 0);
   const { patchTimeline, patchMix } = videoProjectStore.getState();
+  const sync = settings.beatSync;
+  const canSync = !!selection && beatCount > 0;
   const mode = settings.total.mode;
   const custom = settings.total.mode === "custom" ? settings.total.seconds : 30;
   const fade = settings.transition.kind === "fade" ? settings.transition.durationSec : 0.5;
@@ -171,6 +175,50 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
             />
           </LabeledValue>
         </div>
+      </Section>
+
+      <Section
+        title={t("timing.beatSyncTitle")}
+        description={
+          !selection
+            ? t("timing.beatSyncNoMusic")
+            : beatCount === 0
+              ? t("timing.beatSyncNoBeats")
+              : t("timing.beatSyncHint")
+        }
+        action={
+          <Switch
+            checked={sync.enabled && canSync}
+            disabled={!canSync}
+            onCheckedChange={(v) => patchTimeline({ beatSync: { ...sync, enabled: v } })}
+            aria-label={t("timing.beatSync")}
+          />
+        }
+      >
+        {sync.enabled && canSync ? (
+          <div className="space-y-3">
+            <LabeledValue label={t("timing.maxDeviation")} value={`± ${secs(sync.maxDeviationSec)}`}>
+              <Slider
+                min={0.1}
+                max={2}
+                step={0.05}
+                value={[sync.maxDeviationSec]}
+                onValueChange={([v]) => v !== undefined && patchTimeline({ beatSync: { ...sync, maxDeviationSec: v } })}
+                aria-label={t("timing.maxDeviation")}
+              />
+            </LabeledValue>
+            {timeline.beatSync && (
+              <p className="flex items-center gap-1.5 text-xs text-primary">
+                <Activity className="size-3.5" aria-hidden />
+                {t("timing.beatSyncStats", {
+                  snapped: timeline.beatSync.snapped,
+                  cuts: timeline.beatSync.cuts,
+                  bpm: bpm !== null ? Math.round(bpm) : "—",
+                })}
+              </p>
+            )}
+          </div>
+        ) : null}
       </Section>
 
       <Section title={t("timing.overflowTitle")} description={t(`timing.overflowHint.${settings.overflow}`)}>

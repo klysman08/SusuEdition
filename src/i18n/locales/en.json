@@ -242,7 +242,14 @@
     "keepVideoAudio": "Keep video sound",
     "musicVolume": "Music volume",
     "videoVolume": "Video volume",
-    "ducking": "Music during videos with sound"
+    "ducking": "Music during videos with sound",
+    "beatSyncTitle": "Sync to the beat",
+    "beatSyncHint": "Cuts move to the nearest beat (strong beats first), changing each item's time by up to the maximum deviation.",
+    "beatSync": "Cut on the beat",
+    "maxDeviation": "Maximum deviation",
+    "beatSyncStats": "{{snapped}} of {{cuts}} cuts on the beat · {{bpm}} BPM",
+    "beatSyncNoMusic": "Pick a track in step 3 to sync.",
+    "beatSyncNoBeats": "No beats detected in this track (detection runs in the installed app)."
   },
   "preview": {
     "title": "Preview",

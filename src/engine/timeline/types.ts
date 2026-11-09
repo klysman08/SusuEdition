@@ -1,4 +1,4 @@
-import type { FitMode, MediaItem, MediaKind } from "../types";
+import type { Beat, FitMode, MediaItem, MediaKind } from "../types";
 
 export interface ClipOverrides {
   /** Duração fixa para este item (vence photo/videoDurationSec). */
@@ -38,6 +38,8 @@ export interface TimelineSettings {
   musicFadeOutSec: number;
   /** Duração mínima de qualquer segmento. */
   minClipSec: number;
+  /** Alinhar os cortes às batidas da música (RF-V17/RF-V18). */
+  beatSync: { enabled: boolean; maxDeviationSec: number };
 }
 
 export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
@@ -49,6 +51,7 @@ export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
   keepVideoAudio: false,
   musicFadeOutSec: 3,
   minClipSec: 0.5,
+  beatSync: { enabled: false, maxDeviationSec: 0.75 },
 };
 
 export interface TimelineSegment {
@@ -85,10 +88,14 @@ export interface TimelineResult {
   durationSec: number;
   audio: AudioPlan | null;
   warnings: TimelineWarning[];
+  /** Presente quando a sincronia com batidas foi aplicada. */
+  beatSync?: { snapped: number; cuts: number };
 }
 
 export interface BuildTimelineInput {
   items: readonly TimelineItem[];
   settings: TimelineSettings;
   music: MusicSelection | null;
+  /** Batidas da música (tempo do arquivo). Usadas quando `settings.beatSync.enabled`. */
+  beats?: readonly Beat[];
 }

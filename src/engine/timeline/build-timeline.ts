@@ -1,3 +1,4 @@
+import { applyCuts, syncCutsToBeats } from "./beat-sync";
 import type {
   AudioPlan,
   BuildTimelineInput,
@@ -10,6 +11,8 @@ import type {
 } from "./types";
 
 const EPS = 1e-6;
+/** Diferença entre vídeo e trecho da música considerada "igual" (sem corte nem aviso). */
+const MUSIC_TOLERANCE_SEC = 0.05;
 
 /** Evita acúmulo de erro de ponto flutuante (resolução de microssegundos). */
 const r = (n: number) => Math.round(n * 1e6) / 1e6;
@@ -112,8 +115,8 @@ function clampTransition(t: Transition, prev: number, cur: number): Transition {
 /**
  * Constrói a timeline do Video Maker. Função pura e determinística (SPEC §2.6).
  *
- * A sincronização com batidas (M5) é aplicada depois, sobre os segmentos
- * produzidos aqui.
+ * Com `settings.beatSync.enabled` e batidas, os cortes são alinhados à música
+ * (ver `beat-sync.ts`).
  */
 export function buildTimeline(input: BuildTimelineInput): TimelineResult {
   const { settings: s, music } = input;
@@ -133,7 +136,7 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
     }
   }
 
-  const segments: TimelineSegment[] = [];
+  let segments: TimelineSegment[] = [];
   let cursor = 0;
   for (const p of kept) {
     const duration = r(Math.min(p.durationSec, p.maxSec));
@@ -158,11 +161,27 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
   }
 
   const durationSec = r(cursor);
+  let beatSync: TimelineResult["beatSync"];
+
+  // Sincronia com batidas: move os cortes; a duração total não muda.
+  if (s.beatSync.enabled && music && input.beats && input.beats.length > 0 && segments.length > 1) {
+    const onTimeline = input.beats
+      .map((b) => ({ timeSec: b.timeSec - music.inSec, strength: b.strength }))
+      .filter((b) => b.timeSec > 0 && b.timeSec < durationSec);
+    const maxDurations = kept.map((p) => p.maxSec);
+    const { cuts, stats } = syncCutsToBeats(segments, onTimeline, maxDurations, {
+      maxDeviationSec: s.beatSync.maxDeviationSec,
+      minClipSec: s.minClipSec,
+    });
+    segments = applyCuts(segments, cuts, s.transition);
+    beatSync = stats;
+  }
+
   let audio: AudioPlan | null = null;
 
   if (music && durationSec > EPS) {
     const musicSec = r(music.outSec - music.inSec);
-    if (durationSec < musicSec - EPS) {
+    if (durationSec < musicSec - MUSIC_TOLERANCE_SEC) {
       // Conteúdo insuficiente (ou duração personalizada menor): corta a música com fade-out.
       if (s.total.mode !== "custom" || contentSec < target - EPS) {
         warnings.push({ kind: "contentShorterThanMusic", contentSec: durationSec, musicSec });
@@ -173,12 +192,12 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
         fadeOutSec: r(Math.min(s.musicFadeOutSec, durationSec)),
       };
     } else {
-      if (durationSec > musicSec + EPS) {
+      if (durationSec > musicSec + MUSIC_TOLERANCE_SEC) {
         warnings.push({ kind: "musicShorterThanVideo", musicSec, videoSec: durationSec });
       }
       audio = { musicInSec: music.inSec, musicOutSec: music.outSec, fadeOutSec: 0 };
     }
   }
 
-  return { segments, durationSec, audio, warnings };
+  return { segments, durationSec, audio, warnings, ...(beatSync ? { beatSync } : {}) };
 }

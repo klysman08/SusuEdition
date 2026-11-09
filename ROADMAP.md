@@ -50,8 +50,10 @@
 - [ ] Versionar `src-tauri/gen/android`
 
 ## M5 — Beat sync · `v0.5.0`
-- [ ] Snapping de cortes com desvio máximo — RF-V17, RF-V18
-- [ ] Visualização de batidas e cortes na timeline
+- [x] Cortes alinhados à batida mais próxima (fortes têm prioridade) dentro do desvio máximo configurável (±0,1–2 s), respeitando duração mínima e o que resta de cada vídeo — RF-V17, RF-V18
+- [x] Batidas e cortes alinhados na faixa da timeline; contador "X de Y cortes nas batidas"
+- [x] Validado no export: trocas de cena a 8 ms (média) das batidas reais
+- [ ] Testar com músicas reais (gêneros variados) e ajustar pesos força × distância
 
 ## M6 — Photo Collage · `v0.6.0`
 - [ ] Layouts e aspect ratios — RF-C2, RF-C3

@@ -90,6 +90,19 @@ describe("buildTimeline — música", () => {
   });
 });
 
+describe("buildTimeline — tolerância da música", () => {
+  it("diferenças de poucos ms entre vídeo e trecho não cortam a música nem geram aviso", () => {
+    const items = Array.from({ length: 5 }, (_, i) => photo(`p${i}`));
+    const res = buildTimeline({
+      items,
+      settings: settings({ total: { mode: "items" } }),
+      music: { inSec: 4.992, outSec: 15.004 },
+    });
+    expect(res.audio?.fadeOutSec).toBe(0);
+    expect(res.warnings).toEqual([]);
+  });
+});
+
 describe("buildTimeline — excesso de mídia", () => {
   const many = Array.from({ length: 10 }, (_, i) => photo(`p${i}`)); // 20s de conteúdo
 

@@ -242,7 +242,14 @@
     "keepVideoAudio": "Manter o som dos vídeos",
     "musicVolume": "Volume da música",
     "videoVolume": "Volume dos vídeos",
-    "ducking": "Música durante vídeos com som"
+    "ducking": "Música durante vídeos com som",
+    "beatSyncTitle": "Sincronizar com as batidas",
+    "beatSyncHint": "Os cortes vão para a batida mais próxima (as fortes têm prioridade), podendo variar o tempo de cada mídia até o desvio máximo.",
+    "beatSync": "Cortar nas batidas",
+    "maxDeviation": "Desvio máximo",
+    "beatSyncStats": "{{snapped}} de {{cuts}} cortes alinhados às batidas · {{bpm}} BPM",
+    "beatSyncNoMusic": "Escolha uma música no passo 3 para sincronizar.",
+    "beatSyncNoBeats": "Nenhuma batida detectada nesta música (a detecção roda no app instalado)."
   },
   "preview": {
     "title": "Prévia",

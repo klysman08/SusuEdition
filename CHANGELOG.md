@@ -4,6 +4,19 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-09 · M5 Sincronia com as batidas
+
+### Added
+- **Sincronizar com as batidas** (aba Tempo): cada corte vai para a batida mais próxima — batidas fortes têm prioridade — sem passar do desvio máximo escolhido (±0,1 a 2 s). Respeita a duração mínima (0,5 s), o que resta de cada vídeo e mantém a duração total.
+- Batidas da música e cortes alinhados desenhados na faixa da timeline; contador de cortes alinhados e BPM.
+- Vale para a prévia e para a exportação.
+
+### Fixed
+- Diferenças de poucos milissegundos entre o vídeo e o trecho da música não geram mais aviso nem fade-out.
+
+### Verified
+- Export 1080p de 30 fotos sincronizado a uma faixa de 124 BPM: trocas de cena a 8 ms em média (máx. 21 ms, < 1 quadro) das batidas reais.
+
 ## [0.4.0] — 2026-11-09 · M4 Exportação
 
 ### Added

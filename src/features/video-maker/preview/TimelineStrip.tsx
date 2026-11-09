@@ -2,6 +2,7 @@ import { memo, useRef, type PointerEvent } from "react";
 import { useStore } from "zustand";
 
 import type { TimelineResult } from "@/engine/timeline";
+import type { Beat } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 import { videoMediaStore } from "../store";
@@ -10,8 +11,36 @@ interface Props {
   timeline: TimelineResult;
   timeSec: number;
   onSeek: (t: number) => void;
-  onOpenItem?: (id: string) => void;
+  /** Batidas da música em tempo de timeline (0 = início do vídeo). */
+  beats?: readonly Beat[];
 }
+
+/** Marcas das batidas abaixo da faixa; cortes que caem numa batida ganham um marcador. */
+const BeatLane = memo(function BeatLane({ beats, timeline }: { beats: readonly Beat[]; timeline: TimelineResult }) {
+  const d = Math.max(0.001, timeline.durationSec);
+  const times = new Set(beats.map((b) => Math.round(b.timeSec * 1000)));
+  const aligned = timeline.segments.slice(1).filter((s) => times.has(Math.round(s.startSec * 1000)));
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2.5">
+        {beats.map((b) => (
+          <span
+            key={b.timeSec}
+            className="absolute bottom-0 w-px bg-muted-foreground/60"
+            style={{ left: `${(b.timeSec / d) * 100}%`, height: `${30 + b.strength * 70}%` }}
+          />
+        ))}
+      </div>
+      {aligned.map((s) => (
+        <span
+          key={s.mediaId}
+          className="pointer-events-none absolute top-0 h-12 w-0.5 -translate-x-1/2 bg-primary"
+          style={{ left: `${(s.startSec / d) * 100}%` }}
+        />
+      ))}
+    </>
+  );
+});
 
 const Segments = memo(function Segments({ timeline }: { timeline: TimelineResult }) {
   const items = useStore(videoMediaStore, (s) => s.items);
@@ -39,7 +68,7 @@ const Segments = memo(function Segments({ timeline }: { timeline: TimelineResult
 });
 
 /** Faixa com as mídias proporcionais à duração; tocar/arrastar posiciona a reprodução. */
-export function TimelineStrip({ timeline, timeSec, onSeek }: Props) {
+export function TimelineStrip({ timeline, timeSec, onSeek, beats }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const d = timeline.durationSec;
@@ -54,7 +83,10 @@ export function TimelineStrip({ timeline, timeSec, onSeek }: Props) {
   return (
     <div
       ref={ref}
-      className="relative h-12 cursor-pointer touch-none overflow-hidden rounded-md bg-muted select-none"
+      className={cn(
+        "relative cursor-pointer touch-none overflow-hidden rounded-md bg-muted select-none",
+        beats && beats.length > 0 ? "h-[60px]" : "h-12",
+      )}
       onPointerDown={(e) => {
         dragging.current = true;
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -64,10 +96,13 @@ export function TimelineStrip({ timeline, timeSec, onSeek }: Props) {
       onPointerUp={() => (dragging.current = false)}
       onPointerCancel={() => (dragging.current = false)}
     >
-      <Segments timeline={timeline} />
+      <div className="absolute inset-x-0 top-0 h-12">
+        <Segments timeline={timeline} />
+      </div>
+      {beats && beats.length > 0 && <BeatLane beats={beats} timeline={timeline} />}
       {fade > 0 && d > 0 && (
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 bg-gradient-to-r from-transparent to-black/60"
+          className="pointer-events-none absolute top-0 right-0 h-12 bg-gradient-to-r from-transparent to-black/60"
           style={{ width: `${(fade / d) * 100}%` }}
         />
       )}
