@@ -27,30 +27,18 @@
   },
   "videoMaker": {
     "title": "Video Maker",
-    "subtitle": "Build your video in five steps.",
-    "steps": {
-      "format": {
-        "title": "Format",
-        "description": "Aspect ratio (9:16, 16:9, 4:3…) and fit or cover framing."
-      },
-      "media": {
-        "title": "Media",
-        "description": "Load photos and videos — even hundreds of them."
-      },
-      "music": {
-        "title": "Music",
-        "description": "Pick the track and the exact section you want."
-      },
-      "timing": {
-        "title": "Timing",
-        "description": "Total length, time per photo/video and beat sync."
-      },
-      "export": {
-        "title": "Export",
-        "description": "MP4 up to 4K, at 30 or 60 fps."
-      }
-    },
-    "comingSoonDescription": "This step arrives in upcoming versions."
+    "exit": "Exit editor",
+    "toolbar": "Editing tools",
+    "closePanel": "Close panel",
+    "tools": {
+      "media": "Media",
+      "music": "Music",
+      "sync": "Rhythm",
+      "timing": "Timing",
+      "audio": "Audio",
+      "format": "Format",
+      "export": "Export"
+    }
   },
   "photoCollage": {
     "title": "Photo Collage",
@@ -211,7 +199,7 @@
     "warnDropped_other": "{{count}} items were left out for lack of time.",
     "warnShort": "Your media adds up to {{content}} — the music will be cut there with a 3 s fade-out.",
     "warnMusicShort": "The music ({{music}}) ends before the video.",
-    "noMedia": "Add photos or videos in step 2.",
+    "noMedia": "Add photos or videos in Media.",
     "totalTitle": "Total length",
     "total": {
       "music": "Music section",
@@ -220,7 +208,7 @@
     },
     "totalHint": {
       "music": "The video follows the chosen section ({{duration}}).",
-      "musicMissing": "Pick a track in step 3 — meanwhile, the sum of media is used.",
+      "musicMissing": "Add a track in Music — meanwhile, the sum of media is used.",
       "custom": "Set the exact video length.",
       "items": "Each item with its own time, no cuts."
     },
@@ -250,12 +238,27 @@
     "videoVolume": "Video volume",
     "ducking": "Music during videos with sound",
     "beatSyncTitle": "Sync to the beat",
-    "beatSyncHint": "Cuts move to the nearest beat (strong beats first), changing each item's time by up to the maximum deviation.",
+    "beatSyncHint": "Cuts land on the beats of the music. Pick how the video should follow the song.",
     "beatSync": "Cut on the beat",
-    "maxDeviation": "Maximum deviation",
     "beatSyncStats": "{{snapped}} of {{cuts}} cuts on the beat · {{bpm}} BPM",
-    "beatSyncNoMusic": "Pick a track in step 3 to sync.",
-    "beatSyncNoBeats": "No beats detected in this track (detection runs in the installed app)."
+    "beatSyncNoMusic": "Add a track to cut on the beat.",
+    "beatSyncNoBeats": "No beats detected in this track.",
+    "chooseMusic": "Choose music",
+    "syncStyle": "Sync style",
+    "preset": {
+      "dynamic": "Dynamic",
+      "steady": "Steady",
+      "bars": "Bars",
+      "accents": "Accents"
+    },
+    "presetHint": {
+      "dynamic": "Faster in intense parts, slower in calm ones.",
+      "steady": "Even pace, nearest beat.",
+      "bars": "Cuts at the start of each bar.",
+      "accents": "Chases the hardest hits."
+    },
+    "flexibility": "Flexibility",
+    "flexibilityHint": "How much the time of each item may change to reach a good beat."
   },
   "preview": {
     "title": "Preview",
@@ -263,7 +266,9 @@
     "pause": "Pause",
     "empty": "The preview shows up once there are photos or videos.",
     "unsupported": "Your device doesn't support WebGL2 — preview unavailable.",
-    "seek": "Position"
+    "seek": "Position",
+    "restart": "Back to start",
+    "onBeat": "{{snapped}}/{{cuts}} on beat"
   },
   "item": {
     "title": "Item settings",

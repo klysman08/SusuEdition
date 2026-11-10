@@ -1,4 +1,4 @@
-import { computePeaks, type AudioAnalysis } from "@/engine/audio";
+import { computePeaks, detectBeats, type AudioAnalysis } from "@/engine/audio";
 import { createProbePool, type ProbePool } from "@/engine/decode";
 import type { MediaKind } from "@/engine/types";
 
@@ -58,7 +58,7 @@ export function createWebBackend(): MediaBackend {
       return (await pickFiles(AUDIO_ACCEPT_ATTRIBUTE, false)).map((file): PickedMedia => ({ type: "web", file }));
     },
 
-    /** Navegador: só a waveform (a detecção de batidas roda no Rust, no app nativo). */
+    /** Navegador: waveform + batidas pelo detector em TypeScript (o app nativo usa o de Rust). */
     async analyzeAudio(id): Promise<AudioAnalysis> {
       const file = files.get(id);
       if (!file) throw new Error(`arquivo não registrado: ${id}`);
@@ -74,8 +74,7 @@ export function createWebBackend(): MediaBackend {
         sourceRate: buffer.sampleRate,
         channels: buffer.numberOfChannels,
         peaks: computePeaks(mono, 4000),
-        bpm: null,
-        beats: [],
+        ...detectBeats(mono, buffer.sampleRate),
       };
     },
 

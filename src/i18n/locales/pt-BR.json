@@ -27,30 +27,18 @@
   },
   "videoMaker": {
     "title": "Video Maker",
-    "subtitle": "Monte seu vídeo em cinco passos.",
-    "steps": {
-      "format": {
-        "title": "Formato",
-        "description": "Aspect ratio (9:16, 16:9, 4:3…) e enquadramento fit ou cover."
-      },
-      "media": {
-        "title": "Mídias",
-        "description": "Carregue fotos e vídeos — mesmo centenas deles."
-      },
-      "music": {
-        "title": "Música",
-        "description": "Escolha a faixa e o trecho exato que você quer usar."
-      },
-      "timing": {
-        "title": "Tempo",
-        "description": "Duração total, tempo por foto/vídeo e sincronia com as batidas."
-      },
-      "export": {
-        "title": "Exportar",
-        "description": "MP4 até 4K, a 30 ou 60 fps."
-      }
-    },
-    "comingSoonDescription": "Esta etapa chega nas próximas versões."
+    "exit": "Sair do editor",
+    "toolbar": "Ferramentas de edição",
+    "closePanel": "Fechar painel",
+    "tools": {
+      "media": "Mídias",
+      "music": "Música",
+      "sync": "Ritmo",
+      "timing": "Tempo",
+      "audio": "Áudio",
+      "format": "Formato",
+      "export": "Exportar"
+    }
   },
   "photoCollage": {
     "title": "Photo Collage",
@@ -211,7 +199,7 @@
     "warnDropped_other": "{{count}} mídias ficaram de fora por falta de tempo.",
     "warnShort": "As mídias somam {{content}} — a música será cortada aí, com fade-out de 3 s.",
     "warnMusicShort": "A música ({{music}}) acaba antes do vídeo.",
-    "noMedia": "Adicione fotos ou vídeos no passo 2.",
+    "noMedia": "Adicione fotos ou vídeos em Mídias.",
     "totalTitle": "Duração total",
     "total": {
       "music": "Trecho da música",
@@ -220,7 +208,7 @@
     },
     "totalHint": {
       "music": "O vídeo acompanha o trecho escolhido ({{duration}}).",
-      "musicMissing": "Escolha uma música no passo 3 — por enquanto, usa a soma das mídias.",
+      "musicMissing": "Adicione uma música em Música — por enquanto, usa a soma das mídias.",
       "custom": "Defina a duração exata do vídeo.",
       "items": "Cada mídia com seu tempo, sem cortes."
     },
@@ -250,12 +238,27 @@
     "videoVolume": "Volume dos vídeos",
     "ducking": "Música durante vídeos com som",
     "beatSyncTitle": "Sincronizar com as batidas",
-    "beatSyncHint": "Os cortes vão para a batida mais próxima (as fortes têm prioridade), podendo variar o tempo de cada mídia até o desvio máximo.",
+    "beatSyncHint": "Os cortes caem nas batidas da música. Escolha como o vídeo deve acompanhar a faixa.",
     "beatSync": "Cortar nas batidas",
-    "maxDeviation": "Desvio máximo",
     "beatSyncStats": "{{snapped}} de {{cuts}} cortes alinhados às batidas · {{bpm}} BPM",
-    "beatSyncNoMusic": "Escolha uma música no passo 3 para sincronizar.",
-    "beatSyncNoBeats": "Nenhuma batida detectada nesta música (a detecção roda no app instalado)."
+    "beatSyncNoMusic": "Adicione uma música para cortar nas batidas.",
+    "beatSyncNoBeats": "Nenhuma batida detectada nesta música.",
+    "chooseMusic": "Escolher música",
+    "syncStyle": "Estilo da sincronia",
+    "preset": {
+      "dynamic": "Dinâmico",
+      "steady": "Constante",
+      "bars": "Compassos",
+      "accents": "Acentos"
+    },
+    "presetHint": {
+      "dynamic": "Rápido nas partes intensas, calmo nas suaves.",
+      "steady": "Ritmo uniforme, batida mais próxima.",
+      "bars": "Corta no início de cada compasso.",
+      "accents": "Persegue as batidas mais fortes."
+    },
+    "flexibility": "Flexibilidade",
+    "flexibilityHint": "Quanto o tempo de cada mídia pode mudar para alcançar uma boa batida."
   },
   "preview": {
     "title": "Prévia",
@@ -263,7 +266,9 @@
     "pause": "Pausar",
     "empty": "A prévia aparece quando houver fotos ou vídeos.",
     "unsupported": "Seu dispositivo não suporta WebGL2 — a prévia não está disponível.",
-    "seek": "Posição"
+    "seek": "Posição",
+    "restart": "Voltar ao início",
+    "onBeat": "{{snapped}}/{{cuts}} na batida"
   },
   "item": {
     "title": "Ajustes da mídia",

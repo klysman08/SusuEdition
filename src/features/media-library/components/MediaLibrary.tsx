@@ -19,11 +19,14 @@ export function MediaLibrary({
   store,
   onOpenItem,
   imagesOnly = false,
+  embedded = false,
 }: {
   store: MediaLibraryStore;
   onOpenItem?: (id: string) => void;
   /** Photo Collage: aceita só fotos. */
   imagesOnly?: boolean;
+  /** Dentro de um painel estreito com rolagem própria (editor de vídeo). */
+  embedded?: boolean;
 }) {
   const { t } = useTranslation();
   const count = useLibrary(store, (s) => s.order.length);
@@ -129,6 +132,7 @@ export function MediaLibrary({
           <MediaToolbar
             store={store}
             imagesOnly={imagesOnly}
+            embedded={embedded}
             onAdd={() => void pick()}
             onRemove={(ids) => void remove(ids)}
           />

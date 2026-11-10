@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { formatDuration } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 import { useLibrary, useLibraryShallow } from "../hooks";
 import { summarize, type MediaLibraryStore, type SortMode } from "../store";
@@ -30,6 +31,8 @@ interface Props {
   onAdd: () => void;
   onRemove: (ids: string[]) => void;
   imagesOnly?: boolean;
+  /** Painel estreito: cola nas bordas do painel e esconde os rótulos dos botões. */
+  embedded?: boolean;
 }
 
 const SORTS: { mode: SortMode; key: "sortDateAsc" | "sortDateDesc" | "sortNameAsc" | "shuffle" }[] = [
@@ -39,7 +42,7 @@ const SORTS: { mode: SortMode; key: "sortDateAsc" | "sortDateDesc" | "sortNameAs
   { mode: "shuffle", key: "shuffle" },
 ];
 
-export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Props) {
+export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false, embedded = false }: Props) {
   const { t } = useTranslation();
   const [confirmClear, setConfirmClear] = useState(false);
   const summary = useLibraryShallow(store, summarize);
@@ -48,9 +51,15 @@ export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Pro
   const selectedCount = useLibrary(store, (s) => Object.keys(s.selected).length);
   const busy = progress.done < progress.total;
   const { setSelectMode, selectAll, sort } = store.getState();
+  const label = embedded ? "sr-only" : "hidden sm:inline";
 
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-3 border-b bg-background/85 px-4 py-2.5 backdrop-blur-md sm:-mx-6 sm:px-6 md:-mx-10 md:px-10">
+    <div
+      className={cn(
+        "sticky z-10 -mx-4 mb-3 border-b bg-background/85 px-4 py-2.5 backdrop-blur-md",
+        embedded ? "-top-4 -mt-4" : "top-0 sm:-mx-6 sm:px-6 md:-mx-10 md:px-10",
+      )}
+    >
       <div className="flex items-center gap-2">
         <div className="min-w-0 flex-1 text-sm">
           <p className="truncate font-medium">
@@ -72,7 +81,7 @@ export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Pro
             <>
               <Button variant="ghost" size="sm" onClick={selectAll}>
                 <CheckCheck />
-                <span className="hidden sm:inline">{t("mediaLibrary.selectAll")}</span>
+                <span className={label}>{t("mediaLibrary.selectAll")}</span>
               </Button>
               <Button
                 variant="destructive"
@@ -98,7 +107,7 @@ export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Pro
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
                     <ArrowUpDown />
-                    <span className="hidden sm:inline">{t("mediaLibrary.sort")}</span>
+                    <span className={label}>{t("mediaLibrary.sort")}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -111,7 +120,7 @@ export function MediaToolbar({ store, onAdd, onRemove, imagesOnly = false }: Pro
               </DropdownMenu>
               <Button variant="outline" size="sm" onClick={() => setSelectMode(true)}>
                 <CheckSquare />
-                <span className="hidden sm:inline">{t("mediaLibrary.select")}</span>
+                <span className={label}>{t("mediaLibrary.select")}</span>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

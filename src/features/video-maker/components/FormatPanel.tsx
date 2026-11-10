@@ -45,7 +45,7 @@ export function FormatPanel() {
   return (
     <div className="space-y-4">
       <Section title={t("format.aspectTitle")} description={t("format.aspectDescription")}>
-        <AspectPicker value={aspect} onChange={setAspect} />
+        <AspectPicker value={aspect} onChange={setAspect} compact />
       </Section>
 
       <Section title={t("format.fitTitle")} description={t("format.fitDescription")}>

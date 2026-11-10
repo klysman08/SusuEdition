@@ -1,18 +1,12 @@
-import { Film, Pause, Play } from "lucide-react";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import { useStore } from "zustand";
 
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import type { TimelineResult } from "@/engine/timeline";
-import { formatTime } from "@/lib/format";
+import type { RhythmBeat, TimelineResult } from "@/engine/timeline";
 import { getMediaBackend, type MediaBackend } from "@/platform/media";
 
-import { useProject } from "../hooks";
+import { useProject, useRhythm } from "../hooks";
 import { videoMediaStore, videoMusicStore } from "../store";
 import { PreviewPlayer, type PlayerState, type PreviewMedia } from "./preview-player";
-import { TimelineStrip } from "./TimelineStrip";
 
 /** Lado menor máximo do canvas do preview (custo de GPU constante). */
 const MAX_SHORT_SIDE = 720;
@@ -23,15 +17,27 @@ declare global {
   }
 }
 
-function aspectNumbers(aspect: string): [number, number] {
-  const [w, h] = aspect.split(":").map(Number) as [number, number];
-  return [w, h];
+export interface PreviewController {
+  player: PreviewPlayer | null;
+  state: PlayerState;
+  unsupported: boolean;
+  empty: boolean;
+  /** Proporção do vídeo [largura, altura]. */
+  aspect: [number, number];
+  /** Batidas da música em tempo de timeline (só as que caem dentro do vídeo). */
+  beats: readonly RhythmBeat[];
 }
 
-export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
-  const { t } = useTranslation();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
+/**
+ * Liga o `PreviewPlayer` ao projeto atual. O <canvas> (`canvasRef`) e a caixa na
+ * proporção do vídeo (`boxRef`, que dita o tamanho do canvas) precisam estar montados
+ * enquanto o hook estiver ativo.
+ */
+export function usePreviewPlayer(
+  timeline: TimelineResult,
+  canvasRef: RefObject<HTMLCanvasElement | null>,
+  boxRef: RefObject<HTMLDivElement | null>,
+): PreviewController {
   const [player, setPlayer] = useState<PreviewPlayer | null>(null);
   const [unsupported, setUnsupported] = useState(false);
   const [backend, setBackend] = useState<MediaBackend | null>(null);
@@ -43,8 +49,8 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
   const mix = useProject((s) => s.mix);
   const items = useStore(videoMediaStore, (s) => s.items);
   const musicUrl = useStore(videoMusicStore, (s) => (s.status === "ready" ? (s.track?.url ?? null) : null));
-  const fileBeats = useStore(videoMusicStore, (s) => s.analysis?.beats);
-  const [aw, ah] = aspectNumbers(aspect);
+  const fileBeats = useRhythm();
+  const [aw, ah] = aspect.split(":").map(Number) as [number, number];
 
   useEffect(() => {
     void getMediaBackend().then(setBackend);
@@ -72,10 +78,10 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
       setPlayer(null);
       if (window.__susuPreview === p) delete window.__susuPreview;
     };
-  }, []);
+  }, [canvasRef]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Tamanho do canvas acompanha o contêiner (limitado a 720 no lado menor).
+  // Tamanho do canvas acompanha a caixa (limitado a 720 no lado menor).
   useLayoutEffect(() => {
     const box = boxRef.current;
     if (!box || !player) return;
@@ -90,7 +96,7 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
     const ro = new ResizeObserver(apply);
     ro.observe(box);
     return () => ro.disconnect();
-  }, [player, aw, ah]);
+  }, [player, boxRef, aw, ah]);
 
   const media = useMemo(() => {
     const map = new Map<string, PreviewMedia>();
@@ -122,76 +128,23 @@ export function PreviewPanel({ timeline }: { timeline: TimelineResult }) {
     });
   }, [player, timeline, media, musicUrl, fit, background, mix]);
 
-  // Pausa ao sair da página.
+  // Pausa ao sair do editor.
   useEffect(() => () => player?.pause(), [player]);
 
-  const empty = timeline.segments.length === 0;
-  // Batidas no tempo do vídeo (só as que caem dentro dele).
   const beats = useMemo(() => {
     const plan = timeline.audio;
-    if (!plan || !fileBeats) return undefined;
+    if (!plan) return [];
     return fileBeats
-      .map((b) => ({ timeSec: b.timeSec - plan.musicInSec, strength: b.strength }))
+      .map((b) => ({ ...b, timeSec: b.timeSec - plan.musicInSec }))
       .filter((b) => b.timeSec >= 0 && b.timeSec <= timeline.durationSec);
   }, [fileBeats, timeline.audio, timeline.durationSec]);
 
-  return (
-    <div
-      className="space-y-3 rounded-xl border bg-card p-3 outline-none sm:p-4"
-      tabIndex={-1}
-      onKeyDown={(e) => {
-        if (e.key === " " && e.target === e.currentTarget) {
-          e.preventDefault();
-          player?.toggle();
-        }
-      }}
-    >
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">{t("preview.title")}</p>
-        <span className="text-xs text-muted-foreground tabular-nums">{aspect}</span>
-      </div>
-
-      <div
-        ref={boxRef}
-        className="relative mx-auto overflow-hidden rounded-lg bg-black [--preview-h:42vh] xl:[--preview-h:min(56vh,560px)]"
-        style={{ aspectRatio: `${aw} / ${ah}`, width: `min(100%, calc(var(--preview-h) * ${aw / ah}))` }}
-      >
-        <canvas ref={canvasRef} className="block size-full" onClick={() => player?.toggle()} />
-        {(empty || unsupported) && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-white/70">
-            <Film className="size-7" aria-hidden />
-            <p className="text-xs">{unsupported ? t("preview.unsupported") : t("preview.empty")}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          size="icon"
-          onClick={() => player?.toggle()}
-          disabled={empty || !player}
-          aria-label={state.playing ? t("preview.pause") : t("preview.play")}
-        >
-          {state.playing ? <Pause /> : <Play />}
-        </Button>
-        <Slider
-          min={0}
-          max={Math.max(0.01, state.durationSec)}
-          step={0.01}
-          value={[state.timeSec]}
-          onValueChange={([v]) => v !== undefined && player?.seek(v)}
-          disabled={empty}
-          aria-label={t("preview.seek")}
-          className="flex-1"
-        />
-        <span className="w-[88px] shrink-0 text-right text-xs text-muted-foreground tabular-nums">
-          {formatTime(state.timeSec, false)} / {formatTime(state.durationSec, false)}
-        </span>
-      </div>
-
-      {!empty && (
-        <TimelineStrip timeline={timeline} timeSec={state.timeSec} onSeek={(v) => player?.seek(v)} beats={beats} />
-      )}
-    </div>
-  );
+  return {
+    player,
+    state,
+    unsupported,
+    empty: timeline.segments.length === 0,
+    aspect: [aw, ah],
+    beats,
+  };
 }

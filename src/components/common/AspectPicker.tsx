@@ -6,10 +6,23 @@ import { cn } from "@/lib/utils";
 import { frameStyle } from "./aspect-frame";
 
 /** Escolha de proporção (9:16, 16:9, 4:3, 1:1, 4:5, 3:4) — Video Maker e Colagem. */
-export function AspectPicker({ value, onChange }: { value: AspectRatio; onChange: (a: AspectRatio) => void }) {
+export function AspectPicker({
+  value,
+  onChange,
+  compact = false,
+}: {
+  value: AspectRatio;
+  onChange: (a: AspectRatio) => void;
+  /** Painéis estreitos: sempre 3 colunas. */
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
   return (
-    <div role="radiogroup" aria-label={t("format.aspectTitle")} className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+    <div
+      role="radiogroup"
+      aria-label={t("format.aspectTitle")}
+      className={cn("grid grid-cols-3 gap-2", !compact && "sm:grid-cols-6")}
+    >
       {ASPECT_RATIOS.map((a) => {
         const active = a === value;
         return (

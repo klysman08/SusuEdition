@@ -6,6 +6,7 @@
  */
 import type { Beat } from "../types";
 
+export * from "./beat-detect";
 export * from "./envelope";
 export * from "./mix";
 export * from "./peaks";

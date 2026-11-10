@@ -1,17 +1,31 @@
 import { useMemo } from "react";
 import { useStore } from "zustand";
 
-import type { TimelineResult } from "@/engine/timeline";
-import type { Beat } from "@/engine/types";
+import { analyzeRhythm, type RhythmBeat, type TimelineResult } from "@/engine/timeline";
 
 import type { VideoProjectState } from "./project-store";
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "./store";
 import { computeTimeline } from "./timeline-input";
 
-const NO_BEATS: readonly Beat[] = [];
+const NO_BEATS: readonly RhythmBeat[] = [];
 
 export function useProject<T>(selector: (s: VideoProjectState) => T): T {
   return useStore(videoProjectStore, selector);
+}
+
+/**
+ * Batidas da música (tempo do arquivo) com energia, compassos e mudanças de seção.
+ * Recalculado só quando a análise da faixa muda.
+ */
+export function useRhythm(): readonly RhythmBeat[] {
+  const analysis = useStore(videoMusicStore, (s) => s.analysis);
+  return useMemo(
+    () =>
+      analysis && analysis.beats.length > 0
+        ? analyzeRhythm(analysis.beats, { peaks: analysis.peaks, durationSec: analysis.durationSec })
+        : NO_BEATS,
+    [analysis],
+  );
 }
 
 /** Timeline atual (recalculada quando mídias, música ou ajustes mudam). */
@@ -19,7 +33,7 @@ export function useVideoTimeline(): TimelineResult {
   const order = useStore(videoMediaStore, (s) => s.order);
   const items = useStore(videoMediaStore, (s) => s.items);
   const selection = useStore(videoMusicStore, (s) => (s.status === "ready" ? s.selection : null));
-  const beats = useStore(videoMusicStore, (s) => s.analysis?.beats ?? NO_BEATS);
+  const beats = useRhythm();
   const settings = useProject((s) => s.timeline);
   const overrides = useProject((s) => s.overrides);
   return useMemo(

@@ -39,7 +39,27 @@ export interface TimelineSettings {
   /** Duração mínima de qualquer segmento. */
   minClipSec: number;
   /** Alinhar os cortes às batidas da música (RF-V17/RF-V18). */
-  beatSync: { enabled: boolean; maxDeviationSec: number };
+  beatSync: BeatSyncSettings;
+}
+
+/** Estilo da sincronia (ver `BEAT_SYNC_PRESETS` em `beat-sync.ts`). */
+export type BeatSyncPreset = "steady" | "dynamic" | "bars" | "accents";
+
+export interface BeatSyncSettings {
+  enabled: boolean;
+  preset: BeatSyncPreset;
+  /** Quanto a duração de cada mídia pode variar para alcançar uma batida (0..1). */
+  flexibility: number;
+}
+
+/** Batida com o contexto musical calculado por `analyzeRhythm`. */
+export interface RhythmBeat extends Beat {
+  /** Intensidade local da música 0..1. */
+  energy?: number;
+  /** Confiança 0..1 de que abre um compasso (0 = não abre). */
+  bar?: number;
+  /** Mudança de seção 0..1 (refrão, drop, pausa). */
+  boundary?: number;
 }
 
 export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
@@ -51,7 +71,7 @@ export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
   keepVideoAudio: false,
   musicFadeOutSec: 3,
   minClipSec: 0.5,
-  beatSync: { enabled: false, maxDeviationSec: 0.75 },
+  beatSync: { enabled: true, preset: "dynamic", flexibility: 0.6 },
 };
 
 export interface TimelineSegment {
@@ -96,6 +116,9 @@ export interface BuildTimelineInput {
   items: readonly TimelineItem[];
   settings: TimelineSettings;
   music: MusicSelection | null;
-  /** Batidas da música (tempo do arquivo). Usadas quando `settings.beatSync.enabled`. */
-  beats?: readonly Beat[];
+  /**
+   * Batidas da música (tempo do arquivo). Usadas quando `settings.beatSync.enabled`.
+   * Passe o resultado de `analyzeRhythm` para cortes guiados por energia e compassos.
+   */
+  beats?: readonly RhythmBeat[];
 }

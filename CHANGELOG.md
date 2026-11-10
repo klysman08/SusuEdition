@@ -4,6 +4,19 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-11-10 · Editor e ritmo
+
+### Added
+- **Estilos de sincronia** com a música (ferramenta Ritmo): Dinâmico (acelera nas partes intensas, respira nas calmas), Constante, Compassos e Acentos, com ajuste de flexibilidade.
+- **Mapa da música**: energia, compassos e mudanças de seção (refrão, drop, pausa) calculados a partir das batidas e da waveform; aparecem na faixa abaixo das mídias.
+- Detecção de BPM/batidas também no modo navegador (detector em TypeScript).
+- Barra de espaço toca/pausa de qualquer lugar do editor; duplo clique numa mídia da faixa abre os ajustes dela; botão "voltar ao início".
+
+### Changed
+- **Video Maker virou um editor de tela cheia**: prévia sempre visível, faixa das mídias logo abaixo e barra fixa de ferramentas no rodapé (Mídias, Música, Ritmo, Tempo, Áudio, Formato); a ferramenta aberta fica ao lado da prévia no desktop e abaixo da faixa no celular. Exportar é o botão principal no topo.
+- No editor a navegação do app encolhe para um trilho de ícones (desktop) ou some (celular, com botão de voltar).
+- A sincronia com as batidas escolhe todos os cortes de uma vez (programação dinâmica) em vez de empurrar cada corte para a batida vizinha, e vem ligada por padrão. O ajuste "desvio máximo" deu lugar a "flexibilidade".
+
 ## [0.6.0] — 2026-11-09 · M6 Photo Collage
 
 ### Added

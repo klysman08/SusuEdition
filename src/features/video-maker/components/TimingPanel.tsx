@@ -1,11 +1,9 @@
-import { Activity, AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TimelineResult } from "@/engine/timeline";
 import { formatTime } from "@/lib/format";
@@ -15,7 +13,6 @@ import { videoMediaStore, videoMusicStore, videoProjectStore } from "../store";
 import { LabeledValue, Section } from "@/components/common/Section";
 
 const QUICK = [15, 30, 60] as const;
-const pct = (v: number) => `${Math.round(v * 100)}%`;
 const secs = (v: number) => `${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`;
 
 function Summary({ timeline }: { timeline: TimelineResult }) {
@@ -66,20 +63,14 @@ function Summary({ timeline }: { timeline: TimelineResult }) {
   );
 }
 
-/** Passo "Tempo": duração total, tempo por mídia, excesso, transição e áudio. */
+/** Ferramenta "Tempo": duração total, tempo por mídia e o que fazer com o excesso. */
 export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
   const { t } = useTranslation();
   const settings = useProject((s) => s.timeline);
-  const mix = useProject((s) => s.mix);
   const selection = useStore(videoMusicStore, (s) => (s.status === "ready" ? s.selection : null));
-  const bpm = useStore(videoMusicStore, (s) => s.analysis?.bpm ?? null);
-  const beatCount = useStore(videoMusicStore, (s) => s.analysis?.beats.length ?? 0);
-  const { patchTimeline, patchMix } = videoProjectStore.getState();
-  const sync = settings.beatSync;
-  const canSync = !!selection && beatCount > 0;
+  const { patchTimeline } = videoProjectStore.getState();
   const mode = settings.total.mode;
   const custom = settings.total.mode === "custom" ? settings.total.seconds : 30;
-  const fade = settings.transition.kind === "fade" ? settings.transition.durationSec : 0.5;
 
   const totalHint =
     mode === "music"
@@ -153,7 +144,7 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
       </Section>
 
       <Section title={t("timing.perItemTitle")} description={t("timing.videoHint")}>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-5">
           <LabeledValue label={t("timing.photo")} value={secs(settings.photoDurationSec)}>
             <Slider
               min={0.5}
@@ -177,50 +168,6 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
         </div>
       </Section>
 
-      <Section
-        title={t("timing.beatSyncTitle")}
-        description={
-          !selection
-            ? t("timing.beatSyncNoMusic")
-            : beatCount === 0
-              ? t("timing.beatSyncNoBeats")
-              : t("timing.beatSyncHint")
-        }
-        action={
-          <Switch
-            checked={sync.enabled && canSync}
-            disabled={!canSync}
-            onCheckedChange={(v) => patchTimeline({ beatSync: { ...sync, enabled: v } })}
-            aria-label={t("timing.beatSync")}
-          />
-        }
-      >
-        {sync.enabled && canSync ? (
-          <div className="space-y-3">
-            <LabeledValue label={t("timing.maxDeviation")} value={`± ${secs(sync.maxDeviationSec)}`}>
-              <Slider
-                min={0.1}
-                max={2}
-                step={0.05}
-                value={[sync.maxDeviationSec]}
-                onValueChange={([v]) => v !== undefined && patchTimeline({ beatSync: { ...sync, maxDeviationSec: v } })}
-                aria-label={t("timing.maxDeviation")}
-              />
-            </LabeledValue>
-            {timeline.beatSync && (
-              <p className="flex items-center gap-1.5 text-xs text-primary">
-                <Activity className="size-3.5" aria-hidden />
-                {t("timing.beatSyncStats", {
-                  snapped: timeline.beatSync.snapped,
-                  cuts: timeline.beatSync.cuts,
-                  bpm: bpm !== null ? Math.round(bpm) : "—",
-                })}
-              </p>
-            )}
-          </div>
-        ) : null}
-      </Section>
-
       <Section title={t("timing.overflowTitle")} description={t(`timing.overflowHint.${settings.overflow}`)}>
         <ToggleGroup
           type="single"
@@ -235,86 +182,6 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-      </Section>
-
-      <Section title={t("timing.transitionTitle")}>
-        <div className="space-y-4">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={settings.transition.kind}
-            onValueChange={(v) => {
-              if (v === "cut") patchTimeline({ transition: { kind: "cut" } });
-              else if (v === "fade") patchTimeline({ transition: { kind: "fade", durationSec: fade } });
-            }}
-            className="w-full"
-          >
-            {(["cut", "fade"] as const).map((k) => (
-              <ToggleGroupItem key={k} value={k} className="flex-1">
-                {t(`timing.transition.${k}`)}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {settings.transition.kind === "fade" && (
-            <LabeledValue label={t("timing.fadeDuration")} value={secs(fade)}>
-              <Slider
-                min={0.2}
-                max={2}
-                step={0.1}
-                value={[fade]}
-                onValueChange={([v]) =>
-                  v !== undefined && patchTimeline({ transition: { kind: "fade", durationSec: v } })
-                }
-                aria-label={t("timing.fadeDuration")}
-              />
-            </LabeledValue>
-          )}
-        </div>
-      </Section>
-
-      <Section title={t("timing.audioTitle")}>
-        <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="keep-video-audio">{t("timing.keepVideoAudio")}</Label>
-            <Switch
-              id="keep-video-audio"
-              checked={settings.keepVideoAudio}
-              onCheckedChange={(v) => patchTimeline({ keepVideoAudio: v })}
-            />
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <LabeledValue label={t("timing.musicVolume")} value={pct(mix.musicGain)}>
-              <Slider
-                min={0}
-                max={1}
-                step={0.05}
-                value={[mix.musicGain]}
-                onValueChange={([v]) => v !== undefined && patchMix({ musicGain: v })}
-                aria-label={t("timing.musicVolume")}
-              />
-            </LabeledValue>
-            <LabeledValue label={t("timing.videoVolume")} value={pct(mix.videoGain)}>
-              <Slider
-                min={0}
-                max={1}
-                step={0.05}
-                value={[mix.videoGain]}
-                onValueChange={([v]) => v !== undefined && patchMix({ videoGain: v })}
-                aria-label={t("timing.videoVolume")}
-              />
-            </LabeledValue>
-            <LabeledValue label={t("timing.ducking")} value={pct(mix.duckingGain)}>
-              <Slider
-                min={0}
-                max={1}
-                step={0.05}
-                value={[mix.duckingGain]}
-                onValueChange={([v]) => v !== undefined && patchMix({ duckingGain: v })}
-                aria-label={t("timing.ducking")}
-              />
-            </LabeledValue>
-          </div>
-        </div>
       </Section>
     </div>
   );

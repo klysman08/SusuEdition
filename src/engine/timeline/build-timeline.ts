@@ -1,4 +1,4 @@
-import { applyCuts, syncCutsToBeats } from "./beat-sync";
+import { applyCuts, BEAT_SYNC_PRESETS, syncCutsToBeats } from "./beat-sync";
 import type {
   AudioPlan,
   BuildTimelineInput,
@@ -166,11 +166,12 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
   // Sincronia com batidas: move os cortes; a duração total não muda.
   if (s.beatSync.enabled && music && input.beats && input.beats.length > 0 && segments.length > 1) {
     const onTimeline = input.beats
-      .map((b) => ({ timeSec: b.timeSec - music.inSec, strength: b.strength }))
+      .map((b) => ({ ...b, timeSec: b.timeSec - music.inSec }))
       .filter((b) => b.timeSec > 0 && b.timeSec < durationSec);
     const maxDurations = kept.map((p) => p.maxSec);
     const { cuts, stats } = syncCutsToBeats(segments, onTimeline, maxDurations, {
-      maxDeviationSec: s.beatSync.maxDeviationSec,
+      profile: BEAT_SYNC_PRESETS[s.beatSync.preset],
+      flexibility: s.beatSync.flexibility,
       minClipSec: s.minClipSec,
     });
     segments = applyCuts(segments, cuts, s.transition);

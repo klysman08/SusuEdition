@@ -64,13 +64,13 @@ Resoluções de saída (classe 1080p): 9:16 → 1080×1920 · 16:9 → 1920×108
 
 ### 2.6 Regras da timeline
 
-Entrada: mídias ordenadas, `photoSec`, `videoSec`, overrides, duração total `T`, seleção da música `[in, out]`, batidas, `beatSync {enabled, maxDeviation}`, transição.
+Entrada: mídias ordenadas, `photoSec`, `videoSec`, overrides, duração total `T`, seleção da música `[in, out]`, batidas, `beatSync {enabled, preset, flexibility}`, transição.
 
 1. Duração base: foto = `photoSec`; vídeo = `min(videoSec, duraçãoDoClipe − sourceIn)`; override por item vence.
 2. `S = Σ durações`.
 3. `S < T` → vídeo termina em `S`; música termina em `S` com fade-out de `min(3s, S)`.
 4. `S > T` → excedentes excluídos ou redução proporcional (RF-V16).
-5. Beat sync (quando ativo): para cada corte ideal `c`, escolher a batida `b` que maximiza força e minimiza `|b − c|`, com `|b − c| ≤ maxDeviation`, duração resultante ≥ 0,5s e, para vídeos, ≤ duração disponível. Sem batida válida → mantém `c`.
+5. Beat sync (quando ativo): as batidas ganham contexto (`analyzeRhythm`: energia local, início de compasso, mudança de seção) e todos os cortes são escolhidos de uma vez por programação dinâmica — maximiza o valor musical de cada corte (pesos do `preset`: `steady`, `dynamic`, `bars`, `accents`) menos o desvio de cada mídia em relação à duração-alvo, que encolhe nas partes intensas e cresce nas calmas conforme o `pacing` do preset. Cada duração fica em `base ± max(base × flexibility, 0,6 batida)`, ≥ 0,5s e, para vídeos, ≤ duração disponível; o fim do vídeo não muda. As posições originais também são candidatas (com penalidade): sem batida boa ao alcance → mantém `c`.
 6. Saída: `TimelineSegment {mediaId, start, duration, sourceIn, sourceOut, transitionIn, keepAudio, audioGain}` + `AudioPlan {musicIn, musicOut, fadeOut, duckingGain}`.
 7. Função **pura e determinística** — mesmo input, mesmo output.
 

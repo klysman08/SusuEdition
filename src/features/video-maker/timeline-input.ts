@@ -7,7 +7,7 @@ import {
 } from "@/engine/timeline";
 import type { LibraryItem } from "@/features/media-library";
 import type { Selection } from "@/engine/audio";
-import type { Beat } from "@/engine/types";
+import type { RhythmBeat } from "@/engine/timeline";
 
 /** Mídias prontas e decodificáveis, na ordem da biblioteca. */
 export function timelineItems(
@@ -45,7 +45,7 @@ export function computeTimeline(
   overrides: Readonly<Record<string, ClipOverrides>>,
   settings: TimelineSettings,
   music: Selection | null,
-  beats: readonly Beat[] = [],
+  beats: readonly RhythmBeat[] = [],
 ): TimelineResult {
   const effective: TimelineSettings =
     settings.total.mode === "music" && !music ? { ...settings, total: { mode: "items" } } : settings;

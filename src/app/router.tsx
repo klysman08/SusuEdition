@@ -21,6 +21,8 @@ export const router = createHashRouter([
       { index: true, lazy: () => import("@/features/home").then((m) => ({ Component: m.HomePage })) },
       {
         path: "video-maker",
+        // Editor em tela cheia: o AppShell encolhe a navegação e não aplica margens.
+        handle: { immersive: true },
         lazy: () => import("@/features/video-maker").then((m) => ({ Component: m.VideoMakerPage })),
       },
       {
