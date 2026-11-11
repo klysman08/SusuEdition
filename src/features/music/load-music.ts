@@ -1,4 +1,5 @@
-import { releaseMedia, type MediaBackend, type PickedMedia } from "@/platform/media";
+import type { Selection } from "@/engine/audio";
+import { releaseMedia, type MediaBackend, type PickedMedia, type RegisterOutcome } from "@/platform/media";
 
 import type { MusicStore } from "./store";
 
@@ -15,6 +16,45 @@ export async function loadMusic(
 ): Promise<LoadMusicResult> {
   if (picked.length === 0) return "cancelled";
   const [outcome] = await backend.register(picked.slice(0, 1));
+  return loadRegistered(store, backend, outcome);
+}
+
+/** Música de um projeto salvo. */
+export interface SavedMusic {
+  id: string;
+  uri: string;
+  selection: Selection | null;
+  snapToBeats: boolean;
+}
+
+/**
+ * Reabre a música de um projeto salvo pelo caminho guardado e devolve o trecho
+ * escolhido (a análise vem do cache, então costuma ser imediato).
+ */
+export async function restoreMusic(
+  store: MusicStore,
+  backend: MediaBackend,
+  saved: SavedMusic,
+  /** `false` se o projeto foi trocado enquanto o arquivo era reaberto. */
+  isCurrent: () => boolean = () => true,
+): Promise<LoadMusicResult> {
+  const [outcome] = await backend.reopen([saved]);
+  if (!isCurrent()) return "cancelled";
+  const result = await loadRegistered(store, backend, outcome);
+  if (result !== "ok" || !isCurrent()) return result;
+  const state = store.getState();
+  const duration = state.analysis?.durationSec ?? 0;
+  const sel = saved.selection;
+  if (sel && sel.outSec <= duration + 0.05) state.setSelection({ ...sel, outSec: Math.min(sel.outSec, duration) });
+  state.setSnapToBeats(saved.snapToBeats);
+  return "ok";
+}
+
+async function loadRegistered(
+  store: MusicStore,
+  backend: MediaBackend,
+  outcome: RegisterOutcome | undefined,
+): Promise<LoadMusicResult> {
   if (!outcome || outcome.status === "error") {
     store.getState().setError(outcome?.status === "error" ? outcome.error : "unknown");
     return "error";
@@ -28,6 +68,7 @@ export async function loadMusic(
   store.getState().startLoading({
     id: outcome.id,
     name: outcome.name,
+    uri: outcome.uri,
     size: outcome.size,
     url: backend.mediaUrl(outcome.id),
   });

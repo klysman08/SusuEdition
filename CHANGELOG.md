@@ -2,7 +2,21 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e [SemVer](https://semver.org/lang/pt-BR/).
 
-## [Unreleased]
+## [Unreleased] · M7 Polimento (em andamento)
+
+### Added
+- **Projetos com salvamento automático** (RF-G5): o projeto nasce com a primeira mídia e é gravado sozinho a cada mudança. O arquivo guarda só **onde cada mídia está** (caminho/URI) e os ajustes — nada é copiado. Reabrir depois de fechar o programa registra os arquivos de novo pelo caminho; mídia movida ou apagada aparece como "arquivo não encontrado" e continua no projeto. Lista de projetos recentes no Início e na tela inicial do Video Maker; menu do projeto no editor (renomear, novo, abrir, apagar).
+- **Faixa de áudio na timeline**: waveform do trecho usado da música com uma marca por batida reconhecida (compassos mais altos, mudanças de seção na altura toda); batidas onde há corte ficam destacadas e cortes fora de batida ganham um entalhe. O divisor entre a prévia e a faixa **ajusta a altura** (arrastar, setas, duplo clique restaura).
+- **Ajuste manual do tempo**: tocar numa mídia da faixa a seleciona; arrastar as alças move o corte (imanta nas batidas e no cursor; Alt desliga), arrastar a mídia muda a posição dela no vídeo, e a barra da seleção tem mover ◀ ▶, ±0,1 s, voltar ao automático, recortar, ajustes e remover.
+- **Recorte de vídeo** em um modal: vídeo com som, tira de quadros, alças de início/fim, "começar/terminar aqui" e passos de 0,1 s. Duplo toque num vídeo da faixa abre o recorte.
+- **Aba Filtros no Video Maker**: os 10 presets da colagem com intensidade + 8 ajustes manuais, aplicados ao vídeo inteiro na prévia e na exportação (passe final no compositor WebGL).
+- **Zoom na timeline** (botões, Ctrl + roda) com rolagem horizontal, régua de tempo e cursor que acompanha a reprodução.
+- Prévia ampliada (botão no canto da prévia; Esc volta) e navegação por teclado na faixa (setas, Enter, Esc).
+
+### Changed
+- **Celular**: nenhuma ferramenta abre sozinha, a gaveta de ferramentas ficou mais baixa (38% da tela) e a prévia tem altura mínima maior — a prévia passa de ~26% para 34–55% da tela.
+- Duração definida à mão (alça, recorte, ±0,1 s ou ajustes da mídia) fica **travada**: a sincronia com as batidas e o "encurtar para caber" não mexem mais nela; os cortes vizinhos continuam buscando as batidas.
+- Os controles de filtro são compartilhados entre a colagem e o vídeo (`FilterControls`).
 
 ## [0.7.0] — 2026-11-10 · Editor e ritmo
 

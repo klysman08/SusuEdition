@@ -45,11 +45,18 @@ pub fn run() {
             commands::media::media_process_images,
             commands::media::media_cache_get,
             commands::media::media_cache_put,
+            commands::project::project_list,
+            commands::project::project_read,
+            commands::project::project_write,
+            commands::project::project_delete,
         ])
         .setup(|app| {
             let cache_root = app.path().app_cache_dir()?;
             app.manage(services::cache::MediaCache::new(&cache_root)?);
             app.manage(services::export::ExportRegistry::new(&cache_root)?);
+            // Projetos ficam nos dados do app (não no cache): sobrevivem a uma limpeza de cache.
+            let data_root = app.path().app_data_dir()?;
+            app.manage(services::project::ProjectStore::new(&data_root)?);
             log::info!(
                 "SusuEdition {} iniciado em {}/{}",
                 app.package_info().version,

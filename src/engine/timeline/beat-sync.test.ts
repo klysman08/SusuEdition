@@ -197,3 +197,72 @@ describe("buildTimeline com beat sync", () => {
     expect(none.segments.map((s) => s.startSec)).toEqual([0, 2, 4, 6, 8]);
   });
 });
+
+describe("durações travadas (ajuste manual)", () => {
+  // Batidas a cada 0,5 s; 6 fotos de 2 s com os cortes deslocados 0,2 s das batidas.
+  const beats = grid(0.5, 0, 30);
+  const off = (n: number, dur = 2.2) => Array.from({ length: n }, (_, i) => seg(i, i * dur, dur));
+  const durations = (cuts: number[], end: number) =>
+    [0, ...cuts, end].slice(1).map((c, i, a) => c - (i ? a[i - 1]! : 0));
+
+  it("um segmento travado mantém a duração exata; os vizinhos continuam indo às batidas", () => {
+    const segments = off(6);
+    const locked = [false, false, true, false, false, false];
+    const { cuts } = syncCutsToBeats(segments, beats, inf(6), { ...steady, locked });
+    const d = durations(cuts, 13.2);
+    expect(d[2]).toBeCloseTo(2.2, 6);
+    // O corte que abre o travado é livre (cai numa batida); o que fecha é início + 2,2.
+    expect(cuts[1]! % 0.5).toBeCloseTo(0, 6);
+    expect(cuts[2]).toBeCloseTo(cuts[1]! + 2.2, 6);
+    // Sem o travamento, o mesmo segmento seria ajustado para caber nas batidas.
+    const free = syncCutsToBeats(segments, beats, inf(6), steady);
+    expect(durations(free.cuts, 13.2)[2]).not.toBeCloseTo(2.2, 3);
+  });
+
+  it("travados no começo e no fim ficam ancorados nas pontas do vídeo", () => {
+    const segments = off(6);
+    const locked = [true, false, false, false, false, true];
+    const { cuts } = syncCutsToBeats(segments, beats, inf(6), { ...steady, locked });
+    expect(cuts[0]).toBeCloseTo(2.2, 6);
+    expect(cuts[4]).toBeCloseTo(13.2 - 2.2, 6);
+    expect(cuts.slice(1, 4).every((c) => Math.abs((c % 0.5) - 0) < 1e-6 || Math.abs((c % 0.5) - 0.5) < 1e-6)).toBe(
+      true,
+    );
+    for (let i = 1; i < cuts.length; i++) expect(cuts[i]!).toBeGreaterThan(cuts[i - 1]!);
+  });
+
+  it("tudo travado (ou só um livre): os cortes não saem do lugar", () => {
+    const segments = off(4);
+    const ideal = segments.slice(1).map((s) => s.startSec);
+    expect(syncCutsToBeats(segments, beats, inf(4), { ...steady, locked: [true, true, true, true] }).cuts).toEqual(
+      ideal,
+    );
+    expect(syncCutsToBeats(segments, beats, inf(4), { ...steady, locked: [true, false, true, true] }).cuts).toEqual(
+      ideal,
+    );
+  });
+
+  it("conta como alinhado o corte de um travado que termina numa batida", () => {
+    // Travado de 2 s começando numa batida termina em outra batida.
+    const segments = photos(4);
+    const { stats } = syncCutsToBeats(segments, beats, inf(4), { ...steady, locked: [true, true, true, true] });
+    expect(stats).toEqual({ snapped: 3, cuts: 3 });
+  });
+
+  it("buildTimeline: a duração definida à mão sobrevive à sincronia", () => {
+    const photo = (id: string, durationSec?: number): TimelineItem => ({
+      media: { id, kind: "image", uri: id, name: id, width: 4000, height: 3000, rotation: 0 } as MediaItem,
+      ...(durationSec ? { overrides: { durationSec } } : {}),
+    });
+    const items = [photo("a"), photo("b"), photo("c", 3.37), photo("d"), photo("e"), photo("f")];
+    const res = buildTimeline({
+      items,
+      settings: { ...DEFAULT_TIMELINE_SETTINGS, total: { mode: "items" } },
+      music: { inSec: 0, outSec: 60 },
+      beats: grid(60 / 124, 0, 60),
+    });
+    expect(res.segments.find((s) => s.mediaId === "c")!.durationSec).toBeCloseTo(3.37, 6);
+    expect(res.durationSec).toBeCloseTo(13.37, 6);
+    expect(res.beatSync!.snapped).toBeGreaterThanOrEqual(3);
+  });
+});

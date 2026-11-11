@@ -61,10 +61,15 @@
 - [x] Pan/zoom (arrastar, pinça, roda, slider, teclado) e troca de células (segurar e arrastar ou "Trocar") — RF-C5
 - [x] Filtros WebGL (`engine/render/filters`): 10 presets com intensidade + 8 ajustes — RF-C6
 - [x] Export PNG/JPEG em Worker até 4096 px, `Imagens/SusuEdition` ou "Salvar como" — RF-C7
-- [ ] Usar os mesmos filtros no Video Maker
+- [x] Usar os mesmos filtros no Video Maker (aba Filtros, M7)
 
 ## M7 — Polimento · `v1.0.0`
-- [ ] Projetos, autosave/recuperação, undo/redo — RF-G5, RF-G6
+- [x] Projetos com autosave: o arquivo guarda os caminhos das mídias (nada é copiado) e os ajustes; recentes no Início — RF-G5
+- [x] Timeline: faixa de áudio com waveform e batidas, altura ajustável, zoom e régua
+- [x] Ajuste manual: selecionar mídia, arrastar cortes (imã nas batidas), mover, recortar vídeo em modal; duração manual travada na sincronia
+- [x] Filtro global no vídeo (prévia e exportação) e prévia maior no celular
+- [ ] Desfazer/refazer — RF-G6
+- [ ] Projetos da colagem; reabrir mídias `content://` no Android (permissão persistente no plugin nativo)
 - [ ] Acessibilidade e atalhos — RNF-8
 - [ ] QA em Android real (aparelho intermediário e de entrada)
 - [ ] Revisão de tamanho do instalador/APK — RNF-7

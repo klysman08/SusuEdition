@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
 import { useStore } from "zustand";
 
+import { isNeutralFilter, resolveFilter } from "@/engine/render/filters";
 import type { RhythmBeat, TimelineResult } from "@/engine/timeline";
 import { getMediaBackend, type MediaBackend } from "@/platform/media";
 
@@ -47,6 +48,11 @@ export function usePreviewPlayer(
   const fit = useProject((s) => s.fit);
   const background = useProject((s) => s.background);
   const mix = useProject((s) => s.mix);
+  const filterSettings = useProject((s) => s.filter);
+  const filter = useMemo(() => {
+    const resolved = resolveFilter(filterSettings);
+    return isNeutralFilter(resolved) ? null : resolved;
+  }, [filterSettings]);
   const items = useStore(videoMediaStore, (s) => s.items);
   const musicUrl = useStore(videoMusicStore, (s) => (s.status === "ready" ? (s.track?.url ?? null) : null));
   const fileBeats = useRhythm();
@@ -124,9 +130,10 @@ export function usePreviewPlayer(
       musicUrl,
       fit,
       background,
+      filter,
       mix,
     });
-  }, [player, timeline, media, musicUrl, fit, background, mix]);
+  }, [player, timeline, media, musicUrl, fit, background, filter, mix]);
 
   // Pausa ao sair do editor.
   useEffect(() => () => player?.pause(), [player]);

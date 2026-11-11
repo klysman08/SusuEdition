@@ -33,6 +33,12 @@ export interface BeatSyncOptions {
   /** Substitui `profile.flex` (ajuste fino do usuário). */
   flexibility?: number;
   minClipSec: number;
+  /**
+   * Segmentos com duração travada (ajuste manual): nunca mudam de tamanho. O corte que
+   * abre uma sequência de travados continua livre para buscar uma batida; os demais
+   * decorrem dele (início + duração).
+   */
+  locked?: readonly boolean[];
 }
 
 export interface BeatSyncStats {
@@ -76,9 +82,10 @@ function lowerBound(c: readonly Candidate[], x: number): number {
  * duração-alvo. Com `pacing`, a duração-alvo encolhe nas partes intensas da música e
  * cresce nas calmas — o vídeo acelera no refrão e respira nos trechos suaves.
  *
- * Restrições: duração mínima, vídeos nunca passam do que resta do clipe, e o fim do
- * vídeo não muda. As posições originais também são candidatas (com penalidade), então
- * sempre há solução; sem batida boa por perto, o corte fica onde estava.
+ * Restrições: duração mínima, vídeos nunca passam do que resta do clipe, o fim do
+ * vídeo não muda e segmentos travados (`opts.locked`) mantêm a duração exata. As
+ * posições originais também são candidatas (com penalidade), então sempre há solução;
+ * sem batida boa por perto, o corte fica onde estava.
  *
  * Determinístico. O(cortes × candidatos × janela).
  *
@@ -99,12 +106,41 @@ export function syncCutsToBeats(
   if (n < 2 || beats.length === 0 || flex <= 0) return { cuts: ideal, stats };
 
   const last = segments[n - 1]!;
-  const end = last.startSec + last.durationSec;
+  const fullEnd = last.startSec + last.durationSec;
   const period = medianInterval(beats);
+  const base = segments.map((s) => s.durationSec);
+  const isLocked = (i: number) => opts.locked?.[i] === true;
+  const onBeat = (t: number) => beats.some((b) => Math.abs(b.timeSec - t) <= 1e-3);
+
+  // Travados no fim ficam ancorados no final do vídeo: o problema termina antes deles.
+  let count = n;
+  let end = fullEnd;
+  while (count > 0 && isLocked(count - 1)) {
+    end = r(end - base[count - 1]!);
+    count--;
+  }
+  // Cada segmento livre carrega a soma dos travados logo antes dele (`lead`): o corte
+  // que abre a sequência é escolhido pela música e os travados vêm colados em seguida.
+  const free: number[] = [];
+  const lead: number[] = [];
+  let acc = 0;
+  for (let i = 0; i < count; i++) {
+    if (isLocked(i)) acc += base[i]!;
+    else {
+      free.push(i);
+      lead.push(acc);
+      acc = 0;
+    }
+  }
+  const G = free.length;
+  if (G < 2) {
+    // Nada para mover: todos os cortes decorrem das durações travadas.
+    stats.snapped = ideal.filter(onBeat).length;
+    return { cuts: ideal, stats };
+  }
 
   // Faixa de duração permitida por segmento. O piso de 0,6 batida garante que a
   // batida mais próxima esteja sempre ao alcance.
-  const base = segments.map((s) => s.durationSec);
   const dev = base.map((b) => Math.max(b * flex, period * 0.6));
   const lo = base.map((b, i) => Math.min(b, Math.max(opts.minClipSec, b - dev[i]!)));
   const hi = base.map((b, i) => Math.max(b, Math.min(maxDurations[i] ?? Infinity, b + dev[i]!)));
@@ -134,7 +170,8 @@ export function syncCutsToBeats(
     const b = beatCands[Math.min(beatCands.length - 1, k)]!;
     return Math.abs(a.t - t) <= Math.abs(b.t - t) ? a.energy : b.energy;
   };
-  for (const t of ideal) {
+  for (let g = 0; g < G - 1; g++) {
+    const t = ideal[free[g]!]!;
     const k = lowerBound(beatCands, t - 1e-4);
     if (k < beatCands.length && Math.abs(beatCands[k]!.t - t) <= 1e-4) continue;
     cands.push({ t, gain: -MISS_PENALTY, energy: energyNear(t), beat: false });
@@ -155,26 +192,31 @@ export function syncCutsToBeats(
   };
 
   const C = cands.length;
-  const cutCount = n - 1;
+  const cutCount = G - 1;
   const back = new Int32Array(cutCount * C).fill(-1);
   let prev = new Float64Array(C).fill(-Infinity);
   let cur = new Float64Array(C).fill(-Infinity);
 
-  // Primeiro corte: parte de t = 0.
-  const startEnergy = energyNear(0);
-  for (let k = lowerBound(cands, lo[0]! - EPS); k < C && cands[k]!.t <= hi[0]! + EPS; k++) {
-    prev[k] = cands[k]!.gain - cost(0, cands[k]!.t, startEnergy);
+  // Primeiro corte livre: parte de t = 0 (mais os travados do início).
+  const s0 = free[0]!;
+  const off0 = lead[0]!;
+  const startEnergy = energyNear(off0);
+  for (let k = lowerBound(cands, off0 + lo[s0]! - EPS); k < C && cands[k]!.t <= off0 + hi[s0]! + EPS; k++) {
+    prev[k] = cands[k]!.gain - cost(s0, cands[k]!.t - off0, startEnergy);
   }
-  for (let i = 1; i < cutCount; i++) {
+  for (let g = 1; g < cutCount; g++) {
     cur.fill(-Infinity);
-    const row = i * C;
+    const row = g * C;
+    const si = free[g]!;
+    const off = lead[g]!;
     for (let j = 0; j < C; j++) {
       const v = prev[j]!;
       if (v === -Infinity) continue;
       const from = cands[j]!;
-      const max = from.t + hi[i]! + EPS;
-      for (let k = Math.max(j + 1, lowerBound(cands, from.t + lo[i]! - EPS)); k < C && cands[k]!.t <= max; k++) {
-        const score = v + cands[k]!.gain - cost(i, cands[k]!.t - from.t, from.energy);
+      const start = from.t + off;
+      const max = start + hi[si]! + EPS;
+      for (let k = Math.max(j + 1, lowerBound(cands, start + lo[si]! - EPS)); k < C && cands[k]!.t <= max; k++) {
+        const score = v + cands[k]!.gain - cost(si, cands[k]!.t - start, from.energy);
         if (score > cur[k]!) {
           cur[k] = score;
           back[row + k] = j;
@@ -184,14 +226,16 @@ export function syncCutsToBeats(
     [prev, cur] = [cur, prev];
   }
 
-  // Último segmento: do último corte até o fim (que não muda).
+  // Último segmento livre: do último corte até o fim (que não muda).
+  const sl = free[G - 1]!;
+  const offl = lead[G - 1]!;
   let best = -1;
   let bestScore = -Infinity;
   for (let k = 0; k < C; k++) {
     if (prev[k] === -Infinity) continue;
-    const d = end - cands[k]!.t;
-    if (d < lo[n - 1]! - EPS || d > hi[n - 1]! + EPS) continue;
-    const score = prev[k]! - cost(n - 1, d, cands[k]!.energy);
+    const d = end - cands[k]!.t - offl;
+    if (d < lo[sl]! - EPS || d > hi[sl]! + EPS) continue;
+    const score = prev[k]! - cost(sl, d, cands[k]!.energy);
     if (score > bestScore) {
       bestScore = score;
       best = k;
@@ -199,11 +243,29 @@ export function syncCutsToBeats(
   }
   if (best < 0) return { cuts: ideal, stats };
 
-  const cuts = new Array<number>(cutCount);
-  for (let i = cutCount - 1, k = best; i >= 0; i--) {
-    cuts[i] = r(cands[k]!.t);
+  const freeCuts = new Array<number>(cutCount);
+  for (let g = cutCount - 1, k = best; g >= 0; g--) {
+    freeCuts[g] = r(cands[k]!.t);
     if (cands[k]!.beat) stats.snapped++;
-    k = back[i * C + k]!;
+    k = back[g * C + k]!;
+  }
+
+  // Todos os cortes: os livres vêm da solução; os dos travados, de início + duração.
+  const cuts = new Array<number>(n - 1);
+  let t = 0;
+  let g = 0;
+  for (let i = 0; i < n - 1; i++) {
+    if (isLocked(i)) {
+      t = r(t + base[i]!);
+      if (onBeat(t)) stats.snapped++;
+    } else if (g < cutCount) {
+      t = freeCuts[g++]!;
+    } else {
+      // Último livre antes de uma sequência de travados ancorada no fim.
+      t = end;
+      if (onBeat(t)) stats.snapped++;
+    }
+    cuts[i] = t;
   }
   return { cuts, stats };
 }

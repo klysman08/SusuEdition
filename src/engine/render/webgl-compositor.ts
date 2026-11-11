@@ -8,6 +8,7 @@
  * Funciona com HTMLCanvasElement (preview) e OffscreenCanvas em Worker (export).
  */
 import type { FitBackground, FitMode, Size } from "../types";
+import { FILTER_GLSL, FILTER_KEYS, FILTER_UNIFORMS, isNeutralFilter, type FilterAdjust } from "./filters";
 import { coversTarget, fitRect, type Rect } from "./fit";
 
 export interface CompositorLayer {
@@ -27,7 +28,8 @@ export interface CompositorLayer {
 export interface Compositor {
   readonly size: Size;
   resize(size: Size): void;
-  draw(layers: readonly CompositorLayer[], background: FitBackground): void;
+  /** `filter`: ajuste de cor aplicado ao quadro inteiro (passe final); `null` = sem filtro. */
+  draw(layers: readonly CompositorLayer[], background: FitBackground, filter?: FilterAdjust | null): void;
   /** Libera texturas de chaves que não estão em `keep`. */
   retain(keep: ReadonlySet<string>): void;
   dispose(): void;
@@ -52,13 +54,15 @@ void main() {
 }`;
 
 const FS = `#version 300 es
-precision mediump float;
+precision highp float;
 in vec2 v_uv;
 uniform sampler2D u_tex;
 uniform float u_alpha;
 uniform float u_dim;
 uniform int u_radius;
 uniform vec2 u_tap;
+uniform bool u_filter;
+${FILTER_GLSL}
 out vec4 o;
 void main() {
   vec3 c;
@@ -76,6 +80,7 @@ void main() {
     }
     c = acc / wsum;
   }
+  if (u_filter) c = applyFilter(c, v_uv);
   o = vec4(c * u_dim, 1.0) * u_alpha;
 }`;
 
@@ -131,7 +136,13 @@ export function createWebGLCompositor(
     dim: u("u_dim"),
     radius: u("u_radius"),
     tap: u("u_tap"),
+    filter: u("u_filter"),
+    fAspect: u("u_fAspect"),
   };
+  const UF = Object.fromEntries(FILTER_KEYS.map((k) => [k, u(FILTER_UNIFORMS[k])])) as Record<
+    keyof FilterAdjust,
+    WebGLUniformLocation | null
+  >;
 
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -174,6 +185,8 @@ export function createWebGLCompositor(
   const screen = (): Target => ({ fb: null, tex: null, size });
   let layerTarget: Target | null = null;
   let blurTarget: Target | null = null;
+  /** Quadro completo antes do filtro (só existe enquanto há filtro ativo). */
+  let frameTarget: Target | null = null;
   const textures = new Map<string, { tex: WebGLTexture; uploaded: TexImageSource | null }>();
 
   const ensureTargets = () => {
@@ -187,6 +200,13 @@ export function createWebGLCompositor(
       };
       blurTarget = newTarget(small);
     }
+  };
+  const ensureFrameTarget = (): Target => {
+    if (!frameTarget || frameTarget.size.width !== size.width || frameTarget.size.height !== size.height) {
+      freeTarget(frameTarget);
+      frameTarget = newTarget(size);
+    }
+    return frameTarget;
   };
 
   const textureFor = (layer: CompositorLayer): WebGLTexture => {
@@ -212,7 +232,15 @@ export function createWebGLCompositor(
   const quad = (
     tex: WebGLTexture,
     rect: Rect,
-    opts: { rot?: number; flipV?: boolean; alpha?: number; dim?: number; radius?: number; tap?: [number, number] },
+    opts: {
+      rot?: number;
+      flipV?: boolean;
+      alpha?: number;
+      dim?: number;
+      radius?: number;
+      tap?: [number, number];
+      filter?: FilterAdjust;
+    },
   ) => {
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform4f(U.rect, rect.x, rect.y, rect.w, rect.h);
@@ -222,6 +250,11 @@ export function createWebGLCompositor(
     gl.uniform1f(U.dim, opts.dim ?? 1);
     gl.uniform1i(U.radius, opts.radius ?? 0);
     gl.uniform2f(U.tap, opts.tap?.[0] ?? 0, opts.tap?.[1] ?? 0);
+    gl.uniform1i(U.filter, opts.filter ? 1 : 0);
+    if (opts.filter) {
+      for (const k of FILTER_KEYS) gl.uniform1f(UF[k], opts.filter[k]);
+      gl.uniform1f(U.fAspect, rect.w / Math.max(1, rect.h));
+    }
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   };
 
@@ -271,7 +304,7 @@ export function createWebGLCompositor(
       canvas.height = next.height;
       size = { ...next };
     },
-    draw(layers, background) {
+    draw(layers, background, filter) {
       if (gl.isContextLost()) return;
       ensureTargets();
       const [first, second] = layers;
@@ -281,11 +314,22 @@ export function createWebGLCompositor(
         gl.clear(gl.COLOR_BUFFER_BIT);
         return;
       }
-      drawLayer(first, background, screen());
+      // Com filtro, o quadro é montado num framebuffer e passa pelo shader de cor no fim.
+      const fx = filter && !isNeutralFilter(filter) ? filter : null;
+      const out = fx ? ensureFrameTarget() : screen();
+      const full = { x: 0, y: 0, w: size.width, h: size.height };
+      drawLayer(first, background, out);
       if (second && second.alpha > 0) {
         drawLayer(second, background, layerTarget!);
+        bindTarget(out);
+        quad(layerTarget!.tex!, full, { flipV: true, alpha: second.alpha });
+      }
+      if (fx) {
         bindTarget(screen());
-        quad(layerTarget!.tex!, { x: 0, y: 0, w: size.width, h: size.height }, { flipV: true, alpha: second.alpha });
+        quad(out.tex!, full, { flipV: true, filter: fx });
+      } else if (frameTarget) {
+        freeTarget(frameTarget);
+        frameTarget = null;
       }
     },
     retain(keep) {
@@ -301,6 +345,7 @@ export function createWebGLCompositor(
       textures.clear();
       freeTarget(layerTarget);
       freeTarget(blurTarget);
+      freeTarget(frameTarget);
       gl.deleteBuffer(vbo);
       gl.deleteVertexArray(vao);
       gl.deleteProgram(prog);

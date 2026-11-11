@@ -10,6 +10,7 @@ import {
   type ExportMedia,
   type ResolvedExport,
 } from "@/engine/export";
+import { isNeutralFilter, resolveFilter } from "@/engine/render/filters";
 import type { TimelineResult } from "@/engine/timeline";
 import type { QualityPreset } from "@/engine/types";
 import { getExportPlatform } from "@/platform/export";
@@ -79,6 +80,8 @@ export async function buildJob(timeline: TimelineResult): Promise<ExportJob> {
     q = lowerQuality(q);
   }
 
+  const filter = resolveFilter(project.filter);
+
   return {
     segments: timeline.segments,
     durationSec: timeline.durationSec,
@@ -87,6 +90,7 @@ export async function buildJob(timeline: TimelineResult): Promise<ExportJob> {
     music: music.status === "ready" && music.track && timeline.audio ? backend.probeSource(music.track.id) : null,
     fit: project.fit,
     background: project.background,
+    filter: isNeutralFilter(filter) ? null : filter,
     mix: project.mix,
     candidates,
   };

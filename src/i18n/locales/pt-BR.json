@@ -36,6 +36,7 @@
       "sync": "Ritmo",
       "timing": "Tempo",
       "audio": "Áudio",
+      "filters": "Filtros",
       "format": "Formato",
       "export": "Exportar"
     }
@@ -132,7 +133,8 @@
     "emptyDescriptionPhotos": "Arraste fotos para cá ou escolha no seu dispositivo. De 2 a dezenas de fotos.",
     "summaryPhotos_one": "{{count}} foto",
     "summaryPhotos_other": "{{count}} fotos",
-    "onlyPhotos": "A colagem aceita apenas fotos"
+    "onlyPhotos": "A colagem aceita apenas fotos",
+    "missing": "Arquivo não encontrado"
   },
   "music": {
     "emptyTitle": "Escolha a música do vídeo",
@@ -268,7 +270,9 @@
     "unsupported": "Seu dispositivo não suporta WebGL2 — a prévia não está disponível.",
     "seek": "Posição",
     "restart": "Voltar ao início",
-    "onBeat": "{{snapped}}/{{cuts}} na batida"
+    "onBeat": "{{snapped}}/{{cuts}} na batida",
+    "focus": "Ampliar a prévia",
+    "exitFocus": "Mostrar ferramentas"
   },
   "item": {
     "title": "Ajustes da mídia",
@@ -282,7 +286,104 @@
     "keepAudio": "Manter o som deste vídeo",
     "volume": "Volume",
     "reset": "Restaurar padrões",
-    "excluded": "Esta mídia não está no vídeo atual (sem tempo disponível)."
+    "excluded": "Esta mídia não está no vídeo atual (sem tempo disponível).",
+    "trim": "Recortar vídeo"
+  },
+  "timeline": {
+    "label": "Faixa do tempo. As setas escolhem uma mídia, Enter abre.",
+    "noMusic": "Adicione uma música para ver a waveform e as batidas",
+    "resize": "Arraste para mudar a altura da faixa de áudio",
+    "zoomIn": "Aproximar a faixa do tempo",
+    "zoomOut": "Afastar a faixa do tempo",
+    "dragCut": "Arraste para mover este corte (gruda nas batidas)",
+    "clipTools": "Ferramentas de {{name}}",
+    "moveEarlier": "Mover para antes",
+    "moveLater": "Mover para depois",
+    "shorter": "0,1 s a menos",
+    "longer": "0,1 s a mais",
+    "duration": "Duração",
+    "unlock": "Duração manual — toque para voltar à automática",
+    "automatic": "Duração automática",
+    "trim": "Recortar",
+    "adjust": "Mais ajustes",
+    "remove": "Remover do vídeo",
+    "deselect": "Fechar"
+  },
+  "trim": {
+    "title": "Recortar vídeo",
+    "start": "Início",
+    "end": "Fim",
+    "length": "Trecho usado",
+    "startHere": "Começar aqui",
+    "endHere": "Terminar aqui",
+    "play": "Tocar o trecho",
+    "pause": "Pausar",
+    "reset": "Automático",
+    "cancel": "Cancelar",
+    "apply": "Aplicar"
+  },
+  "videoFilters": {
+    "title": "Filtro",
+    "description": "Aplicado ao vídeo inteiro, na prévia e na exportação."
+  },
+  "filters": {
+    "intensity": "Intensidade",
+    "reset": "Restaurar",
+    "presets": {
+      "none": "Original",
+      "vivid": "Vívido",
+      "warm": "Quente",
+      "cool": "Frio",
+      "mono": "P&B",
+      "noir": "Noir",
+      "sepia": "Sépia",
+      "vintage": "Vintage",
+      "dramatic": "Dramático",
+      "soft": "Suave"
+    },
+    "adjustTitle": "Ajustes",
+    "adjustDescription": "Somados ao filtro. Duplo clique zera um ajuste.",
+    "adjust": {
+      "brightness": "Brilho",
+      "contrast": "Contraste",
+      "saturation": "Saturação",
+      "temperature": "Temperatura",
+      "vignette": "Vinheta",
+      "grayscale": "Preto e branco",
+      "sepia": "Sépia",
+      "fade": "Desbotado"
+    }
+  },
+  "projects": {
+    "defaultName": "Vídeo · {{date}}",
+    "untitled": "Projeto sem nome",
+    "continue": "Continuar um projeto",
+    "current": "Aberto",
+    "items_one": "{{count}} mídia",
+    "items_other": "{{count}} mídias",
+    "loading": "Abrindo o projeto…",
+    "saved": "Salvo",
+    "saving": "Salvando…",
+    "saveError": "Não foi possível salvar",
+    "notSaved": "Ainda não salvo",
+    "rename": "Renomear",
+    "nameLabel": "Nome do projeto",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "new": "Novo projeto",
+    "openOther": "Abrir projeto",
+    "openDescription": "Os projetos são salvos sozinhos. As mídias são reabertas de onde os arquivos estão.",
+    "empty": "Nenhum projeto salvo ainda.",
+    "delete": "Apagar projeto",
+    "deleteNamed": "Apagar o projeto {{name}}",
+    "deleteConfirmTitle": "Apagar “{{name}}”?",
+    "deleteConfirmDescription": "Só o projeto é apagado. Suas fotos, vídeos e músicas continuam onde estão.",
+    "missing_one": "{{count}} arquivo não foi encontrado no local salvo",
+    "missing_other": "{{count}} arquivos não foram encontrados no local salvo",
+    "musicMissing": "A música do projeto não foi encontrada.",
+    "notFound": "Este projeto não existe mais.",
+    "invalid": "Não foi possível ler este projeto.",
+    "openError": "Não foi possível abrir o projeto"
   },
   "export": {
     "title": "Exportar vídeo",
@@ -355,31 +456,6 @@
     "backgroundDescription": "Aparece na margem, nos espaços e atrás dos cantos arredondados.",
     "filtersTitle": "Filtros",
     "filtersDescription": "Aplicados sobre a colagem inteira.",
-    "intensity": "Intensidade",
-    "presets": {
-      "none": "Original",
-      "vivid": "Vívido",
-      "warm": "Quente",
-      "cool": "Frio",
-      "mono": "P&B",
-      "noir": "Noir",
-      "sepia": "Sépia",
-      "vintage": "Vintage",
-      "dramatic": "Dramático",
-      "soft": "Suave"
-    },
-    "adjustTitle": "Ajustes",
-    "adjustDescription": "Somados ao filtro. Duplo clique zera um ajuste.",
-    "adjust": {
-      "brightness": "Brilho",
-      "contrast": "Contraste",
-      "saturation": "Saturação",
-      "temperature": "Temperatura",
-      "vignette": "Vinheta",
-      "grayscale": "Preto e branco",
-      "sepia": "Sépia",
-      "fade": "Desbotado"
-    },
     "export": {
       "formatTitle": "Formato",
       "formatHint": {

@@ -175,3 +175,35 @@ describe("buildTimeline — áudio dos vídeos e transições", () => {
     expect(res.segments[1]?.transitionIn).toEqual({ kind: "fade", durationSec: 0.5 });
   });
 });
+
+describe("buildTimeline — durações manuais", () => {
+  it("fit: quem tem duração manual não encolhe; os demais dividem o que sobra", () => {
+    const items = [{ ...photo("a"), overrides: { durationSec: 4 } }, photo("b"), photo("c"), photo("d")];
+    const res = buildTimeline({
+      items,
+      settings: settings({ total: { mode: "custom", seconds: 7 }, overflow: "fit" }),
+      music: null,
+    });
+    expect(res.segments.map((s) => s.durationSec)).toEqual([4, 1, 1, 1]);
+    expect(res.durationSec).toBe(7);
+  });
+
+  it("fit: se as durações manuais não cabem, o excesso sai pelo fim", () => {
+    const items = [
+      { ...photo("a"), overrides: { durationSec: 4 } },
+      { ...photo("b"), overrides: { durationSec: 4 } },
+      photo("c"),
+    ];
+    const res = buildTimeline({
+      items,
+      settings: settings({ total: { mode: "custom", seconds: 6 }, overflow: "fit" }),
+      music: null,
+    });
+    expect(res.durationSec).toBe(6);
+    expect(res.segments.map((s) => [s.mediaId, s.durationSec])).toEqual([
+      ["a", 4],
+      ["b", 2],
+    ]);
+    expect(res.warnings).toContainEqual({ kind: "itemsDropped", mediaIds: ["c"] });
+  });
+});

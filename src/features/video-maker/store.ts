@@ -5,7 +5,7 @@ import { createVideoProjectStore } from "./project-store";
 
 /**
  * Estado do projeto de vídeo atual. Vive no módulo para sobreviver à navegação
- * entre páginas; projetos salvos/autosave chegam no M7.
+ * entre páginas; salvar/reabrir e autosave ficam em `project-session.ts`.
  */
 export const videoMediaStore = createMediaLibraryStore();
 

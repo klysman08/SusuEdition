@@ -252,7 +252,7 @@ async function run(job: ExportJob, port: MessagePort) {
           });
         }
       }
-      compositor.draw(layers, job.background);
+      compositor.draw(layers, job.background, job.filter);
       compositor.retain(new Set(layers.map((l) => l.key)));
       for (const vf of toClose) vf.close();
       await video.add(t, 1 / fps);

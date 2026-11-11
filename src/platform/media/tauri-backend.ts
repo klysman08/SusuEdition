@@ -6,6 +6,9 @@ import type { MediaMeta } from "@/engine/types";
 import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, SUPPORTED_EXTENSIONS } from "./formats";
 import type { MediaBackend, PickedMedia, ProcessEvent, RegisterOutcome } from "./types";
 
+/** Tamanho do lote ao reabrir um projeto (mantém cada chamada IPC curta). */
+const REOPEN_BATCH = 200;
+
 const susu = (path: string) => convertFileSrc(path, "susu");
 
 export function createTauriBackend(isMobile: boolean): MediaBackend {
@@ -46,6 +49,15 @@ export function createTauriBackend(isMobile: boolean): MediaBackend {
     register(picked) {
       const uris = picked.flatMap((p) => (p.type === "native" ? [p.uri] : []));
       return invoke<RegisterOutcome[]>("media_register", { uris });
+    },
+
+    async reopen(refs) {
+      const out: RegisterOutcome[] = [];
+      for (let i = 0; i < refs.length; i += REOPEN_BATCH) {
+        const uris = refs.slice(i, i + REOPEN_BATCH).map((r) => r.uri);
+        out.push(...(await invoke<RegisterOutcome[]>("media_register", { uris })));
+      }
+      return out;
     },
 
     async unregister(ids) {

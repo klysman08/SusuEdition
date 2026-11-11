@@ -17,6 +17,12 @@ export interface RegisteredMedia {
   modifiedMs?: number;
 }
 
+/** Referência a um arquivo já importado antes (projeto salvo). */
+export interface MediaRef {
+  id: string;
+  uri: string;
+}
+
 export type RegisterOutcome = ({ status: "ok" } & RegisteredMedia) | { status: "error"; uri: string; error: string };
 
 export type ProcessEvent =
@@ -36,6 +42,12 @@ export interface MediaBackend {
   /** Waveform, BPM e batidas da música (Rust; no navegador só a waveform). */
   analyzeAudio(id: string): Promise<AudioAnalysis>;
   register(picked: PickedMedia[]): Promise<RegisterOutcome[]>;
+  /**
+   * Registra de novo arquivos de um projeto salvo, a partir do caminho/URI guardado.
+   * Um resultado por referência, na mesma ordem; arquivo movido ou apagado vira `error`.
+   * O `id` devolvido difere do salvo quando o arquivo foi modificado desde então.
+   */
+  reopen(refs: readonly MediaRef[]): Promise<RegisterOutcome[]>;
   unregister(ids: string[]): Promise<void>;
   /** Processa fotos (metadados + thumbnail); eventos chegam conforme ficam prontos. */
   processImages(ids: string[], onEvent: (e: ProcessEvent) => void): Promise<void>;

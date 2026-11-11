@@ -1,9 +1,15 @@
 import { ArrowRight, Clapperboard, FolderOpen, LayoutGrid, type LucideIcon } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+// A lista de projetos traz o estado do editor de vídeo: carrega depois da tela inicial.
+const ProjectList = lazy(() =>
+  import("@/features/video-maker/projects/ProjectList").then((m) => ({ default: m.ProjectList })),
+);
 
 interface FeatureCardProps {
   to: string;
@@ -42,6 +48,7 @@ function FeatureCard({ to, icon: Icon, title, description, cta, accentClassName 
 
 export function HomePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-10">
@@ -72,15 +79,24 @@ export function HomePage() {
 
       <section>
         <h2 className="text-base font-semibold">{t("home.recent")}</h2>
-        <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-12 text-center">
-          <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <FolderOpen className="size-5" aria-hidden />
-          </div>
-          <p className="text-sm text-muted-foreground">{t("home.noRecent")}</p>
-          <Button asChild size="sm" variant="outline">
-            <Link to="/video-maker">{t("home.videoMaker.cta")}</Link>
-          </Button>
-        </div>
+        <Suspense fallback={null}>
+          <ProjectList
+            limit={8}
+            className="mt-3"
+            onOpened={() => void navigate("/video-maker")}
+            empty={
+              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-12 text-center">
+                <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <FolderOpen className="size-5" aria-hidden />
+                </div>
+                <p className="text-sm text-muted-foreground">{t("home.noRecent")}</p>
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/video-maker">{t("home.videoMaker.cta")}</Link>
+                </Button>
+              </div>
+            }
+          />
+        </Suspense>
       </section>
     </div>
   );

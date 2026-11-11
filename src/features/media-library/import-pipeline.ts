@@ -1,4 +1,5 @@
 import { createProbePool, type ProbePool } from "@/engine/decode";
+import type { MediaKind } from "@/engine/types";
 import type { MediaBackend, PickedMedia } from "@/platform/media";
 
 import type { ItemUpdate, LibraryItem, MediaLibraryStore } from "./store";
@@ -76,14 +77,105 @@ export async function importMedia(
       continue;
     }
     seen.add(o.id);
-    fresh.push({ id: o.id, kind: o.kind, name: o.name, size: o.size, modifiedMs: o.modifiedMs, status: "pending" });
+    fresh.push({
+      id: o.id,
+      kind: o.kind,
+      name: o.name,
+      uri: o.uri,
+      size: o.size,
+      modifiedMs: o.modifiedMs,
+      status: "pending",
+    });
   }
   report.added = fresh.length;
   if (fresh.length === 0) return report;
 
-  const state = store.getState();
-  state.addItems(fresh);
-  state.beginProgress(fresh.length);
+  store.getState().addItems(fresh);
+  await processItems(store, backend, fresh);
+  return report;
+}
+
+/** Mídia de um projeto salvo. */
+export interface SavedMedia {
+  id: string;
+  uri: string;
+  name: string;
+  kind: MediaKind;
+  size: number;
+  modifiedMs?: number;
+}
+
+export interface RestoreReport {
+  /** id salvo → id atual (difere quando o arquivo mudou desde que o projeto foi salvo). */
+  idMap: Map<string, string>;
+  /** Arquivos que não estão mais no caminho salvo. */
+  missing: string[];
+  /** Resolve quando miniaturas e metadados estiverem prontos. */
+  processed: Promise<void>;
+}
+
+/**
+ * Reabre as mídias de um projeto salvo a partir dos caminhos guardados, na mesma ordem.
+ * Arquivos não encontrados continuam no projeto como "ausentes" (não são descartados:
+ * um HD externo desconectado não pode apagar metade do projeto no próximo autosave).
+ * Retorna assim que os itens entram na biblioteca; o processamento segue em `processed`.
+ */
+export async function restoreMedia(
+  store: MediaLibraryStore,
+  backend: MediaBackend,
+  saved: readonly SavedMedia[],
+): Promise<RestoreReport> {
+  const report: RestoreReport = { idMap: new Map(), missing: [], processed: Promise.resolve() };
+  if (saved.length === 0) return report;
+
+  const outcomes = await backend.reopen(saved);
+  const items: LibraryItem[] = [];
+  const seen = new Set<string>();
+  saved.forEach((ref, i) => {
+    const o = outcomes[i];
+    const found = o?.status === "ok" && (o.kind === "image" || o.kind === "video") ? o : null;
+    const id = found?.id ?? ref.id;
+    if (seen.has(id)) return;
+    seen.add(id);
+    report.idMap.set(ref.id, id);
+    if (found) {
+      items.push({
+        id,
+        kind: found.kind as MediaKind,
+        name: found.name,
+        uri: found.uri,
+        size: found.size,
+        modifiedMs: found.modifiedMs,
+        status: "pending",
+      });
+    } else {
+      report.missing.push(ref.name);
+      items.push({
+        id,
+        kind: ref.kind,
+        name: ref.name,
+        uri: ref.uri,
+        size: ref.size,
+        modifiedMs: ref.modifiedMs,
+        status: "error",
+        error: "missing",
+      });
+    }
+  });
+
+  store.getState().addItems(items);
+  report.processed = processItems(
+    store,
+    backend,
+    items.filter((i) => i.status === "pending"),
+  );
+  return report;
+}
+
+/** Metadados + miniaturas dos itens recém-adicionados (fotos no Rust, vídeos no worker). */
+async function processItems(store: MediaLibraryStore, backend: MediaBackend, fresh: LibraryItem[]): Promise<void> {
+  if (fresh.length === 0) return;
+  store.getState().beginProgress(fresh.length);
 
   const batcher = createBatcher(store);
   const images = fresh.filter((i) => i.kind === "image").map((i) => i.id);
@@ -100,7 +192,6 @@ export async function importMedia(
   const videoJob = processVideos(store, backend, videos, batcher.push);
   await Promise.all([imageJob, videoJob]);
   batcher.flush();
-  return report;
 }
 
 async function processVideos(

@@ -6,6 +6,8 @@ import { trackMediaUsage } from "@/platform/media/usage";
 export interface MusicTrack {
   id: string;
   name: string;
+  /** Caminho/URI do arquivo original (guardado no projeto salvo). */
+  uri?: string;
   size: number;
   /** URL reproduzível pelo WebView (`susu://media/<id>` ou blob:). */
   url: string;

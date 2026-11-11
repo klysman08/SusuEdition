@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStore } from "zustand";
 
 import { analyzeRhythm, type RhythmBeat, type TimelineResult } from "@/engine/timeline";
+import { getMediaBackend } from "@/platform/media";
 
 import type { VideoProjectState } from "./project-store";
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "./store";
@@ -11,6 +12,21 @@ const NO_BEATS: readonly RhythmBeat[] = [];
 
 export function useProject<T>(selector: (s: VideoProjectState) => T): T {
   return useStore(videoProjectStore, selector);
+}
+
+/** URL reproduzível do arquivo original de uma mídia (`null` enquanto resolve). */
+export function useMediaUrl(id: string | null): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    if (!id) return;
+    void getMediaBackend().then((b) => alive && setUrl(b.mediaUrl(id)));
+    return () => {
+      alive = false;
+      setUrl(null);
+    };
+  }, [id]);
+  return url;
 }
 
 /**

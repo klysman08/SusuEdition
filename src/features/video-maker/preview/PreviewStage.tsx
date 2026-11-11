@@ -1,13 +1,17 @@
-import { Activity, Film, Pause, Play, SkipBack } from "lucide-react";
-import type { RefObject } from "react";
+import { Activity, Film, Maximize2, Minimize2, Pause, Play, SkipBack, ZoomIn, ZoomOut } from "lucide-react";
+import { useRef, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
+import { useStore } from "zustand";
 
 import { Button } from "@/components/ui/button";
 import type { TimelineResult } from "@/engine/timeline";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-import { TimelineStrip } from "./TimelineStrip";
+import { videoMusicStore } from "../store";
+import { AUDIO_HEIGHT, timelineUi, ZOOM } from "../timeline-ui";
+import { ClipToolbar } from "./ClipToolbar";
+import { Timeline } from "./Timeline";
 import type { PreviewController } from "./use-preview-player";
 
 /**
@@ -18,17 +22,22 @@ export function PreviewStage({
   preview,
   canvasRef,
   boxRef,
+  focus,
+  onToggleFocus,
 }: {
   preview: PreviewController;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   boxRef: RefObject<HTMLDivElement | null>;
+  /** Prévia ampliada: as ferramentas ficam escondidas. */
+  focus: boolean;
+  onToggleFocus: () => void;
 }) {
   const { t } = useTranslation();
   const { player, state, empty, unsupported } = preview;
   const [aw, ah] = preview.aspect;
 
   return (
-    <div className="[container-type:size] relative flex min-h-[26dvh] flex-1 items-center justify-center bg-zinc-950 p-3 sm:p-5">
+    <div className="[container-type:size] relative flex min-h-[34dvh] flex-1 items-center justify-center bg-zinc-950 p-1.5 sm:p-4 lg:min-h-[26dvh]">
       <div
         ref={boxRef}
         className="group relative overflow-hidden rounded-md bg-black shadow-2xl ring-1 ring-white/10"
@@ -52,26 +61,88 @@ export function PreviewStage({
           </span>
         )}
       </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-pressed={focus}
+        aria-label={t(focus ? "preview.exitFocus" : "preview.focus")}
+        title={t(focus ? "preview.exitFocus" : "preview.focus")}
+        onClick={onToggleFocus}
+        className="absolute top-1.5 right-1.5 rounded-full bg-black/45 text-white backdrop-blur-sm hover:bg-black/65 hover:text-white"
+      >
+        {focus ? <Minimize2 /> : <Maximize2 />}
+      </Button>
     </div>
   );
 }
 
-/** Controles de reprodução + faixa das mídias, sempre visíveis abaixo do palco. */
+/** Divisor entre a prévia e a faixa do tempo: arrastar muda a altura da faixa de áudio. */
+function ResizeGrip() {
+  const { t } = useTranslation();
+  const height = useStore(timelineUi, (s) => s.audioHeight);
+  const start = useRef<{ y: number; h: number } | null>(null);
+  const { setAudioHeight } = timelineUi.getState();
+  return (
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label={t("timeline.resize")}
+      aria-valuemin={AUDIO_HEIGHT.min}
+      aria-valuemax={AUDIO_HEIGHT.max}
+      aria-valuenow={height}
+      tabIndex={0}
+      title={t("timeline.resize")}
+      className="group absolute inset-x-0 -top-2.5 z-10 flex h-5 cursor-ns-resize touch-none items-center justify-center outline-none"
+      onPointerDown={(e) => {
+        start.current = { y: e.clientY, h: timelineUi.getState().audioHeight };
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => start.current && setAudioHeight(start.current.h + (start.current.y - e.clientY))}
+      onPointerUp={() => (start.current = null)}
+      onPointerCancel={() => (start.current = null)}
+      onDoubleClick={() => setAudioHeight(AUDIO_HEIGHT.default)}
+      onKeyDown={(e) => {
+        const dir = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        setAudioHeight(height + dir * 12);
+      }}
+    >
+      <span className="h-1.5 w-12 rounded-full border bg-card shadow-sm transition-colors group-hover:border-primary group-hover:bg-primary group-focus-visible:border-primary group-focus-visible:bg-primary group-active:bg-primary" />
+    </div>
+  );
+}
+
+/** Controles de reprodução + faixa do tempo (mídias e áudio), sempre visíveis abaixo do palco. */
 export function TimelineDock({
   preview,
   timeline,
+  selectedId,
+  onSelect,
   onOpenItem,
+  onTrim,
+  onAdjust,
+  onOpenMusic,
 }: {
   preview: PreviewController;
   timeline: TimelineResult;
+  selectedId: string | null;
+  onSelect: (mediaId: string | null) => void;
   onOpenItem: (mediaId: string) => void;
+  onTrim: (mediaId: string) => void;
+  onAdjust: (mediaId: string) => void;
+  onOpenMusic: () => void;
 }) {
   const { t } = useTranslation();
   const { player, state, empty } = preview;
+  const zoom = useStore(timelineUi, (s) => s.zoom);
+  const hasAudioLane = useStore(videoMusicStore, (s) => s.status === "ready") && timeline.audio !== null;
+  const { setZoom } = timelineUi.getState();
 
   return (
-    <div className="shrink-0 space-y-2 border-t bg-card px-3 py-2.5 sm:px-4">
-      <div className="flex items-center gap-2">
+    <div className="relative shrink-0 space-y-1.5 border-t bg-card px-2 py-2 sm:px-4">
+      {hasAudioLane && !empty && <ResizeGrip />}
+      <div className="flex items-center gap-1.5">
         <Button
           variant="ghost"
           size="icon"
@@ -97,21 +168,64 @@ export function TimelineDock({
         </p>
         <span className="flex-1" />
         {timeline.beatSync && (
-          <p className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+          <p
+            className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
+            title={t("preview.onBeat", { snapped: timeline.beatSync.snapped, cuts: timeline.beatSync.cuts })}
+          >
             <Activity className="size-3.5" aria-hidden />
-            {t("preview.onBeat", { snapped: timeline.beatSync.snapped, cuts: timeline.beatSync.cuts })}
+            <span className="sm:hidden">
+              {timeline.beatSync.snapped}/{timeline.beatSync.cuts}
+            </span>
+            <span className="max-sm:hidden">
+              {t("preview.onBeat", { snapped: timeline.beatSync.snapped, cuts: timeline.beatSync.cuts })}
+            </span>
           </p>
         )}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={empty || zoom <= ZOOM.min}
+          aria-label={t("timeline.zoomOut")}
+          title={t("timeline.zoomOut")}
+          onClick={() => setZoom(zoom / 1.5 < 1.2 ? 1 : zoom / 1.5)}
+        >
+          <ZoomOut />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={empty || zoom >= ZOOM.max}
+          aria-label={t("timeline.zoomIn")}
+          title={t("timeline.zoomIn")}
+          onClick={() => setZoom(zoom * 1.5)}
+        >
+          <ZoomIn />
+        </Button>
       </div>
+
+      {selectedId && (
+        <ClipToolbar
+          id={selectedId}
+          timeline={timeline}
+          onTrim={onTrim}
+          onAdjust={onAdjust}
+          onClose={() => onSelect(null)}
+        />
+      )}
+
       {empty ? (
         <div className="h-12 rounded-md bg-muted" />
       ) : (
-        <TimelineStrip
+        <Timeline
           timeline={timeline}
           timeSec={state.timeSec}
+          playing={state.playing}
+          beats={preview.beats}
+          selectedId={selectedId}
+          onSelect={onSelect}
           onSeek={(v) => player?.seek(v)}
           onOpenItem={onOpenItem}
-          beats={preview.beats}
+          onOpenMusic={onOpenMusic}
         />
       )}
     </div>

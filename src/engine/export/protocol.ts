@@ -1,5 +1,6 @@
 import type { AudioMix } from "../audio/mix";
 import type { ProbeSource } from "../decode/probe-protocol";
+import type { FilterAdjust } from "../render/filters";
 import type { AudioPlan, TimelineSegment } from "../timeline";
 import type { FitBackground, FitMode, Size } from "../types";
 import type { ResolvedExport } from "./plan";
@@ -20,6 +21,8 @@ export interface ExportJob {
   music: ProbeSource | null;
   fit: FitMode;
   background: FitBackground;
+  /** Filtro global já resolvido (`resolveFilter`); `null` = sem filtro. */
+  filter: FilterAdjust | null;
   mix: AudioMix;
   /** Configuração desejada primeiro, depois alternativas menores (fallback). */
   candidates: ResolvedExport[];

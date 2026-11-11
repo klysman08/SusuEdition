@@ -40,6 +40,21 @@ function pickFiles(accept = ACCEPT_ATTRIBUTE, multiple = true): Promise<File[]> 
  */
 export function createWebBackend(): MediaBackend {
   const files = new Map<string, File>();
+  /**
+   * Arquivos já vistos nesta sessão. O navegador não pode reabrir um caminho do disco,
+   * então reabrir um projeto só funciona enquanto a página não for recarregada.
+   */
+  const seen = new Map<string, File>();
+  const outcome = (id: string, f: File): RegisterOutcome => ({
+    status: "ok",
+    id,
+    uri: f.name,
+    name: f.name,
+    kind: kindOf(f),
+    mime: f.type,
+    size: f.size,
+    modifiedMs: f.lastModified,
+  });
   const thumbs = new Map<string, string>();
   const mediaUrls = new Map<string, string>();
   let imagePool: ProbePool | null = null;
@@ -84,18 +99,17 @@ export function createWebBackend(): MediaBackend {
         const f = p.file;
         const id = fnv1a(`${f.name}|${f.size}|${f.lastModified}`);
         files.set(id, f);
-        return [
-          {
-            status: "ok",
-            id,
-            uri: f.name,
-            name: f.name,
-            kind: kindOf(f),
-            mime: f.type,
-            size: f.size,
-            modifiedMs: f.lastModified,
-          },
-        ];
+        seen.set(id, f);
+        return [outcome(id, f)];
+      });
+    },
+
+    async reopen(refs) {
+      return refs.map((ref): RegisterOutcome => {
+        const f = files.get(ref.id) ?? seen.get(ref.id);
+        if (!f) return { status: "error", uri: ref.uri, error: "missing" };
+        files.set(ref.id, f);
+        return outcome(ref.id, f);
       });
     },
 

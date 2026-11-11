@@ -9,9 +9,12 @@ export interface LibraryItem {
   id: string;
   kind: MediaKind;
   name: string;
+  /** Caminho/URI do arquivo original — é o que o projeto salvo guarda para reabri-lo. */
+  uri?: string;
   size: number;
   modifiedMs?: number;
   status: ItemStatus;
+  /** `"missing"`: o arquivo não foi encontrado ao reabrir o projeto. */
   error?: string;
   meta?: MediaMeta;
   thumbUrl?: string;
@@ -40,6 +43,8 @@ export interface MediaLibraryState {
   move: (activeId: string, overId: string) => void;
   /** Troca duas mídias de posição (colagem: trocar fotos de célula). */
   swap: (a: string, b: string) => void;
+  /** Nova ordem com exatamente as mesmas mídias (arrastar na faixa do tempo). */
+  setOrder: (order: readonly string[]) => void;
   sort: (mode: SortMode) => void;
   setSelectMode: (on: boolean) => void;
   toggleSelected: (id: string) => void;
@@ -146,6 +151,12 @@ export function createMediaLibraryStore(): MediaLibraryStore {
         order[i] = b;
         order[j] = a;
         return { order };
+      }),
+
+    setOrder: (order) =>
+      set((s) => {
+        const same = order.length === s.order.length && new Set(order).size === order.length;
+        return same && order.every((id) => s.items[id]) ? { order: [...order] } : s;
       }),
 
     sort: (mode) => set((s) => ({ order: sortOrder(s.order, s.items, mode) })),

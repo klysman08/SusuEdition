@@ -36,6 +36,7 @@
       "sync": "Rhythm",
       "timing": "Timing",
       "audio": "Audio",
+      "filters": "Filters",
       "format": "Format",
       "export": "Export"
     }
@@ -132,7 +133,8 @@
     "emptyDescriptionPhotos": "Drop photos here or pick them from your device. From 2 to dozens of photos.",
     "summaryPhotos_one": "{{count}} photo",
     "summaryPhotos_other": "{{count}} photos",
-    "onlyPhotos": "Collages accept photos only"
+    "onlyPhotos": "Collages accept photos only",
+    "missing": "File not found"
   },
   "music": {
     "emptyTitle": "Choose the video's music",
@@ -268,7 +270,9 @@
     "unsupported": "Your device doesn't support WebGL2 — preview unavailable.",
     "seek": "Position",
     "restart": "Back to start",
-    "onBeat": "{{snapped}}/{{cuts}} on beat"
+    "onBeat": "{{snapped}}/{{cuts}} on beat",
+    "focus": "Expand preview",
+    "exitFocus": "Show tools"
   },
   "item": {
     "title": "Item settings",
@@ -282,7 +286,104 @@
     "keepAudio": "Keep this video's sound",
     "volume": "Volume",
     "reset": "Reset to defaults",
-    "excluded": "This item isn't in the current video (no time left)."
+    "excluded": "This item isn't in the current video (no time left).",
+    "trim": "Trim video"
+  },
+  "timeline": {
+    "label": "Timeline. Arrow keys pick a clip, Enter opens it.",
+    "noMusic": "Add music to see the waveform and beats",
+    "resize": "Drag to change the height of the audio track",
+    "zoomIn": "Zoom in on the timeline",
+    "zoomOut": "Zoom out of the timeline",
+    "dragCut": "Drag to move this cut (snaps to beats)",
+    "clipTools": "Tools for {{name}}",
+    "moveEarlier": "Move earlier",
+    "moveLater": "Move later",
+    "shorter": "0.1 s shorter",
+    "longer": "0.1 s longer",
+    "duration": "Duration",
+    "unlock": "Manual duration — tap to go back to automatic",
+    "automatic": "Automatic duration",
+    "trim": "Trim",
+    "adjust": "More settings",
+    "remove": "Remove from the video",
+    "deselect": "Close"
+  },
+  "trim": {
+    "title": "Trim video",
+    "start": "Start",
+    "end": "End",
+    "length": "Length used",
+    "startHere": "Start here",
+    "endHere": "End here",
+    "play": "Play section",
+    "pause": "Pause",
+    "reset": "Automatic",
+    "cancel": "Cancel",
+    "apply": "Apply"
+  },
+  "videoFilters": {
+    "title": "Filter",
+    "description": "Applied to the whole video, in the preview and in the export."
+  },
+  "filters": {
+    "intensity": "Intensity",
+    "reset": "Reset",
+    "presets": {
+      "none": "Original",
+      "vivid": "Vivid",
+      "warm": "Warm",
+      "cool": "Cool",
+      "mono": "B&W",
+      "noir": "Noir",
+      "sepia": "Sepia",
+      "vintage": "Vintage",
+      "dramatic": "Dramatic",
+      "soft": "Soft"
+    },
+    "adjustTitle": "Adjustments",
+    "adjustDescription": "Added on top of the filter. Double-click resets one.",
+    "adjust": {
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "temperature": "Temperature",
+      "vignette": "Vignette",
+      "grayscale": "Black and white",
+      "sepia": "Sepia",
+      "fade": "Fade"
+    }
+  },
+  "projects": {
+    "defaultName": "Video · {{date}}",
+    "untitled": "Untitled project",
+    "continue": "Continue a project",
+    "current": "Open",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "loading": "Opening project…",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Couldn't save",
+    "notSaved": "Not saved yet",
+    "rename": "Rename",
+    "nameLabel": "Project name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "new": "New project",
+    "openOther": "Open project",
+    "openDescription": "Projects are saved automatically. Media is reopened from where the files are.",
+    "empty": "No saved projects yet.",
+    "delete": "Delete project",
+    "deleteNamed": "Delete project {{name}}",
+    "deleteConfirmTitle": "Delete “{{name}}”?",
+    "deleteConfirmDescription": "Only the project is deleted. Your photos, videos and music stay where they are.",
+    "missing_one": "{{count}} file wasn't found where it was saved",
+    "missing_other": "{{count}} files weren't found where they were saved",
+    "musicMissing": "The project's music wasn't found.",
+    "notFound": "This project no longer exists.",
+    "invalid": "This project can't be read.",
+    "openError": "Couldn't open the project"
   },
   "export": {
     "title": "Export video",
@@ -355,31 +456,6 @@
     "backgroundDescription": "Shows in the margin, the gaps and behind rounded corners.",
     "filtersTitle": "Filters",
     "filtersDescription": "Applied over the whole collage.",
-    "intensity": "Intensity",
-    "presets": {
-      "none": "Original",
-      "vivid": "Vivid",
-      "warm": "Warm",
-      "cool": "Cool",
-      "mono": "B&W",
-      "noir": "Noir",
-      "sepia": "Sepia",
-      "vintage": "Vintage",
-      "dramatic": "Dramatic",
-      "soft": "Soft"
-    },
-    "adjustTitle": "Adjustments",
-    "adjustDescription": "Added on top of the filter. Double-click resets one.",
-    "adjust": {
-      "brightness": "Brightness",
-      "contrast": "Contrast",
-      "saturation": "Saturation",
-      "temperature": "Temperature",
-      "vignette": "Vignette",
-      "grayscale": "Black and white",
-      "sepia": "Sepia",
-      "fade": "Fade"
-    },
     "export": {
       "formatTitle": "Format",
       "formatHint": {

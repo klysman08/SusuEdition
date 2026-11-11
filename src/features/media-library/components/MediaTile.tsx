@@ -52,7 +52,11 @@ export function TileContent({ item, index, selected, selectMode, overlay }: Tile
         <div className="flex size-full flex-col items-center justify-center gap-1 p-2 text-center text-muted-foreground">
           <ImageOff className="size-5" aria-hidden />
           <span className="line-clamp-2 text-[10px] leading-tight">
-            {item.status === "error" ? t("mediaLibrary.error") : item.name}
+            {item.error === "missing"
+              ? t("mediaLibrary.missing")
+              : item.status === "error"
+                ? t("mediaLibrary.error")
+                : item.name}
           </span>
         </div>
       )}

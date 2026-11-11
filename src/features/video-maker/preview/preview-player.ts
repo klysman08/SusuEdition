@@ -5,6 +5,7 @@ import {
   upcomingSegments,
   type Compositor,
   type CompositorLayer,
+  type FilterAdjust,
 } from "@/engine/render";
 import type { AudioPlan, TimelineSegment } from "@/engine/timeline";
 import type { FitBackground, FitMode, Size } from "@/engine/types";
@@ -29,6 +30,8 @@ export interface PreviewInput {
   musicUrl: string | null;
   fit: FitMode;
   background: FitBackground;
+  /** Filtro global já resolvido; `null` = sem filtro. */
+  filter: FilterAdjust | null;
   mix: AudioMix;
 }
 
@@ -264,7 +267,7 @@ export class PreviewPlayer {
     }
 
     this.videos.pauseExcept(activeIds);
-    this.compositor.draw(drawn, input.background);
+    this.compositor.draw(drawn, input.background, input.filter);
     this.compositor.retain(new Set(drawn.map((d) => d.key)));
 
     // Música: volume com fade-out e ducking; corrige deriva do relógio.

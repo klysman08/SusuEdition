@@ -5,6 +5,7 @@
 //! - `cache`       — thumbnails e metadados em disco
 //! - `image`       — EXIF, dimensões e thumbnails de fotos
 //! - `jobs`        — fila paralela de processamento
+//! - `project`     — projetos salvos (JSON em disco)
 //!
 //! Planejado: `waveform` e `beat` (M2).
 
@@ -15,4 +16,5 @@ pub mod export;
 pub mod image;
 pub mod jobs;
 pub mod media_types;
+pub mod project;
 pub mod registry;

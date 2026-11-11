@@ -24,19 +24,22 @@ interface Planned {
   durationSec: number;
   /** Máximo que este item pode durar (vídeos: o que resta do clipe). */
   maxSec: number;
+  /** Duração definida à mão: não é esticada/encolhida pelo "encurtar" nem pelas batidas. */
+  locked: boolean;
 }
 
 function plan(item: TimelineItem, s: TimelineSettings): Planned {
   const { media, overrides } = item;
+  const locked = overrides?.durationSec !== undefined;
   if (media.kind === "image") {
     const d = overrides?.durationSec ?? s.photoDurationSec;
-    return { item, sourceInSec: 0, durationSec: Math.max(s.minClipSec, d), maxSec: Number.POSITIVE_INFINITY };
+    return { item, sourceInSec: 0, durationSec: Math.max(s.minClipSec, d), maxSec: Number.POSITIVE_INFINITY, locked };
   }
   const total = media.durationSec ?? 0;
   const sourceIn = Math.min(Math.max(0, overrides?.sourceInSec ?? 0), total);
   const available = Math.max(0, total - sourceIn);
   const wanted = overrides?.durationSec ?? s.videoDurationSec;
-  return { item, sourceInSec: sourceIn, durationSec: Math.min(wanted, available), maxSec: available };
+  return { item, sourceInSec: sourceIn, durationSec: Math.min(wanted, available), maxSec: available, locked };
 }
 
 function targetDuration(input: BuildTimelineInput, contentSec: number): number {
@@ -76,12 +79,14 @@ function dropOverflow(items: Planned[], target: number, minClip: number): { kept
 /**
  * Redistribui proporcionalmente para caber em `target`, respeitando `minClip`
  * (water-filling: itens que ficariam abaixo do mínimo são fixados no mínimo).
+ * Itens com duração manual não mudam; se nem assim couber, o excesso sai pelo fim.
  */
 function fitOverflow(items: Planned[], target: number, minClip: number): { kept: Planned[]; dropped: Planned[] } {
   const maxCount = Math.max(0, Math.floor((target + EPS) / minClip));
   const kept = items.slice(0, maxCount).map((p) => ({ ...p }));
   const dropped = items.slice(maxCount);
   const fixed = new Set<number>();
+  kept.forEach((p, idx) => p.locked && fixed.add(idx));
 
   for (let guard = 0; guard <= kept.length; guard++) {
     const fixedSum = [...fixed].reduce((a, idx) => a + kept[idx]!.durationSec, 0);
@@ -101,6 +106,10 @@ function fitOverflow(items: Planned[], target: number, minClip: number): { kept:
       }
     }
     if (!changed) break;
+  }
+  if (kept.reduce((a, p) => a + p.durationSec, 0) > target + EPS) {
+    const rest = dropOverflow(kept, target, minClip);
+    return { kept: rest.kept, dropped: [...rest.dropped, ...dropped] };
   }
   return { kept, dropped };
 }
@@ -173,6 +182,7 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       profile: BEAT_SYNC_PRESETS[s.beatSync.preset],
       flexibility: s.beatSync.flexibility,
       minClipSec: s.minClipSec,
+      locked: kept.map((p) => p.locked),
     });
     segments = applyCuts(segments, cuts, s.transition);
     beatSync = stats;

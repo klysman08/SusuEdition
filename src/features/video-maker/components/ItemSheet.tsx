@@ -1,5 +1,5 @@
-import { RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { RotateCcw, Scissors } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
@@ -12,37 +12,25 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TimelineResult } from "@/engine/timeline";
 import type { FitMode } from "@/engine/types";
 import { formatTime } from "@/lib/format";
-import { getMediaBackend } from "@/platform/media";
 
-import { useProject } from "../hooks";
+import { useMediaUrl, useProject } from "../hooks";
 import { videoMediaStore, videoProjectStore } from "../store";
 import { LabeledValue } from "@/components/common/Section";
 
 const secs = (v: number) => `${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`;
-
-function useMediaUrl(id: string | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    if (!id) return;
-    void getMediaBackend().then((b) => alive && setUrl(b.mediaUrl(id)));
-    return () => {
-      alive = false;
-      setUrl(null);
-    };
-  }, [id]);
-  return url;
-}
 
 /** Ajustes de uma mídia: duração, enquadramento e — para vídeos — início, som e volume. */
 export function ItemSheet({
   id,
   timeline,
   onClose,
+  onTrim,
 }: {
   id: string | null;
   timeline: TimelineResult;
   onClose: () => void;
+  /** Abre o recorte do vídeo (escolher o trecho vendo o vídeo). */
+  onTrim?: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const item = useStore(videoMediaStore, (s) => (id ? s.items[id] : undefined));
@@ -97,6 +85,13 @@ export function ItemSheet({
               </div>
 
               {!included && <p className="text-xs text-amber-600 dark:text-amber-400">{t("item.excluded")}</p>}
+
+              {isVideo && onTrim && (
+                <Button variant="secondary" className="w-full" onClick={() => onTrim(id)}>
+                  <Scissors />
+                  {t("item.trim")}
+                </Button>
+              )}
 
               {isVideo && (
                 <LabeledValue label={t("item.start")} value={formatTime(start)}>

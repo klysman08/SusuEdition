@@ -61,6 +61,19 @@ describe("media library store", () => {
   });
 });
 
+describe("setOrder", () => {
+  it("aceita uma nova ordem com as mesmas mídias e recusa o resto", () => {
+    const store = createMediaLibraryStore();
+    store.getState().addItems([item("a"), item("b"), item("c")]);
+    store.getState().setOrder(["c", "a", "b"]);
+    expect(store.getState().order).toEqual(["c", "a", "b"]);
+    store.getState().setOrder(["c", "a"]);
+    store.getState().setOrder(["c", "a", "a"]);
+    store.getState().setOrder(["c", "a", "zzz"]);
+    expect(store.getState().order).toEqual(["c", "a", "b"]);
+  });
+});
+
 describe("sortOrder", () => {
   const items = {
     a: item("a", {
