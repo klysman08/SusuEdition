@@ -67,7 +67,7 @@ export async function buildJob(timeline: TimelineResult): Promise<ExportJob> {
     if (!it?.meta || (it.kind !== "image" && it.kind !== "video")) continue;
     media[seg.mediaId] = {
       kind: it.kind,
-      source: backend.probeSource(seg.mediaId),
+      source: backend.probeSource(it.sourceId ?? seg.mediaId),
       size: { width: it.meta.width, height: it.meta.height },
       durationSec: it.meta.durationSec,
     };

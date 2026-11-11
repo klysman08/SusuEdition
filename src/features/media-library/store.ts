@@ -7,6 +7,11 @@ export type ItemStatus = "pending" | "ready" | "error";
 
 export interface LibraryItem {
   id: string;
+  /**
+   * Arquivo registrado de onde esta mídia vem, quando não é o próprio `id`: um vídeo
+   * dividido vira várias mídias que apontam para o mesmo arquivo.
+   */
+  sourceId?: string;
   kind: MediaKind;
   name: string;
   /** Caminho/URI do arquivo original — é o que o projeto salvo guarda para reabri-lo. */
@@ -45,6 +50,12 @@ export interface MediaLibraryState {
   swap: (a: string, b: string) => void;
   /** Nova ordem com exatamente as mesmas mídias (arrastar na faixa do tempo). */
   setOrder: (order: readonly string[]) => void;
+  /** Cópia de uma mídia logo depois dela, apontando para o mesmo arquivo (dividir). */
+  duplicate: (id: string, newId: string) => void;
+  /** Troca uma mídia por outra na mesma posição (religar um arquivo ausente). */
+  replaceItem: (id: string, item: LibraryItem) => void;
+  /** Substitui mídias e ordem de uma vez (desfazer/refazer). */
+  restore: (order: readonly string[], items: Readonly<Record<string, LibraryItem>>) => void;
   sort: (mode: SortMode) => void;
   setSelectMode: (on: boolean) => void;
   toggleSelected: (id: string) => void;
@@ -55,6 +66,21 @@ export interface MediaLibraryState {
 }
 
 export type MediaLibraryStore = StoreApi<MediaLibraryState>;
+
+/** Id do arquivo registrado (URLs, thumbnails e cache usam este id). */
+export function sourceOf(item: Pick<LibraryItem, "id" | "sourceId">): string {
+  return item.sourceId ?? item.id;
+}
+
+/** Arquivos (sem repetição) usados pelas mídias `ids`. */
+export function sourceIds(items: Readonly<Record<string, LibraryItem>>, ids: readonly string[]): string[] {
+  const out = new Set<string>();
+  for (const id of ids) {
+    const item = items[id];
+    if (item) out.add(sourceOf(item));
+  }
+  return [...out];
+}
 
 /** Chave de data: captura (EXIF/metadado) → data de modificação do arquivo. */
 export function dateKey(item: LibraryItem): number {
@@ -159,6 +185,30 @@ export function createMediaLibraryStore(): MediaLibraryStore {
         return same && order.every((id) => s.items[id]) ? { order: [...order] } : s;
       }),
 
+    duplicate: (id, newId) =>
+      set((s) => {
+        const item = s.items[id];
+        const at = s.order.indexOf(id);
+        if (!item || at < 0 || s.items[newId]) return s;
+        const order = s.order.slice();
+        order.splice(at + 1, 0, newId);
+        return { order, items: { ...s.items, [newId]: { ...item, id: newId, sourceId: sourceOf(item) } } };
+      }),
+
+    replaceItem: (id, item) =>
+      set((s) => {
+        if (!s.items[id] || (item.id !== id && s.items[item.id])) return s;
+        const items = { ...s.items };
+        const selected = { ...s.selected };
+        delete items[id];
+        delete selected[id];
+        items[item.id] = item;
+        return { items, selected, order: s.order.map((x) => (x === id ? item.id : x)) };
+      }),
+
+    restore: (order, items) =>
+      set(() => ({ order: order.filter((id) => items[id]), items: { ...items }, selected: {}, selectMode: false })),
+
     sort: (mode) => set((s) => ({ order: sortOrder(s.order, s.items, mode) })),
 
     setSelectMode: (on) => set(on ? { selectMode: true } : { selectMode: false, selected: {} }),
@@ -180,7 +230,7 @@ export function createMediaLibraryStore(): MediaLibraryStore {
     advanceProgress: (count) =>
       set((s) => ({ progress: { ...s.progress, done: Math.min(s.progress.total, s.progress.done + count) } })),
   }));
-  trackMediaUsage(() => Object.keys(store.getState().items));
+  trackMediaUsage(() => Object.values(store.getState().items).map(sourceOf));
   return store;
 }
 

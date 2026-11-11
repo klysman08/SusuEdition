@@ -14,3 +14,8 @@ export const videoMusicStore = createMusicStore();
 
 /** Formato, tempos, volumes e ajustes por mídia. */
 export const videoProjectStore = createVideoProjectStore();
+
+// Os marcadores manuais são tempos da música: trocar de música os invalida.
+videoMusicStore.subscribe((s, p) => {
+  if (p.track && s.track && s.track.id !== p.track.id) videoProjectStore.getState().clearMarkers();
+});

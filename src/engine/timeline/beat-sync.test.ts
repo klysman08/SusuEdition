@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Beat, MediaItem } from "../types";
 import { applyCuts, BEAT_SYNC_PRESETS, syncCutsToBeats } from "./beat-sync";
 import { buildTimeline } from "./build-timeline";
-import { analyzeRhythm } from "./rhythm";
+import { analyzeRhythm, mergeMarkers } from "./rhythm";
 import { DEFAULT_TIMELINE_SETTINGS, type TimelineItem, type TimelineSegment, type TimelineSettings } from "./types";
 
 /** Batidas a cada `period` s; a cada `strongEvery` batidas uma forte (1.0), as demais 0.4. */
@@ -264,5 +264,32 @@ describe("durações travadas (ajuste manual)", () => {
     expect(res.segments.find((s) => s.mediaId === "c")!.durationSec).toBeCloseTo(3.37, 6);
     expect(res.durationSec).toBeCloseTo(13.37, 6);
     expect(res.beatSync!.snapped).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("mergeMarkers", () => {
+  const detected = analyzeRhythm(grid(0.5, 0, 10));
+
+  it("marcadores viram as batidas mais fortes e substituem a batida detectada colada neles", () => {
+    const out = mergeMarkers(detected, [3.02, 7.3]);
+    expect(out).toHaveLength(detected.length + 1); // 3.02 substitui a batida de 3.0
+    const manual = out.filter((b) => b.manual);
+    expect(manual.map((b) => b.timeSec)).toEqual([3.02, 7.3]);
+    expect(manual.every((b) => b.strength === 1 && b.bar === 1 && b.boundary === 1)).toBe(true);
+    expect(out.some((b) => b.timeSec === 3)).toBe(false);
+    expect(out.map((b) => b.timeSec)).toEqual([...out.map((b) => b.timeSec)].sort((a, b) => a - b));
+  });
+
+  it("funciona sem batidas detectadas e ignora repetidos e negativos", () => {
+    const out = mergeMarkers([], [5, 5, -1, 2]);
+    expect(out.map((b) => b.timeSec)).toEqual([2, 5]);
+    expect(mergeMarkers(detected, [])).toEqual(detected);
+  });
+
+  it("a sincronia leva um corte até o marcador, mesmo fora das batidas", () => {
+    // Batidas a cada 0,5 s; um marcador em 4,27 s (entre duas batidas).
+    const beats = mergeMarkers(analyzeRhythm(grid(0.5, 0, 12)), [4.27]);
+    const { cuts } = syncCutsToBeats(photos(6), beats, inf(6), style("dynamic"));
+    expect(cuts).toContain(4.27);
   });
 });

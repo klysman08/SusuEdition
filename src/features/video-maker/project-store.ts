@@ -16,6 +16,8 @@ export interface VideoProjectSettings {
   overrides: Record<string, ClipOverrides>;
   /** Filtro de cor aplicado ao vídeo inteiro. */
   filter: FilterSettings;
+  /** Marcadores manuais na música (s, tempo do arquivo): a sincronia prefere cortar neles. */
+  markers: number[];
   exportQuality: QualityPreset;
   exportFps: FrameRate;
   /** Desktop: perguntar onde salvar (senão vai para Vídeos/SusuEdition). */
@@ -30,6 +32,13 @@ export interface VideoProjectState extends VideoProjectSettings {
   patchMix: (patch: Partial<AudioMix>) => void;
   patchOverride: (id: string, patch: Partial<ClipOverrides>) => void;
   clearOverride: (id: string) => void;
+  /** Define os ajustes de uma mídia de uma vez (`null` remove). */
+  setOverride: (id: string, value: ClipOverrides | null) => void;
+  /** Leva os ajustes de `from` para `to` (a mídia trocou de id ao ser religada). */
+  moveOverride: (from: string, to: string) => void;
+  /** Põe um marcador em `timeSec` da música — ou tira, se já houver um ali. */
+  toggleMarker: (timeSec: number) => void;
+  clearMarkers: () => void;
   patchFilter: (patch: Partial<Omit<FilterSettings, "adjust">>) => void;
   setFilterAdjust: (key: keyof FilterAdjust, value: number) => void;
   resetFilter: () => void;
@@ -50,6 +59,7 @@ export const DEFAULT_VIDEO_PROJECT: VideoProjectSettings = {
   mix: DEFAULT_AUDIO_MIX,
   overrides: {},
   filter: DEFAULT_FILTER,
+  markers: [],
   exportQuality: "1080p",
   exportFps: 30,
   askDestination: false,
@@ -78,6 +88,7 @@ export function withDefaults(saved: Partial<VideoProjectSettings>): VideoProject
     },
     mix: { ...d.mix, ...saved.mix },
     overrides: { ...saved.overrides },
+    markers: Array.isArray(saved.markers) ? saved.markers.filter((m) => typeof m === "number" && m >= 0) : [],
     filter: {
       ...d.filter,
       ...saved.filter,
@@ -85,6 +96,9 @@ export function withDefaults(saved: Partial<VideoProjectSettings>): VideoProject
     },
   };
 }
+
+/** Um toque a menos disto de um marcador existente remove o marcador. */
+export const MARKER_TOLERANCE_SEC = 0.12;
 
 /** Remove chaves `undefined` para que "voltar ao padrão" não deixe lixo no objeto. */
 function compact(o: ClipOverrides): ClipOverrides {
@@ -116,6 +130,30 @@ export function createVideoProjectStore(): VideoProjectStore {
         delete overrides[id];
         return { overrides };
       }),
+    setOverride: (id, value) =>
+      set((s) => {
+        const overrides = { ...s.overrides };
+        const next = value ? compact(value) : {};
+        if (Object.keys(next).length === 0) delete overrides[id];
+        else overrides[id] = next;
+        return { overrides };
+      }),
+    moveOverride: (from, to) =>
+      set((s) => {
+        if (from === to || !s.overrides[from]) return s;
+        const overrides = { ...s.overrides, [to]: s.overrides[from] };
+        delete overrides[from];
+        return { overrides };
+      }),
+    toggleMarker: (timeSec) =>
+      set((s) => {
+        const t = Math.round(Math.max(0, timeSec) * 1000) / 1000;
+        const near = s.markers.find((m) => Math.abs(m - t) <= MARKER_TOLERANCE_SEC);
+        const markers =
+          near !== undefined ? s.markers.filter((m) => m !== near) : [...s.markers, t].sort((a, b) => a - b);
+        return { markers };
+      }),
+    clearMarkers: () => set((s) => (s.markers.length ? { markers: [] } : s)),
     patchFilter: (patch) => set((s) => ({ filter: { ...s.filter, ...patch } })),
     setFilterAdjust: (key, value) =>
       set((s) => ({ filter: { ...s.filter, adjust: { ...s.filter.adjust, [key]: value } } })),

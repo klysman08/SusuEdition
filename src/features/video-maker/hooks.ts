@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "zustand";
 
-import { analyzeRhythm, type RhythmBeat, type TimelineResult } from "@/engine/timeline";
+import { analyzeRhythm, mergeMarkers, type RhythmBeat, type TimelineResult } from "@/engine/timeline";
 import { getMediaBackend } from "@/platform/media";
 
 import type { VideoProjectState } from "./project-store";
@@ -35,12 +35,18 @@ export function useMediaUrl(id: string | null): string | null {
  */
 export function useRhythm(): readonly RhythmBeat[] {
   const analysis = useStore(videoMusicStore, (s) => s.analysis);
-  return useMemo(
+  const markers = useProject((s) => s.markers);
+  const detected = useMemo(
     () =>
       analysis && analysis.beats.length > 0
         ? analyzeRhythm(analysis.beats, { peaks: analysis.peaks, durationSec: analysis.durationSec })
         : NO_BEATS,
     [analysis],
+  );
+  // Marcadores manuais entram como as batidas mais fortes (e valem mesmo sem batidas detectadas).
+  return useMemo(
+    () => (analysis && markers.length > 0 ? mergeMarkers(detected, markers) : detected),
+    [analysis, detected, markers],
   );
 }
 

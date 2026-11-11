@@ -1,3 +1,18 @@
 export { MediaLibrary } from "./components/MediaLibrary";
-export { cancelPendingVideos, importMedia, restoreMedia, type SavedMedia } from "./import-pipeline";
-export { createMediaLibraryStore, summarize, type LibraryItem, type MediaLibraryStore } from "./store";
+export {
+  cancelPendingVideos,
+  importMedia,
+  relinkMedia,
+  removeMedia,
+  reprocessMedia,
+  restoreMedia,
+  type SavedMedia,
+} from "./import-pipeline";
+export {
+  createMediaLibraryStore,
+  sourceIds,
+  sourceOf,
+  summarize,
+  type LibraryItem,
+  type MediaLibraryStore,
+} from "./store";

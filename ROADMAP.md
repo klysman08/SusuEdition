@@ -68,7 +68,9 @@
 - [x] Timeline: faixa de áudio com waveform e batidas, altura ajustável, zoom e régua
 - [x] Ajuste manual: selecionar mídia, arrastar cortes (imã nas batidas), mover, recortar vídeo em modal; duração manual travada na sincronia
 - [x] Filtro global no vídeo (prévia e exportação) e prévia maior no celular
-- [ ] Desfazer/refazer — RF-G6
+- [x] Desfazer/refazer (Ctrl+Z) — RF-G6
+- [x] Dividir mídia no cursor, filtro/movimento (Ken Burns)/transição por mídia, marcadores manuais na música
+- [x] Localizar arquivo ausente e duplicar projeto
 - [ ] Projetos da colagem; reabrir mídias `content://` no Android (permissão persistente no plugin nativo)
 - [ ] Acessibilidade e atalhos — RNF-8
 - [ ] QA em Android real (aparelho intermediário e de entrada)
@@ -76,7 +78,7 @@
 
 ## Futuro (pós v1)
 - HEIC (Android `ImageDecoder` / Windows WIC)
-- Ken Burns em fotos, textos e stickers, mais transições
+- Textos e stickers, mais transições
 - Templates de vídeo prontos
 - Auto-updater (exige releases públicos ou servidor próprio)
 - Filtros por foto na colagem, LUTs

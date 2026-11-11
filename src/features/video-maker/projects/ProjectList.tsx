@@ -1,4 +1,4 @@
-import { Clapperboard, Loader2, Trash2 } from "lucide-react";
+import { Clapperboard, Copy, Loader2, Trash2 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -17,7 +17,13 @@ import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { getMediaBackend, type MediaBackend } from "@/platform/media";
 
-import { deleteProject, listProjects, projectSession, type ProjectListItem } from "../project-session";
+import {
+  deleteProject,
+  duplicateProject,
+  listProjects,
+  projectSession,
+  type ProjectListItem,
+} from "../project-session";
 import { useOpenProject } from "./use-open-project";
 
 function Cover({ url }: { url: string }) {
@@ -99,7 +105,7 @@ export function ProjectList({
                   else void open(p.id).then((ok) => ok && onOpened?.());
                 }}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 pr-11 text-left transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60",
+                  "flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 pr-[4.5rem] text-left transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60",
                   current && "border-primary/60",
                 )}
               >
@@ -127,6 +133,17 @@ export function ProjectList({
                   </span>
                 </span>
               </button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t("projects.duplicateNamed", { name })}
+                title={t("projects.duplicate")}
+                disabled={opening !== null}
+                onClick={() => void duplicateProject(p.id)}
+                className="absolute top-1/2 right-9 -translate-y-1/2 text-muted-foreground"
+              >
+                <Copy />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon-sm"

@@ -10,6 +10,7 @@
 import type { FitBackground, FitMode, Size } from "../types";
 import { FILTER_GLSL, FILTER_KEYS, FILTER_UNIFORMS, isNeutralFilter, type FilterAdjust } from "./filters";
 import { coversTarget, fitRect, type Rect } from "./fit";
+import { applyMotion, type MotionTransform } from "./motion";
 
 export interface CompositorLayer {
   /** Chave estável da textura (ex.: `${mediaId}:full`). */
@@ -23,6 +24,10 @@ export interface CompositorLayer {
   dynamic: boolean;
   fit: FitMode;
   alpha: number;
+  /** Zoom/deslocamento do momento (Ken Burns). */
+  motion?: MotionTransform | null;
+  /** Filtro de cor só desta camada (fonte e fundo desfocado dela). */
+  filter?: FilterAdjust | null;
 }
 
 export interface Compositor {
@@ -262,8 +267,9 @@ export function createWebGLCompositor(
   const drawLayer = (layer: CompositorLayer, background: FitBackground, target: Target) => {
     const tex = textureFor(layer);
     const rot = layer.quarterTurns ?? 0;
-    const rect = fitRect(layer.size, target.size, layer.fit);
+    const rect = applyMotion(fitRect(layer.size, target.size, layer.fit), layer.motion);
     const needsBg = !coversTarget(rect, target.size);
+    const filter = layer.filter && !isNeutralFilter(layer.filter) ? layer.filter : undefined;
 
     if (needsBg && background.kind === "blur" && blurTarget) {
       // 1) fonte em "cover" num alvo pequeno (1/8), já com um borrão leve
@@ -271,7 +277,7 @@ export function createWebGLCompositor(
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       const small = fitRect(layer.size, blurTarget.size, "cover");
-      quad(tex, small, { rot, radius: 2, tap: [0.5 / small.w, 0.5 / small.h] });
+      quad(tex, small, { rot, radius: 2, tap: [0.5 / small.w, 0.5 / small.h], filter });
       // 2) amplia para o alvo com borrão gaussiano e escurece
       bindTarget(target);
       const strength = Math.max(0.5, Math.min(2, background.strength));
@@ -291,7 +297,7 @@ export function createWebGLCompositor(
       gl.clearColor(r, g, b, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
-    quad(tex, rect, { rot });
+    quad(tex, rect, { rot, filter });
   };
 
   return {

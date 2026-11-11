@@ -159,6 +159,22 @@ export function SyncPanel({ timeline, onGoToMusic }: { timeline: TimelineResult;
           )}
         </div>
       </Section>
+
+      <Section title={t("timing.photoMotionTitle")} description={t("timing.photoMotionHint")}>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={settings.photoMotion}
+          onValueChange={(v) => v && patchTimeline({ photoMotion: v as typeof settings.photoMotion })}
+          className="w-full"
+        >
+          {(["none", "auto", "zoomIn", "zoomOut"] as const).map((m) => (
+            <ToggleGroupItem key={m} value={m} className="flex-1 px-1.5 text-xs">
+              {t(`motion.${m}`)}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </Section>
     </div>
   );
 }

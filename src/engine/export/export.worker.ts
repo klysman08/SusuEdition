@@ -23,7 +23,14 @@ import {
 
 import type { ProbeSource } from "../decode/probe-protocol";
 import { makeSource, sourceBlob } from "../decode/source";
-import { createWebGLCompositor, decodeSize, layersAt, type CompositorLayer } from "../render";
+import {
+  createWebGLCompositor,
+  decodeSize,
+  layersAt,
+  lookFilter,
+  motionTransform,
+  type CompositorLayer,
+} from "../render";
 import { AudioMixer } from "./audio-mixer";
 import {
   AUDIO_BITRATE,
@@ -233,9 +240,12 @@ async function run(job: ExportJob, port: MessagePort) {
         const m = job.media[seg.mediaId];
         if (!m) continue;
         const fit = seg.fit ?? job.fit;
+        const fx = { motion: motionTransform(seg.motion, l.progress), filter: lookFilter(seg.look) };
         if (m.kind === "image") {
           const bmp = await loadImage(l.index);
-          if (bmp) layers.push({ key: `i${l.index}`, source: bmp, size: m.size, dynamic: false, fit, alpha: l.alpha });
+          if (bmp) {
+            layers.push({ key: `i${l.index}`, source: bmp, size: m.size, dynamic: false, fit, alpha: l.alpha, ...fx });
+          }
         } else {
           const sample = frames.get(l.index);
           if (!sample) continue;
@@ -249,6 +259,7 @@ async function run(job: ExportJob, port: MessagePort) {
             dynamic: true,
             fit,
             alpha: l.alpha,
+            ...fx,
           });
         }
       }

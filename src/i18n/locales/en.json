@@ -39,7 +39,9 @@
       "filters": "Filters",
       "format": "Format",
       "export": "Export"
-    }
+    },
+    "undo": "Undo",
+    "redo": "Redo"
   },
   "photoCollage": {
     "title": "Photo Collage",
@@ -260,7 +262,9 @@
       "accents": "Chases the hardest hits."
     },
     "flexibility": "Flexibility",
-    "flexibilityHint": "How much the time of each item may change to reach a good beat."
+    "flexibilityHint": "How much the time of each item may change to reach a good beat.",
+    "photoMotionTitle": "Photo motion",
+    "photoMotionHint": "A slow zoom or pan while each photo is on screen. Each item can have its own."
   },
   "preview": {
     "title": "Preview",
@@ -287,7 +291,27 @@
     "volume": "Volume",
     "reset": "Reset to defaults",
     "excluded": "This item isn't in the current video (no time left).",
-    "trim": "Trim video"
+    "trim": "Trim video",
+    "motion": "Motion",
+    "look": "Filter",
+    "transition": "Transition into this item",
+    "missingTitle": "File not found",
+    "missingHint": "It was moved, renamed or is on a drive that isn't connected. Pick the file again and the item keeps its place and settings.",
+    "locate": "Locate file…",
+    "relink": {
+      "ok": "File linked again",
+      "unsupported": "Pick a file of the same type (photo or video).",
+      "duplicate": "That file is already in the project.",
+      "error": "Couldn't read that file"
+    }
+  },
+  "motion": {
+    "none": "None",
+    "auto": "Auto",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "panLeft": "Pan left",
+    "panRight": "Pan right"
   },
   "timeline": {
     "label": "Timeline. Arrow keys pick a clip, Enter opens it.",
@@ -307,7 +331,10 @@
     "trim": "Trim",
     "adjust": "More settings",
     "remove": "Remove from the video",
-    "deselect": "Close"
+    "deselect": "Close",
+    "split": "Split at the playhead (S)",
+    "addMarker": "Add a marker here in the music (M)",
+    "removeMarker": "Remove this marker (M)"
   },
   "trim": {
     "title": "Trim video",
@@ -383,7 +410,10 @@
     "musicMissing": "The project's music wasn't found.",
     "notFound": "This project no longer exists.",
     "invalid": "This project can't be read.",
-    "openError": "Couldn't open the project"
+    "openError": "Couldn't open the project",
+    "duplicate": "Duplicate",
+    "duplicateNamed": "Duplicate project {{name}}",
+    "copyName": "{{name}} (copy)"
   },
   "export": {
     "title": "Export video",

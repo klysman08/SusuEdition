@@ -2,7 +2,9 @@
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e [SemVer](https://semver.org/lang/pt-BR/).
 
-## [Unreleased] · M7 Polimento (em andamento)
+## [Unreleased]
+
+## [0.8.0] — 2026-11-11 · M7 Polimento (parte 1)
 
 ### Added
 - **Projetos com salvamento automático** (RF-G5): o projeto nasce com a primeira mídia e é gravado sozinho a cada mudança. O arquivo guarda só **onde cada mídia está** (caminho/URI) e os ajustes — nada é copiado. Reabrir depois de fechar o programa registra os arquivos de novo pelo caminho; mídia movida ou apagada aparece como "arquivo não encontrado" e continua no projeto. Lista de projetos recentes no Início e na tela inicial do Video Maker; menu do projeto no editor (renomear, novo, abrir, apagar).
@@ -12,6 +14,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - **Aba Filtros no Video Maker**: os 10 presets da colagem com intensidade + 8 ajustes manuais, aplicados ao vídeo inteiro na prévia e na exportação (passe final no compositor WebGL).
 - **Zoom na timeline** (botões, Ctrl + roda) com rolagem horizontal, régua de tempo e cursor que acompanha a reprodução.
 - Prévia ampliada (botão no canto da prévia; Esc volta) e navegação por teclado na faixa (setas, Enter, Esc).
+- **Desfazer/refazer** (RF-G6): botões na barra do editor e Ctrl+Z / Ctrl+Shift+Z (ou Ctrl+Y). Cobre ajustes do projeto, ordem, mídias removidas ou divididas e o trecho da música; importar mídias e trocar de música não entram no histórico.
+- **Dividir no cursor** (botão na barra da mídia ou tecla S): a mídia vira dois trechos do mesmo arquivo, que podem ser movidos, recortados ou removidos separadamente.
+- **Por mídia**: filtro (preset + intensidade), movimento (Ken Burns: aproximar, afastar, deslocar) e transição de entrada (corte ou fade) nos ajustes da mídia. **Movimento das fotos** padrão em Ritmo (nenhum, auto, aproximar, afastar).
+- **Marcadores manuais na música** (botão da bandeira ou tecla M): aparecem na faixa de áudio, imantam os cortes e a sincronia prefere cortar neles — funcionam também em músicas sem batidas detectadas.
+- **Localizar arquivo** para mídias ausentes (mantém posição e ajustes) e **duplicar projeto** (menu do projeto e lista de recentes).
 
 ### Changed
 - **Celular**: nenhuma ferramenta abre sozinha, a gaveta de ferramentas ficou mais baixa (38% da tela) e a prévia tem altura mínima maior — a prévia passa de ~26% para 34–55% da tela.

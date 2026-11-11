@@ -113,7 +113,7 @@ export function usePreviewPlayer(
       map.set(seg.mediaId, {
         id: seg.mediaId,
         kind: it.kind,
-        url: backend.mediaUrl(seg.mediaId),
+        url: backend.mediaUrl(it.sourceId ?? seg.mediaId),
         thumbUrl: it.thumbUrl,
         size: { width: it.meta.width, height: it.meta.height },
       });

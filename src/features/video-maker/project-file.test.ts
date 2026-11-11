@@ -49,6 +49,20 @@ describe("parseProjectFile", () => {
     expect(parseProjectFile(JSON.stringify(original))).toEqual(original);
   });
 
+  it("guarda trechos extras de um arquivo dividido e os marcadores da música", () => {
+    const original = file({
+      media: [
+        { id: "bbb", uri: "D:\\videos\\b.mp4", name: "b.mp4", kind: "video", size: 20 },
+        { id: "bbb~k1", sourceId: "bbb", uri: "D:\\videos\\b.mp4", name: "b.mp4", kind: "video", size: 20 },
+      ],
+      settings: { ...DEFAULT_VIDEO_PROJECT, markers: [4.5, 12] },
+    });
+    const parsed = parseProjectFile(JSON.stringify(original))!;
+    expect(parsed.media[1]).toMatchObject({ id: "bbb~k1", sourceId: "bbb" });
+    expect(parsed.media[0]!.sourceId).toBeUndefined();
+    expect(parsed.settings.markers).toEqual([4.5, 12]);
+  });
+
   it("completa campos ausentes com o padrão atual", () => {
     const old = { version: 1, summary: { kind: "video", name: "Antigo" }, media: [], settings: { aspect: "1:1" } };
     const parsed = parseProjectFile(JSON.stringify(old))!;

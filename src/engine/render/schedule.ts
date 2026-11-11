@@ -8,6 +8,8 @@ export interface ActiveLayer {
   sourceTimeSec: number;
   /** Opacidade 0..1 (a primeira camada é sempre 1). */
   alpha: number;
+  /** Posição dentro do segmento: 0 no início, 1 no fim (passa um pouco disso nos fades). */
+  progress: number;
 }
 
 function fadeHalf(seg: TimelineSegment | undefined): number {
@@ -15,7 +17,13 @@ function fadeHalf(seg: TimelineSegment | undefined): number {
 }
 
 function layer(index: number, seg: TimelineSegment, t: number, alpha: number): ActiveLayer {
-  return { index, segment: seg, sourceTimeSec: Math.max(0, seg.sourceInSec + (t - seg.startSec)), alpha };
+  return {
+    index,
+    segment: seg,
+    sourceTimeSec: Math.max(0, seg.sourceInSec + (t - seg.startSec)),
+    alpha,
+    progress: seg.durationSec > 0 ? (t - seg.startSec) / seg.durationSec : 0,
+  };
 }
 
 /** Índice do segmento que contém `t` (busca binária; o último inclui o fim). */

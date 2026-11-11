@@ -2,6 +2,7 @@ import { applyCuts, BEAT_SYNC_PRESETS, syncCutsToBeats } from "./beat-sync";
 import type {
   AudioPlan,
   BuildTimelineInput,
+  MotionKind,
   TimelineItem,
   TimelineResult,
   TimelineSegment,
@@ -13,6 +14,28 @@ import type {
 const EPS = 1e-6;
 /** Diferença entre vídeo e trecho da música considerada "igual" (sem corte nem aviso). */
 const MUSIC_TOLERANCE_SEC = 0.05;
+
+/** Duração do fade quando só uma mídia pede fade e o padrão do vídeo é corte seco. */
+const DEFAULT_FADE_SEC = 0.5;
+/** Sequência do movimento "auto" das fotos. */
+const AUTO_MOTIONS: readonly MotionKind[] = ["zoomIn", "panLeft", "zoomOut", "panRight"];
+
+/** Transição desejada na entrada do item (antes de limitar pela duração dos vizinhos). */
+function wantedTransition(item: TimelineItem, s: TimelineSettings): Transition {
+  const o = item.overrides?.transitionIn;
+  if (o === "cut") return { kind: "cut" };
+  if (o === "fade") {
+    return { kind: "fade", durationSec: s.transition.kind === "fade" ? s.transition.durationSec : DEFAULT_FADE_SEC };
+  }
+  return s.transition;
+}
+
+/** Movimento do item: o próprio, ou o padrão das fotos ("auto" alterna pela posição). */
+function motionFor(item: TimelineItem, index: number, s: TimelineSettings): MotionKind {
+  if (item.overrides?.motion) return item.overrides.motion;
+  if (item.media.kind !== "image") return "none";
+  return s.photoMotion === "auto" ? AUTO_MOTIONS[index % AUTO_MOTIONS.length]! : s.photoMotion;
+}
 
 /** Evita acúmulo de erro de ponto flutuante (resolução de microssegundos). */
 const r = (n: number) => Math.round(n * 1e6) / 1e6;
@@ -154,6 +177,8 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       p.item.media.kind === "video" &&
       (p.item.media.hasAudio ?? true) &&
       (p.item.overrides?.keepAudio ?? s.keepVideoAudio);
+    const motion = motionFor(p.item, segments.length, s);
+    const look = p.item.overrides?.look;
     segments.push({
       mediaId: p.item.media.id,
       kind: p.item.media.kind,
@@ -161,10 +186,12 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       durationSec: duration,
       sourceInSec: r(p.sourceInSec),
       sourceOutSec: r(p.sourceInSec + duration),
-      transitionIn: prev ? clampTransition(s.transition, prev.durationSec, duration) : { kind: "cut" },
+      transitionIn: prev ? clampTransition(wantedTransition(p.item, s), prev.durationSec, duration) : { kind: "cut" },
       fit: p.item.overrides?.fit,
       keepAudio,
       gain: p.item.overrides?.gain ?? 1,
+      ...(look && look.preset !== "none" && look.intensity > 0 ? { look } : {}),
+      ...(motion !== "none" ? { motion } : {}),
     });
     cursor += duration;
   }
@@ -184,7 +211,11 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       minClipSec: s.minClipSec,
       locked: kept.map((p) => p.locked),
     });
-    segments = applyCuts(segments, cuts, s.transition);
+    segments = applyCuts(
+      segments,
+      cuts,
+      kept.map((p) => wantedTransition(p.item, s)),
+    );
     beatSync = stats;
   }
 

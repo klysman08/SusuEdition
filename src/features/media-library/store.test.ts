@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createMediaLibraryStore, sortOrder, summarize, type LibraryItem } from "./store";
+import { createMediaLibraryStore, sortOrder, sourceIds, sourceOf, summarize, type LibraryItem } from "./store";
 
 const item = (id: string, patch: Partial<LibraryItem> = {}): LibraryItem => ({
   id,
@@ -71,6 +71,35 @@ describe("setOrder", () => {
     store.getState().setOrder(["c", "a", "a"]);
     store.getState().setOrder(["c", "a", "zzz"]);
     expect(store.getState().order).toEqual(["c", "a", "b"]);
+  });
+});
+
+describe("trechos do mesmo arquivo e troca de arquivo", () => {
+  it("duplicate cria uma cópia logo depois, apontando para o mesmo arquivo", () => {
+    const store = createMediaLibraryStore();
+    store.getState().addItems([item("a"), item("b")]);
+    store.getState().duplicate("a", "a~2");
+    expect(store.getState().order).toEqual(["a", "a~2", "b"]);
+    expect(store.getState().items["a~2"]).toMatchObject({ id: "a~2", sourceId: "a", name: "a.jpg" });
+    // A cópia da cópia continua apontando para o arquivo original.
+    store.getState().duplicate("a~2", "a~3");
+    expect(store.getState().items["a~3"]!.sourceId).toBe("a");
+    expect(sourceIds(store.getState().items, store.getState().order)).toEqual(["a", "b"]);
+    expect(sourceOf(store.getState().items["b"]!)).toBe("b");
+  });
+
+  it("replaceItem troca a mídia mantendo a posição; restore substitui tudo", () => {
+    const store = createMediaLibraryStore();
+    store.getState().addItems([item("a"), item("b"), item("c")]);
+    store.getState().replaceItem("b", item("x"));
+    expect(store.getState().order).toEqual(["a", "x", "c"]);
+    expect(store.getState().items["b"]).toBeUndefined();
+    store.getState().replaceItem("x", item("a")); // id já usado: ignora
+    expect(store.getState().order).toEqual(["a", "x", "c"]);
+
+    store.getState().restore(["c", "zzz", "a"], { a: item("a"), c: item("c") });
+    expect(store.getState().order).toEqual(["c", "a"]);
+    expect(Object.keys(store.getState().items).sort()).toEqual(["a", "c"]);
   });
 });
 

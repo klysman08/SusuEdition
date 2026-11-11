@@ -5,11 +5,11 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getMediaBackend, releaseMedia, type PickedMedia } from "@/platform/media";
+import { getMediaBackend, type PickedMedia } from "@/platform/media";
 
 import { installDevHooks } from "../dev-hooks";
 import { useLibrary } from "../hooks";
-import { cancelPendingVideos, importMedia } from "../import-pipeline";
+import { importMedia, removeMedia } from "../import-pipeline";
 import type { MediaLibraryStore } from "../store";
 import { MediaGrid } from "./MediaGrid";
 import { MediaToolbar } from "./MediaToolbar";
@@ -75,10 +75,8 @@ export function MediaLibrary({
   const remove = useCallback(
     async (ids: string[]) => {
       if (ids.length === 0) return;
-      cancelPendingVideos(ids);
-      store.getState().remove(ids);
       store.getState().setSelectMode(false);
-      await releaseMedia(ids);
+      await removeMedia(store, ids);
     },
     [store],
   );

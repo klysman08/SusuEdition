@@ -116,6 +116,25 @@ export const AudioLane = memo(function AudioLane({
       if (x < -4 || x > viewW + 4) continue;
       const section = (b.boundary ?? 0) > 0;
       const bar = (b.bar ?? 0) > 0;
+      if (b.manual) {
+        // Marcador manual: linha âmbar com uma bandeirinha (preenchida quando há corte nele).
+        const xi = Math.round(x);
+        ctx.fillStyle = "#f59e0b";
+        ctx.globalAlpha = 1;
+        ctx.fillRect(xi - 1, 0, 2, height);
+        ctx.beginPath();
+        ctx.moveTo(xi + 1, 0);
+        ctx.lineTo(xi + 9, 4);
+        ctx.lineTo(xi + 1, 8);
+        ctx.closePath();
+        ctx.fill();
+        if (cutSet.has(Math.round(b.timeSec * 1000))) {
+          ctx.beginPath();
+          ctx.arc(xi, height - 4, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        continue;
+      }
       if (cutSet.has(Math.round(b.timeSec * 1000))) {
         ctx.fillStyle = primary;
         ctx.globalAlpha = 1;

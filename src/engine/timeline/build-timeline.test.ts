@@ -207,3 +207,63 @@ describe("buildTimeline — durações manuais", () => {
     expect(res.warnings).toContainEqual({ kind: "itemsDropped", mediaIds: ["c"] });
   });
 });
+
+describe("buildTimeline — transição, movimento e filtro por mídia", () => {
+  it("a transição de entrada de uma mídia vence a do vídeo", () => {
+    const items = [
+      photo("a"),
+      { ...photo("b"), overrides: { transitionIn: "fade" as const } },
+      photo("c"),
+      { ...photo("d"), overrides: { transitionIn: "cut" as const } },
+    ];
+    const cut = buildTimeline({ items, settings: settings({ total: { mode: "items" } }), music: null });
+    expect(cut.segments.map((s) => s.transitionIn.kind)).toEqual(["cut", "fade", "cut", "cut"]);
+    expect(cut.segments[1]!.transitionIn).toEqual({ kind: "fade", durationSec: 0.5 });
+
+    const fade = buildTimeline({
+      items,
+      settings: settings({ total: { mode: "items" }, transition: { kind: "fade", durationSec: 1 } }),
+      music: null,
+    });
+    expect(fade.segments.map((s) => s.transitionIn.kind)).toEqual(["cut", "fade", "fade", "cut"]);
+    expect(fade.segments[1]!.transitionIn).toEqual({ kind: "fade", durationSec: 1 });
+  });
+
+  it("a transição por mídia sobrevive à sincronia com as batidas", () => {
+    const beats = Array.from({ length: 80 }, (_, i) => ({ timeSec: i * 0.5, strength: i % 4 === 0 ? 1 : 0.4 }));
+    const items = [photo("a"), { ...photo("b"), overrides: { transitionIn: "fade" as const } }, photo("c"), photo("d")];
+    const res = buildTimeline({ items, settings: settings(), music: { inSec: 0, outSec: 8 }, beats });
+    expect(res.beatSync).toBeDefined();
+    expect(res.segments.map((s) => s.transitionIn.kind)).toEqual(["cut", "fade", "cut", "cut"]);
+  });
+
+  it("movimento das fotos: padrão do vídeo, 'auto' alternado e o da própria mídia", () => {
+    const items = [photo("a"), video("v", 10), photo("b"), { ...photo("c"), overrides: { motion: "none" as const } }];
+    const base = { total: { mode: "items" as const } };
+    const none = buildTimeline({ items, settings: settings(base), music: null });
+    expect(none.segments.map((s) => s.motion)).toEqual([undefined, undefined, undefined, undefined]);
+
+    const zoom = buildTimeline({ items, settings: settings({ ...base, photoMotion: "zoomIn" }), music: null });
+    expect(zoom.segments.map((s) => s.motion)).toEqual(["zoomIn", undefined, "zoomIn", undefined]);
+
+    const auto = buildTimeline({ items, settings: settings({ ...base, photoMotion: "auto" }), music: null });
+    expect(auto.segments.map((s) => s.motion)).toEqual(["zoomIn", undefined, "zoomOut", undefined]);
+
+    const own = buildTimeline({
+      items: [{ ...video("v", 10), overrides: { motion: "panLeft" as const } }],
+      settings: settings(base),
+      music: null,
+    });
+    expect(own.segments[0]!.motion).toBe("panLeft");
+  });
+
+  it("o filtro da mídia vai para o segmento (e 'none' não vai)", () => {
+    const items = [
+      { ...photo("a"), overrides: { look: { preset: "noir" as const, intensity: 0.8 } } },
+      { ...photo("b"), overrides: { look: { preset: "none" as const, intensity: 1 } } },
+    ];
+    const res = buildTimeline({ items, settings: settings({ total: { mode: "items" } }), music: null });
+    expect(res.segments[0]!.look).toEqual({ preset: "noir", intensity: 0.8 });
+    expect(res.segments[1]!.look).toBeUndefined();
+  });
+});

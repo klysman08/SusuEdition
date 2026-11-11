@@ -41,6 +41,35 @@ function mean(v: readonly number[], from: number, to: number): number {
   return s / (b - a);
 }
 
+/** Uma batida detectada a menos disto de um marcador é substituída por ele. */
+const MARKER_MERGE_SEC = 0.06;
+
+/**
+ * Junta os marcadores manuais (tempo do arquivo de música) às batidas detectadas.
+ * Um marcador vale como a batida mais forte possível — início de compasso e mudança
+ * de seção — então a sincronia prefere cortar nele. Funciona também sem batidas
+ * detectadas (fala, música ambiente): os marcadores viram as únicas batidas.
+ */
+export function mergeMarkers(beats: readonly RhythmBeat[], markers: readonly number[]): RhythmBeat[] {
+  if (markers.length === 0) return beats.slice();
+  const sorted = [...new Set(markers.map(round3))].filter((m) => m >= 0).sort((a, b) => a - b);
+  const kept = beats.filter((b) => !sorted.some((m) => Math.abs(m - b.timeSec) < MARKER_MERGE_SEC));
+  const energyNear = (t: number) => {
+    let best: RhythmBeat | undefined;
+    for (const b of beats) if (!best || Math.abs(b.timeSec - t) < Math.abs(best.timeSec - t)) best = b;
+    return best?.energy ?? 0.5;
+  };
+  const manual = sorted.map((m): RhythmBeat => ({
+    timeSec: m,
+    strength: 1,
+    energy: energyNear(m),
+    bar: 1,
+    boundary: 1,
+    manual: true,
+  }));
+  return [...kept, ...manual].sort((a, b) => a.timeSec - b.timeSec);
+}
+
 /**
  * Enriquece as batidas com o "mapa" da música, usado para escolher onde cortar:
  *

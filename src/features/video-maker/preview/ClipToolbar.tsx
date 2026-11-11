@@ -7,6 +7,7 @@ import {
   Plus,
   Scissors,
   SlidersHorizontal,
+  SquareSplitHorizontal,
   Trash2,
   X,
 } from "lucide-react";
@@ -15,8 +16,8 @@ import { useStore } from "zustand";
 
 import { Button } from "@/components/ui/button";
 import type { TimelineResult } from "@/engine/timeline";
-import { releaseMedia } from "@/platform/media";
 
+import { removeClip, splitClipAt, splittableAt } from "../clip-actions";
 import { useProject } from "../hooks";
 import { videoMediaStore, videoProjectStore } from "../store";
 import { durationLimits } from "../timeline-edit";
@@ -30,12 +31,15 @@ const STEP = 0.1;
 export function ClipToolbar({
   id,
   timeline,
+  timeSec,
   onTrim,
   onAdjust,
   onClose,
 }: {
   id: string;
   timeline: TimelineResult;
+  /** Posição do cursor de reprodução (onde "dividir" corta). */
+  timeSec: number;
   onTrim: (id: string) => void;
   onAdjust: (id: string) => void;
   onClose: () => void;
@@ -48,7 +52,7 @@ export function ClipToolbar({
   const seg = timeline.segments[index];
   if (!item || !seg) return null;
 
-  const { patchOverride, clearOverride } = videoProjectStore.getState();
+  const { patchOverride } = videoProjectStore.getState();
   const limits = durationLimits(seg, item.meta?.durationSec, minClipSec);
   const prev = timeline.segments[index - 1];
   const next = timeline.segments[index + 1];
@@ -59,10 +63,9 @@ export function ClipToolbar({
   };
   const remove = () => {
     onClose();
-    videoMediaStore.getState().remove([id]);
-    clearOverride(id);
-    void releaseMedia([id]);
+    void removeClip(id);
   };
+  const canSplit = splittableAt(timeline, timeSec, minClipSec)?.mediaId === id;
 
   return (
     <div
@@ -137,6 +140,16 @@ export function ClipToolbar({
 
       <span className="mx-0.5 h-5 w-px shrink-0 bg-border" />
 
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        disabled={!canSplit}
+        aria-label={t("timeline.split")}
+        title={t("timeline.split")}
+        onClick={() => splitClipAt(timeline, timeSec)}
+      >
+        <SquareSplitHorizontal />
+      </Button>
       {seg.kind === "video" && (
         <Button variant="secondary" size="sm" onClick={() => onTrim(id)}>
           <Scissors />

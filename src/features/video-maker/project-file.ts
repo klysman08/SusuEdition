@@ -16,6 +16,8 @@ export const PROJECT_VERSION = 1;
 export interface ProjectMediaRef {
   /** Id da mídia quando o projeto foi salvo (hash de caminho + tamanho + data). */
   id: string;
+  /** Presente nos trechos extras de um arquivo dividido: o id do arquivo de origem. */
+  sourceId?: string;
   /** Caminho local ou URI `content://` do arquivo original. */
   uri: string;
   name: string;
@@ -61,6 +63,7 @@ function parseMedia(v: unknown): ProjectMediaRef | null {
   if (v.kind !== "image" && v.kind !== "video") return null;
   return {
     id: v.id,
+    ...(typeof v.sourceId === "string" && v.sourceId !== v.id ? { sourceId: v.sourceId } : {}),
     uri: v.uri,
     name: typeof v.name === "string" ? v.name : v.uri,
     kind: v.kind,

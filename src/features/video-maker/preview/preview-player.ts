@@ -2,6 +2,8 @@ import { clamp01, musicVolumeAt, type AudioMix } from "@/engine/audio";
 import {
   createWebGLCompositor,
   layersAt,
+  lookFilter,
+  motionTransform,
   upcomingSegments,
   type Compositor,
   type CompositorLayer,
@@ -216,6 +218,8 @@ export class PreviewPlayer {
       const media = input.media.get(seg.mediaId);
       if (!media) continue;
       const fit = seg.fit ?? input.fit;
+      // Movimento (Ken Burns) e filtro próprios da mídia, iguais aos do export.
+      const fx = { motion: motionTransform(seg.motion, layer.progress), filter: lookFilter(seg.look) };
 
       if (media.kind === "image") {
         const bmp = this.images.get(
@@ -225,7 +229,7 @@ export class PreviewPlayer {
         );
         if (bmp) {
           const key = `${media.id}:${bmp.width}`;
-          drawn.push({ key, source: bmp, size: media.size, dynamic: false, fit, alpha: layer.alpha });
+          drawn.push({ key, source: bmp, size: media.size, dynamic: false, fit, alpha: layer.alpha, ...fx });
         }
         continue;
       }
@@ -234,7 +238,15 @@ export class PreviewPlayer {
       this.syncVideo(el, layer.sourceTimeSec, seg, layer.alpha, input.mix);
       if (seg.keepAudio) duck += layer.alpha;
       if (el.readyState >= 2 && el.videoWidth > 0) {
-        drawn.push({ key: `${media.id}:video`, source: el, size: media.size, dynamic: true, fit, alpha: layer.alpha });
+        drawn.push({
+          key: `${media.id}:video`,
+          source: el,
+          size: media.size,
+          dynamic: true,
+          fit,
+          alpha: layer.alpha,
+          ...fx,
+        });
       } else {
         // Placeholder enquanto o vídeo carrega/busca o quadro: o thumbnail.
         const bmp = media.thumbUrl
@@ -248,6 +260,7 @@ export class PreviewPlayer {
             dynamic: false,
             fit,
             alpha: layer.alpha,
+            ...fx,
           });
       }
     }

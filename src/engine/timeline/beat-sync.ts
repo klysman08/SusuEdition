@@ -276,12 +276,19 @@ function clampTransition(t: Transition, prev: number, cur: number): Transition {
   return d > EPS ? { kind: "fade", durationSec: r(d) } : { kind: "cut" };
 }
 
-/** Reconstrói os segmentos a partir dos novos cortes (o fim total não muda). */
+/**
+ * Reconstrói os segmentos a partir dos novos cortes (o fim total não muda).
+ * `transition`: a mesma para todos ou a desejada na entrada de cada segmento.
+ */
 export function applyCuts(
   segments: readonly TimelineSegment[],
   cuts: readonly number[],
-  transition: Transition,
+  transition: Transition | readonly Transition[],
 ): TimelineSegment[] {
+  const wanted = (i: number): Transition =>
+    Array.isArray(transition)
+      ? ((transition as readonly Transition[])[i] ?? { kind: "cut" })
+      : (transition as Transition);
   if (segments.length < 2) return segments.slice();
   const last = segments.at(-1)!;
   const end = last.startSec + last.durationSec;
@@ -296,7 +303,7 @@ export function applyCuts(
       startSec: r(start),
       durationSec: duration,
       sourceOutSec: r(seg.sourceInSec + duration),
-      transitionIn: prev ? clampTransition(transition, prev.durationSec, duration) : { kind: "cut" },
+      transitionIn: prev ? clampTransition(wanted(i), prev.durationSec, duration) : { kind: "cut" },
     });
   });
   return out;

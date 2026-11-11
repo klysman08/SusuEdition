@@ -9,11 +9,12 @@
 import { createStore } from "zustand/vanilla";
 
 import i18n from "@/i18n";
-import { cancelPendingVideos, restoreMedia } from "@/features/media-library";
+import { cancelPendingVideos, restoreMedia, sourceIds, sourceOf } from "@/features/media-library";
 import { restoreMusic } from "@/features/music";
 import { getMediaBackend, releaseMedia } from "@/platform/media";
 import { getProjectStorage } from "@/platform/projects";
 
+import { resetHistory, withoutHistory } from "./history";
 import {
   parseProjectFile,
   parseSummary,
@@ -91,8 +92,19 @@ export function buildProjectFile(now = Date.now()): VideoProjectFile {
   const media = order.flatMap((id) => {
     const it = items[id];
     if (!it?.uri) return [];
-    return [{ id, uri: it.uri, name: it.name, kind: it.kind, size: it.size, modifiedMs: it.modifiedMs }];
+    return [
+      {
+        id,
+        ...(it.sourceId ? { sourceId: it.sourceId } : {}),
+        uri: it.uri,
+        name: it.name,
+        kind: it.kind,
+        size: it.size,
+        modifiedMs: it.modifiedMs,
+      },
+    ];
   });
+  const first = order.length > 0 ? items[order[0]!] : undefined;
   const known = new Set(media.map((m) => m.id));
   const overrides = Object.fromEntries(Object.entries(settings.overrides).filter(([id]) => known.has(id)));
 
@@ -124,7 +136,7 @@ export function buildProjectFile(now = Date.now()): VideoProjectFile {
       mediaCount: media.length,
       durationSec: timeline.durationSec,
       aspect: settings.aspect,
-      coverId: media[0]?.id ?? null,
+      coverId: first ? sourceOf(first) : null,
     },
     media,
     music: musicRef,
@@ -190,7 +202,7 @@ async function clearEditor(): Promise<void> {
   epoch++;
   pendingMusic = null;
   lastSaved = "";
-  const ids = [...videoMediaStore.getState().order];
+  const ids = sourceIds(videoMediaStore.getState().items, videoMediaStore.getState().order);
   const musicId = videoMusicStore.getState().track?.id;
   cancelPendingVideos(ids);
   videoMediaStore.getState().clear();
@@ -204,7 +216,8 @@ async function clearEditor(): Promise<void> {
 export function newProject(): Promise<void> {
   return serial(async () => {
     await writeCurrent();
-    await clearEditor();
+    await withoutHistory(clearEditor);
+    resetHistory();
   });
 }
 
@@ -221,7 +234,11 @@ export interface OpenResult {
  * restaura música e ajustes. O projeto que estava aberto é salvo antes.
  */
 export function openProject(id: string): Promise<OpenResult> {
-  return serial(async (): Promise<OpenResult> => {
+  return serial(() => withoutHistory(() => loadProject(id)).finally(resetHistory));
+}
+
+async function loadProject(id: string): Promise<OpenResult> {
+  {
     const fail = (status: "notFound" | "invalid"): OpenResult => ({
       status,
       missing: [],
@@ -278,6 +295,29 @@ export function openProject(id: string): Promise<OpenResult> {
       await clearEditor();
       throw err;
     }
+  }
+}
+
+/**
+ * Cria uma cópia de um projeto salvo (para testar uma variação sem perder a original).
+ * Devolve o id da cópia. As mídias não são duplicadas: a cópia aponta para os mesmos arquivos.
+ */
+export function duplicateProject(id: string): Promise<string | null> {
+  return serial(async () => {
+    if (projectSession.getState().id === id) await writeCurrent();
+    const storage = await getProjectStorage();
+    const json = await storage.read(id);
+    const file = json ? parseProjectFile(json) : null;
+    if (!file) return null;
+    const copyId = crypto.randomUUID();
+    const now = Date.now();
+    const name = i18n.t("projects.copyName", { name: file.summary.name || i18n.t("projects.untitled") });
+    await storage.write(
+      copyId,
+      JSON.stringify({ ...file, summary: { ...file.summary, name, createdAt: now, updatedAt: now } }),
+    );
+    bump();
+    return copyId;
   });
 }
 
@@ -289,7 +329,10 @@ export function renameProject(name: string): void {
 /** Apaga um projeto salvo. Os arquivos de mídia originais nunca são tocados. */
 export function deleteProject(id: string): Promise<void> {
   return serial(async () => {
-    if (projectSession.getState().id === id) await clearEditor();
+    if (projectSession.getState().id === id) {
+      await withoutHistory(clearEditor);
+      resetHistory();
+    }
     await (await getProjectStorage()).remove(id);
     bump();
   });

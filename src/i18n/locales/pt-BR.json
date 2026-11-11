@@ -39,7 +39,9 @@
       "filters": "Filtros",
       "format": "Formato",
       "export": "Exportar"
-    }
+    },
+    "undo": "Desfazer",
+    "redo": "Refazer"
   },
   "photoCollage": {
     "title": "Photo Collage",
@@ -260,7 +262,9 @@
       "accents": "Persegue as batidas mais fortes."
     },
     "flexibility": "Flexibilidade",
-    "flexibilityHint": "Quanto o tempo de cada mídia pode mudar para alcançar uma boa batida."
+    "flexibilityHint": "Quanto o tempo de cada mídia pode mudar para alcançar uma boa batida.",
+    "photoMotionTitle": "Movimento das fotos",
+    "photoMotionHint": "Um zoom ou deslocamento lento enquanto a foto aparece. Cada mídia pode ter o seu."
   },
   "preview": {
     "title": "Prévia",
@@ -287,7 +291,27 @@
     "volume": "Volume",
     "reset": "Restaurar padrões",
     "excluded": "Esta mídia não está no vídeo atual (sem tempo disponível).",
-    "trim": "Recortar vídeo"
+    "trim": "Recortar vídeo",
+    "motion": "Movimento",
+    "look": "Filtro",
+    "transition": "Transição de entrada",
+    "missingTitle": "Arquivo não encontrado",
+    "missingHint": "Ele foi movido, renomeado ou está num disco que não está conectado. Escolha o arquivo de novo: a mídia mantém o lugar e os ajustes.",
+    "locate": "Localizar arquivo…",
+    "relink": {
+      "ok": "Arquivo religado",
+      "unsupported": "Escolha um arquivo do mesmo tipo (foto ou vídeo).",
+      "duplicate": "Esse arquivo já está no projeto.",
+      "error": "Não foi possível ler esse arquivo"
+    }
+  },
+  "motion": {
+    "none": "Nenhum",
+    "auto": "Auto",
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "panLeft": "Para a esquerda",
+    "panRight": "Para a direita"
   },
   "timeline": {
     "label": "Faixa do tempo. As setas escolhem uma mídia, Enter abre.",
@@ -307,7 +331,10 @@
     "trim": "Recortar",
     "adjust": "Mais ajustes",
     "remove": "Remover do vídeo",
-    "deselect": "Fechar"
+    "deselect": "Fechar",
+    "split": "Dividir no cursor (S)",
+    "addMarker": "Pôr um marcador aqui na música (M)",
+    "removeMarker": "Tirar este marcador (M)"
   },
   "trim": {
     "title": "Recortar vídeo",
@@ -383,7 +410,10 @@
     "musicMissing": "A música do projeto não foi encontrada.",
     "notFound": "Este projeto não existe mais.",
     "invalid": "Não foi possível ler este projeto.",
-    "openError": "Não foi possível abrir o projeto"
+    "openError": "Não foi possível abrir o projeto",
+    "duplicate": "Duplicar",
+    "duplicateNamed": "Duplicar o projeto {{name}}",
+    "copyName": "{{name}} (cópia)"
   },
   "export": {
     "title": "Exportar vídeo",

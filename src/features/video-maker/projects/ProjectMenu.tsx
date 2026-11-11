@@ -1,4 +1,4 @@
-import { Check, ChevronDown, CircleAlert, FilePlus2, FolderOpen, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Copy, FilePlus2, FolderOpen, Loader2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
-import { deleteProject, newProject, projectSession, renameProject } from "../project-session";
+import { deleteProject, duplicateProject, newProject, projectSession, renameProject } from "../project-session";
 import { ProjectList } from "./ProjectList";
+import { useOpenProject } from "./use-open-project";
 
 function RenameDialog({ name, onClose }: { name: string; onClose: () => void }) {
   const { t } = useTranslation();
@@ -75,6 +76,12 @@ export function ProjectMenu() {
   const status = useStore(projectSession, (s) => s.status);
   const [dialog, setDialog] = useState<"rename" | "open" | "delete" | null>(null);
   const label = name || t("projects.untitled");
+  const { open } = useOpenProject();
+  /** Copia o projeto atual e continua a edição na cópia (a original fica como estava). */
+  const duplicate = async () => {
+    const copy = id ? await duplicateProject(id) : null;
+    if (copy) await open(copy);
+  };
 
   const statusLabel =
     status === "saving" || status === "loading"
@@ -98,6 +105,10 @@ export function ProjectMenu() {
           <DropdownMenuItem disabled={!id} onSelect={() => setDialog("rename")}>
             <Pencil />
             {t("projects.rename")}
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!id} onSelect={() => void duplicate()}>
+            <Copy />
+            {t("projects.duplicate")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => void newProject()}>

@@ -1,4 +1,4 @@
-import { Activity, Film, Maximize2, Minimize2, Pause, Play, SkipBack, ZoomIn, ZoomOut } from "lucide-react";
+import { Activity, Film, Flag, Maximize2, Minimize2, Pause, Play, SkipBack, ZoomIn, ZoomOut } from "lucide-react";
 import { useRef, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -8,7 +8,9 @@ import type { TimelineResult } from "@/engine/timeline";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-import { videoMusicStore } from "../store";
+import { useProject } from "../hooks";
+import { MARKER_TOLERANCE_SEC } from "../project-store";
+import { videoMusicStore, videoProjectStore } from "../store";
 import { AUDIO_HEIGHT, timelineUi, ZOOM } from "../timeline-ui";
 import { ClipToolbar } from "./ClipToolbar";
 import { Timeline } from "./Timeline";
@@ -138,6 +140,10 @@ export function TimelineDock({
   const zoom = useStore(timelineUi, (s) => s.zoom);
   const hasAudioLane = useStore(videoMusicStore, (s) => s.status === "ready") && timeline.audio !== null;
   const { setZoom } = timelineUi.getState();
+  const markers = useProject((s) => s.markers);
+  // Marcadores ficam no tempo da música: cursor do vídeo + início do trecho usado.
+  const musicTime = timeline.audio ? timeline.audio.musicInSec + state.timeSec : null;
+  const onMarker = musicTime !== null && markers.some((m) => Math.abs(m - musicTime) <= MARKER_TOLERANCE_SEC);
 
   return (
     <div className="relative shrink-0 space-y-1.5 border-t bg-card px-2 py-2 sm:px-4">
@@ -184,6 +190,18 @@ export function TimelineDock({
         <Button
           variant="ghost"
           size="icon-sm"
+          disabled={empty || musicTime === null}
+          aria-pressed={onMarker}
+          aria-label={t(onMarker ? "timeline.removeMarker" : "timeline.addMarker")}
+          title={t(onMarker ? "timeline.removeMarker" : "timeline.addMarker")}
+          onClick={() => musicTime !== null && videoProjectStore.getState().toggleMarker(musicTime)}
+          className={cn(onMarker && "text-amber-500")}
+        >
+          <Flag className={cn(onMarker && "fill-current")} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           disabled={empty || zoom <= ZOOM.min}
           aria-label={t("timeline.zoomOut")}
           title={t("timeline.zoomOut")}
@@ -207,6 +225,7 @@ export function TimelineDock({
         <ClipToolbar
           id={selectedId}
           timeline={timeline}
+          timeSec={state.timeSec}
           onTrim={onTrim}
           onAdjust={onAdjust}
           onClose={() => onSelect(null)}

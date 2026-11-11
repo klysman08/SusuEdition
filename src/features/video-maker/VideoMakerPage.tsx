@@ -7,7 +7,9 @@ import {
   Loader2,
   Music,
   RectangleVertical,
+  Redo2,
   Sparkles,
+  Undo2,
   Volume2,
   X,
   type LucideIcon,
@@ -31,14 +33,16 @@ import { ItemSheet } from "./components/ItemSheet";
 import { SyncPanel } from "./components/SyncPanel";
 import { TimingPanel } from "./components/TimingPanel";
 import { TrimDialog } from "./components/TrimDialog";
+import { splitClipAt } from "./clip-actions";
 import { ExportPanel } from "./export/ExportPanel";
+import { historyStore, redo, undo } from "./history";
 import { useProject, useVideoTimeline } from "./hooks";
 import { PreviewStage, TimelineDock } from "./preview/PreviewStage";
 import { usePreviewPlayer } from "./preview/use-preview-player";
 import { projectSession, saveNow } from "./project-session";
 import { ProjectList } from "./projects/ProjectList";
 import { ProjectMenu } from "./projects/ProjectMenu";
-import { videoMediaStore, videoMusicStore } from "./store";
+import { videoMediaStore, videoMusicStore, videoProjectStore } from "./store";
 
 type ToolId = "media" | "music" | "timing" | "sync" | "audio" | "filters" | "format" | "export";
 
@@ -52,6 +56,9 @@ const TOOLS: { id: Exclude<ToolId, "export">; icon: LucideIcon }[] = [
   { id: "filters", icon: Sparkles },
   { id: "format", icon: RectangleVertical },
 ];
+
+/** Onde o usuário está digitando (ou num diálogo): atalhos de uma tecla não valem. */
+const TYPING = "input, textarea, select, [contenteditable=true], [role=dialog], [role=menu]";
 
 /** Elementos em que a barra de espaço já tem função própria. */
 const SPACE_OWNERS =
@@ -143,12 +150,44 @@ function Editor() {
   // A mídia selecionada some da seleção se sair do vídeo (removida ou sem tempo).
   const selectedId = picked && timeline.segments.some((s) => s.mediaId === picked) ? picked : null;
 
-  // Espaço = tocar/pausar, de qualquer lugar do editor. Esc sai da prévia ampliada.
+  const canUndo = useStore(historyStore, (s) => s.canUndo);
+  const canRedo = useStore(historyStore, (s) => s.canRedo);
+  const timelineRef = useRef(timeline);
+  useEffect(() => {
+    timelineRef.current = timeline;
+  }, [timeline]);
+
+  // Atalhos do editor: Espaço toca/pausa, Ctrl+Z / Ctrl+Shift+Z (ou Ctrl+Y) desfaz/refaz,
+  // S divide a mídia no cursor, M põe/tira um marcador na música, Esc sai da prévia ampliada.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof Element && e.target.closest(TYPING) !== null;
       if (e.key === "Escape" && focus && !(e.target instanceof Element && e.target.closest("[role=dialog]"))) {
         setFocus(false);
         return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
+        const key = e.key.toLowerCase();
+        if (key === "z" || key === "y") {
+          e.preventDefault();
+          void (key === "y" || e.shiftKey ? redo() : undo());
+        }
+        return;
+      }
+      if (!typing && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && player) {
+        const key = e.key.toLowerCase();
+        const now = timelineRef.current;
+        if (key === "s") {
+          e.preventDefault();
+          const id = splitClipAt(now, player.state.timeSec);
+          if (id) setPicked(id);
+          return;
+        }
+        if (key === "m" && now.audio) {
+          e.preventDefault();
+          videoProjectStore.getState().toggleMarker(now.audio.musicInSec + player.state.timeSec);
+          return;
+        }
       }
       if (e.code !== "Space" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.target instanceof Element && e.target.closest(SPACE_OWNERS)) return;
@@ -206,6 +245,27 @@ function Editor() {
             {formatTime(timeline.durationSec, false)} · {aspect}
           </p>
           <span className="flex-1" />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={!canUndo}
+            aria-label={t("videoMaker.undo")}
+            title={`${t("videoMaker.undo")} (Ctrl+Z)`}
+            onClick={() => void undo()}
+          >
+            <Undo2 />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={!canRedo}
+            aria-label={t("videoMaker.redo")}
+            title={`${t("videoMaker.redo")} (Ctrl+Shift+Z)`}
+            onClick={() => void redo()}
+            className="mr-1"
+          >
+            <Redo2 />
+          </Button>
           <Button
             size="sm"
             variant={tool === "export" ? "secondary" : "default"}
@@ -315,7 +375,13 @@ function Editor() {
         </nav>
       )}
 
-      <ItemSheet id={openItem} timeline={timeline} onClose={() => setOpenItem(null)} onTrim={openTrim} />
+      <ItemSheet
+        id={openItem}
+        timeline={timeline}
+        onClose={() => setOpenItem(null)}
+        onTrim={openTrim}
+        onRelinked={setOpenItem}
+      />
       <TrimDialog id={trimItem} timeline={timeline} onClose={() => setTrimItem(null)} />
     </div>
   );

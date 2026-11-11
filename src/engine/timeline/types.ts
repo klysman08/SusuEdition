@@ -1,4 +1,17 @@
+import type { FilterPresetId } from "../render/filters";
 import type { Beat, FitMode, MediaItem, MediaKind } from "../types";
+
+/** Movimento lento sobre a mídia (efeito Ken Burns). */
+export type MotionKind = "none" | "zoomIn" | "zoomOut" | "panLeft" | "panRight";
+
+export const MOTION_KINDS: readonly MotionKind[] = ["none", "zoomIn", "zoomOut", "panLeft", "panRight"];
+
+/** Filtro de cor de uma mídia: um preset com intensidade (o filtro global soma por cima). */
+export interface ClipLook {
+  preset: FilterPresetId;
+  /** 0..1 */
+  intensity: number;
+}
 
 export interface ClipOverrides {
   /** Duração fixa para este item (vence photo/videoDurationSec). */
@@ -10,6 +23,12 @@ export interface ClipOverrides {
   keepAudio?: boolean;
   /** Ganho do áudio original 0..2 (1 = 100%). */
   gain?: number;
+  /** Filtro só desta mídia. */
+  look?: ClipLook;
+  /** Movimento desta mídia (vence `TimelineSettings.photoMotion`). */
+  motion?: MotionKind;
+  /** Transição de entrada desta mídia (vence `TimelineSettings.transition`). */
+  transitionIn?: "cut" | "fade";
 }
 
 export interface TimelineItem {
@@ -33,6 +52,8 @@ export interface TimelineSettings {
   /** O que fazer quando há mais mídia do que a duração total permite. */
   overflow: "drop" | "fit";
   transition: Transition;
+  /** Movimento padrão das fotos; "auto" alterna zoom e deslocamento a cada foto. */
+  photoMotion: MotionKind | "auto";
   keepVideoAudio: boolean;
   /** Fade-out aplicado quando a música é cortada antes do fim da seleção. */
   musicFadeOutSec: number;
@@ -60,6 +81,8 @@ export interface RhythmBeat extends Beat {
   bar?: number;
   /** Mudança de seção 0..1 (refrão, drop, pausa). */
   boundary?: number;
+  /** Marcador colocado à mão pelo usuário. */
+  manual?: boolean;
 }
 
 export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
@@ -68,6 +91,7 @@ export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
   total: { mode: "music" },
   overflow: "drop",
   transition: { kind: "cut" },
+  photoMotion: "none",
   keepVideoAudio: false,
   musicFadeOutSec: 3,
   minClipSec: 0.5,
@@ -88,6 +112,9 @@ export interface TimelineSegment {
   fit?: FitMode;
   keepAudio: boolean;
   gain: number;
+  look?: ClipLook;
+  /** Ausente = sem movimento. */
+  motion?: MotionKind;
 }
 
 export interface AudioPlan {
