@@ -123,6 +123,7 @@ export function TimelineDock({
   onSelect,
   onOpenItem,
   onTrim,
+  onCrop,
   onAdjust,
   onOpenMusic,
 }: {
@@ -132,6 +133,7 @@ export function TimelineDock({
   onSelect: (mediaId: string | null) => void;
   onOpenItem: (mediaId: string) => void;
   onTrim: (mediaId: string) => void;
+  onCrop: (mediaId: string) => void;
   onAdjust: (mediaId: string) => void;
   onOpenMusic: () => void;
 }) {
@@ -227,6 +229,7 @@ export function TimelineDock({
           timeline={timeline}
           timeSec={state.timeSec}
           onTrim={onTrim}
+          onCrop={onCrop}
           onAdjust={onAdjust}
           onClose={() => onSelect(null)}
         />

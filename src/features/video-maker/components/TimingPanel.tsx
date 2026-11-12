@@ -5,14 +5,18 @@ import { useStore } from "zustand";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import type { TimelineResult } from "@/engine/timeline";
+import { DEFAULT_TIMELINE_SETTINGS, type TimelineResult } from "@/engine/timeline";
 import { formatTime } from "@/lib/format";
 
 import { useProject } from "../hooks";
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "../store";
 import { LabeledValue, Section } from "@/components/common/Section";
+import { BeatSyncSection, PhotoMotionSection, TransitionSection } from "./RhythmSections";
 
 const QUICK = [15, 30, 60] as const;
+/** Menor tempo padrão de uma mídia (o mesmo mínimo de qualquer trecho da timeline). */
+const MIN_ITEM_SEC = DEFAULT_TIMELINE_SETTINGS.minClipSec;
+const round1 = (v: number) => Math.round(v * 10) / 10;
 const secs = (v: number) => `${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`;
 
 function Summary({ timeline }: { timeline: TimelineResult }) {
@@ -23,13 +27,13 @@ function Summary({ timeline }: { timeline: TimelineResult }) {
   const musicShort = timeline.warnings.find((w) => w.kind === "musicShorterThanVideo");
 
   return (
-    <section className="flex items-start gap-4 rounded-xl border bg-gradient-to-br from-primary/10 to-transparent p-4 sm:p-5">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+    <section className="flex items-start gap-3 rounded-xl border bg-gradient-to-br from-primary/10 to-transparent p-3 sm:gap-4 sm:p-5">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary sm:size-11">
         <Clock className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground">{t("timing.summaryTitle")}</p>
-        <p className="text-2xl font-semibold tracking-tight tabular-nums">
+        <p className="text-xl font-semibold tracking-tight tabular-nums sm:text-2xl">
           {formatTime(timeline.durationSec)}
           <span className="ml-2 inline-block text-sm font-normal text-muted-foreground">{t("timing.videoLength")}</span>
         </p>
@@ -63,8 +67,12 @@ function Summary({ timeline }: { timeline: TimelineResult }) {
   );
 }
 
-/** Ferramenta "Tempo": duração total, tempo por mídia e o que fazer com o excesso. */
-export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
+/**
+ * Ferramenta "Ritmo e tempo": sincronia com as batidas, tempo por mídia, duração total,
+ * o que fazer com o excesso, transição e movimento das fotos — tudo o que decide
+ * quando cada mídia entra e sai.
+ */
+export function TimingPanel({ timeline, onGoToMusic }: { timeline: TimelineResult; onGoToMusic: () => void }) {
   const { t } = useTranslation();
   const settings = useProject((s) => s.timeline);
   const selection = useStore(videoMusicStore, (s) => (s.status === "ready" ? s.selection : null));
@@ -80,8 +88,35 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
       : t(`timing.totalHint.${mode}`);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <Summary timeline={timeline} />
+
+      <BeatSyncSection timeline={timeline} onGoToMusic={onGoToMusic} />
+
+      <Section title={t("timing.perItemTitle")} description={t("timing.videoHint")}>
+        <div className="space-y-5">
+          <LabeledValue label={t("timing.photo")} value={secs(settings.photoDurationSec)}>
+            <Slider
+              min={MIN_ITEM_SEC}
+              max={10}
+              step={0.1}
+              value={[settings.photoDurationSec]}
+              onValueChange={([v]) => v !== undefined && patchTimeline({ photoDurationSec: round1(v) })}
+              aria-label={t("timing.photo")}
+            />
+          </LabeledValue>
+          <LabeledValue label={t("timing.video")} value={secs(settings.videoDurationSec)}>
+            <Slider
+              min={MIN_ITEM_SEC}
+              max={30}
+              step={0.1}
+              value={[settings.videoDurationSec]}
+              onValueChange={([v]) => v !== undefined && patchTimeline({ videoDurationSec: round1(v) })}
+              aria-label={t("timing.video")}
+            />
+          </LabeledValue>
+        </div>
+      </Section>
 
       <Section title={t("timing.totalTitle")} description={totalHint}>
         <div className="space-y-4">
@@ -143,31 +178,6 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
         </div>
       </Section>
 
-      <Section title={t("timing.perItemTitle")} description={t("timing.videoHint")}>
-        <div className="space-y-5">
-          <LabeledValue label={t("timing.photo")} value={secs(settings.photoDurationSec)}>
-            <Slider
-              min={0.5}
-              max={10}
-              step={0.5}
-              value={[settings.photoDurationSec]}
-              onValueChange={([v]) => v !== undefined && patchTimeline({ photoDurationSec: v })}
-              aria-label={t("timing.photo")}
-            />
-          </LabeledValue>
-          <LabeledValue label={t("timing.video")} value={secs(settings.videoDurationSec)}>
-            <Slider
-              min={1}
-              max={30}
-              step={0.5}
-              value={[settings.videoDurationSec]}
-              onValueChange={([v]) => v !== undefined && patchTimeline({ videoDurationSec: v })}
-              aria-label={t("timing.video")}
-            />
-          </LabeledValue>
-        </div>
-      </Section>
-
       <Section title={t("timing.overflowTitle")} description={t(`timing.overflowHint.${settings.overflow}`)}>
         <ToggleGroup
           type="single"
@@ -183,6 +193,9 @@ export function TimingPanel({ timeline }: { timeline: TimelineResult }) {
           ))}
         </ToggleGroup>
       </Section>
+
+      <TransitionSection />
+      <PhotoMotionSection />
     </div>
   );
 }

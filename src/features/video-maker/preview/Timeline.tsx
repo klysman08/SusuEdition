@@ -385,8 +385,7 @@ export function Timeline({
       aria-keyshortcuts="ArrowLeft ArrowRight Enter Escape"
       onScroll={(e) => setScrollX(e.currentTarget.scrollLeft)}
       onKeyDown={onKeyDown}
-      className="relative [scrollbar-width:thin] overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-md bg-muted/40 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      style={{ scrollbarGutter: zoom > 1 ? "stable" : undefined }}
+      className="relative overflow-x-auto overflow-y-hidden overscroll-x-contain rounded-md bg-muted/40 outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div
         className="relative select-none"

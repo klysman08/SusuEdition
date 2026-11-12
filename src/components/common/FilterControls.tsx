@@ -96,7 +96,7 @@ export function FilterControls({
   const active = !isNeutralFilter(resolveFilter(filter));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <Section
         title={title}
         description={description}
@@ -109,11 +109,7 @@ export function FilterControls({
           )
         }
       >
-        <div
-          role="radiogroup"
-          aria-label={title}
-          className="-mx-1 flex snap-x [scrollbar-width:thin] gap-2 overflow-x-auto px-1 pt-1 pb-2"
-        >
+        <div role="radiogroup" aria-label={title} className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pt-1 pb-1">
           {FILTER_PRESET_IDS.map((id) => {
             const on = filter.preset === id;
             return (

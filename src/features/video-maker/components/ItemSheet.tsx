@@ -1,4 +1,4 @@
-import { FileSearch, RotateCcw, Scissors } from "lucide-react";
+import { Crop, FileSearch, RotateCcw, Scissors } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { isFullCrop } from "@/engine/render/crop";
 import { FILTER_PRESET_IDS, type FilterPresetId } from "@/engine/render/filters";
 import { MOTION_KINDS, type MotionKind, type TimelineResult } from "@/engine/timeline";
 import type { FitMode } from "@/engine/types";
@@ -24,14 +25,15 @@ import { videoMediaStore, videoProjectStore } from "../store";
 const secs = (v: number) => `${v.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`;
 
 /**
- * Ajustes de uma mídia: duração, enquadramento, movimento, filtro, transição de entrada
- * e — para vídeos — recorte, som e volume. Mídia com arquivo ausente: localizar o arquivo.
+ * Ajustes de uma mídia: corte, duração, enquadramento, movimento, filtro, transição de
+ * entrada e — para vídeos — recorte do trecho, som e volume. Mídia com arquivo ausente: localizar o arquivo.
  */
 export function ItemSheet({
   id,
   timeline,
   onClose,
   onTrim,
+  onCrop,
   onRelinked,
 }: {
   id: string | null;
@@ -39,6 +41,8 @@ export function ItemSheet({
   onClose: () => void;
   /** Abre o recorte do vídeo (escolher o trecho vendo o vídeo). */
   onTrim?: (id: string) => void;
+  /** Abre o corte (escolher a parte da foto/vídeo que aparece). */
+  onCrop?: (id: string) => void;
   /** A mídia trocou de arquivo e de id: manter os ajustes abertos nela. */
   onRelinked?: (id: string) => void;
 }) {
@@ -57,12 +61,13 @@ export function ItemSheet({
   const defaultDuration = isVideo ? settings.videoDurationSec : settings.photoDurationSec;
   const start = override.sourceInSec ?? 0;
   const maxStart = Math.max(0, mediaDuration - 0.5);
-  const durationMax = isVideo ? Math.max(0.5, mediaDuration - start) : 15;
+  const durationMax = isVideo ? Math.max(settings.minClipSec, mediaDuration - start) : 15;
   const duration = Math.min(override.durationSec ?? defaultDuration, isVideo ? durationMax : 15);
   const keepAudio = override.keepAudio ?? settings.keepVideoAudio;
   const included = !!id && timeline.segments.some((s) => s.mediaId === id);
   const isFirst = !!id && timeline.segments[0]?.mediaId === id;
   const look = override.look;
+  const cropped = !isFullCrop(override.crop);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -131,11 +136,22 @@ export function ItemSheet({
 
                 {!included && <p className="text-xs text-amber-600 dark:text-amber-400">{t("item.excluded")}</p>}
 
-                {isVideo && onTrim && (
-                  <Button variant="secondary" className="w-full" onClick={() => onTrim(id)}>
-                    <Scissors />
-                    {t("item.trim")}
-                  </Button>
+                {(onCrop || (isVideo && onTrim)) && (
+                  <div className="flex gap-2">
+                    {onCrop && (
+                      <Button variant="secondary" className="min-w-0 flex-1" onClick={() => onCrop(id)}>
+                        <Crop />
+                        <span className="truncate">{t("item.crop")}</span>
+                        {cropped && <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />}
+                      </Button>
+                    )}
+                    {isVideo && onTrim && (
+                      <Button variant="secondary" className="min-w-0 flex-1" onClick={() => onTrim(id)}>
+                        <Scissors />
+                        <span className="truncate">{t("item.trim")}</span>
+                      </Button>
+                    )}
+                  </div>
                 )}
 
                 {isVideo && (
@@ -168,7 +184,7 @@ export function ItemSheet({
                   {override.durationSec !== undefined && (
                     <LabeledValue label={t("item.duration")} value={secs(duration)}>
                       <Slider
-                        min={0.5}
+                        min={settings.minClipSec}
                         max={durationMax}
                         step={0.1}
                         value={[duration]}

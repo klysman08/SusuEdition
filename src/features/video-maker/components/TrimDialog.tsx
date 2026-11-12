@@ -136,7 +136,7 @@ function TrimBody({
   const { t } = useTranslation();
   const url = useMediaUrl(item.sourceId ?? id);
   const total = item.meta?.durationSec ?? 0;
-  const minLen = Math.min(0.5, total);
+  const minLen = Math.min(0.2, total);
   const videoRef = useRef<HTMLVideoElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLCanvasElement>(null);

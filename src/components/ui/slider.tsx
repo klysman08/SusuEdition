@@ -1,6 +1,6 @@
 import * as React from "react"
 import { cn } from "cn"
-import { Slider as SliderPrimitive } from "radix-ui"
+import { Slider as SliderPrimitive } from "@animate-ui/react/primitives/radix-ui"
 
 function Slider({
   className,

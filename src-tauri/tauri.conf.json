@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost blob: data: susu: http://susu.localhost; media-src 'self' asset: http://asset.localhost blob: susu: http://susu.localhost; connect-src 'self' ipc: http://ipc.localhost susu: http://susu.localhost; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost blob: data: susu: http://susu.localhost; media-src 'self' asset: http://asset.localhost blob: susu: http://susu.localhost; connect-src 'self' ipc: http://ipc.localhost susu: http://susu.localhost https://api.github.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
     }
   },
   "bundle": {

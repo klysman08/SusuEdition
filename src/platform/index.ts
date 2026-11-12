@@ -35,6 +35,17 @@ export async function getAppVersion(): Promise<string> {
   return getVersion();
 }
 
+/** Abre um link no navegador do sistema (no app nativo, links não saem do WebView sozinhos). */
+export async function openExternal(url: string): Promise<void> {
+  if (!/^https:\/\//i.test(url)) return;
+  if (isTauri()) {
+    const { openUrl } = await import("@tauri-apps/plugin-opener");
+    await openUrl(url);
+    return;
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 export function isMobilePlatform(platform: Platform): boolean {
   return platform === "android" || platform === "ios";
 }

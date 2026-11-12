@@ -1,3 +1,4 @@
+import { normalizeCrop } from "../render/crop";
 import { applyCuts, BEAT_SYNC_PRESETS, syncCutsToBeats } from "./beat-sync";
 import type {
   AudioPlan,
@@ -179,6 +180,7 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       (p.item.overrides?.keepAudio ?? s.keepVideoAudio);
     const motion = motionFor(p.item, segments.length, s);
     const look = p.item.overrides?.look;
+    const crop = normalizeCrop(p.item.overrides?.crop);
     segments.push({
       mediaId: p.item.media.id,
       kind: p.item.media.kind,
@@ -188,6 +190,7 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       sourceOutSec: r(p.sourceInSec + duration),
       transitionIn: prev ? clampTransition(wantedTransition(p.item, s), prev.durationSec, duration) : { kind: "cut" },
       fit: p.item.overrides?.fit,
+      ...(crop ? { crop } : {}),
       keepAudio,
       gain: p.item.overrides?.gain ?? 1,
       ...(look && look.preset !== "none" && look.intensity > 0 ? { look } : {}),

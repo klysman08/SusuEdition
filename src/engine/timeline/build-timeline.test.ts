@@ -132,11 +132,14 @@ describe("buildTimeline — excesso de mídia", () => {
   it("fit: respeita a duração mínima e descarta o que não cabe nem no mínimo", () => {
     const res = buildTimeline({
       items: many,
-      settings: settings({ total: { mode: "custom", seconds: 2 }, overflow: "fit" }),
+      settings: settings({ total: { mode: "custom", seconds: 1 }, overflow: "fit" }),
       music: null,
     });
-    expect(res.segments).toHaveLength(4);
-    expect(res.durationSec).toBe(2);
+    // 1 s com mínimo de 0,2 s por mídia: cabem 5.
+    expect(DEFAULT_TIMELINE_SETTINGS.minClipSec).toBe(0.2);
+    expect(res.segments).toHaveLength(5);
+    expect(res.segments.every((s) => Math.abs(s.durationSec - 0.2) < 1e-6)).toBe(true);
+    expect(res.durationSec).toBe(1);
     expect(res.warnings[0]).toMatchObject({ kind: "itemsDropped" });
   });
 
@@ -255,6 +258,37 @@ describe("buildTimeline — transição, movimento e filtro por mídia", () => {
       music: null,
     });
     expect(own.segments[0]!.motion).toBe("panLeft");
+  });
+
+  it("fotos podem durar 0,2 s (o mínimo de um trecho)", () => {
+    const res = buildTimeline({
+      items: [photo("a"), photo("b")],
+      settings: settings({ total: { mode: "items" }, photoDurationSec: 0.2 }),
+      music: null,
+    });
+    expect(res.segments.map((s) => s.durationSec)).toEqual([0.2, 0.2]);
+    // Abaixo do mínimo, vale o mínimo.
+    const tiny = buildTimeline({
+      items: [photo("a")],
+      settings: settings({ total: { mode: "items" }, photoDurationSec: 0.05 }),
+      music: null,
+    });
+    expect(tiny.segments[0]!.durationSec).toBe(0.2);
+  });
+
+  it("o corte da mídia vai para o segmento, normalizado (mídia inteira não vai)", () => {
+    const items = [
+      { ...photo("a"), overrides: { crop: { x: 0.25, y: 0.1, w: 0.5, h: 0.6 } } },
+      { ...photo("b"), overrides: { crop: { x: 0, y: 0, w: 1, h: 1 } } },
+      { ...video("v", 10), overrides: { crop: { x: 0.8, y: -1, w: 0.5, h: 0.01 } } },
+      photo("c"),
+    ];
+    const res = buildTimeline({ items, settings: settings({ total: { mode: "items" } }), music: null });
+    expect(res.segments[0]!.crop).toEqual({ x: 0.25, y: 0.1, w: 0.5, h: 0.6 });
+    expect(res.segments[1]!.crop).toBeUndefined();
+    // Fora dos limites: volta para dentro da mídia, com o lado mínimo.
+    expect(res.segments[2]!.crop).toEqual({ x: 0.5, y: 0, w: 0.5, h: 0.1 });
+    expect(res.segments[3]!.crop).toBeUndefined();
   });
 
   it("o filtro da mídia vai para o segmento (e 'none' não vai)", () => {

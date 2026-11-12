@@ -24,7 +24,7 @@ function FeatureCard({ to, icon: Icon, title, description, cta, accentClassName 
   return (
     <Link
       to={to}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-6 text-card-foreground transition-all outline-none hover:-translate-y-0.5 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring md:p-7"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-4 text-card-foreground transition-all outline-none hover:-translate-y-0.5 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring sm:p-6 md:p-7"
     >
       <div
         aria-hidden
@@ -33,12 +33,17 @@ function FeatureCard({ to, icon: Icon, title, description, cta, accentClassName 
           accentClassName,
         )}
       />
-      <div className={cn("flex size-12 items-center justify-center rounded-xl text-white shadow-sm", accentClassName)}>
-        <Icon className="size-6" aria-hidden />
+      <div
+        className={cn(
+          "flex size-10 items-center justify-center rounded-xl text-white shadow-sm sm:size-12",
+          accentClassName,
+        )}
+      >
+        <Icon className="size-5 sm:size-6" aria-hidden />
       </div>
-      <h2 className="mt-5 text-lg font-semibold tracking-tight">{title}</h2>
-      <p className="mt-1.5 flex-1 text-sm text-muted-foreground">{description}</p>
-      <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+      <h2 className="mt-3 text-base font-semibold tracking-tight sm:mt-5 sm:text-lg">{title}</h2>
+      <p className="mt-1 flex-1 text-sm text-muted-foreground sm:mt-1.5">{description}</p>
+      <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary sm:mt-6">
         {cta}
         <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
       </span>
@@ -51,14 +56,16 @@ export function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       <section>
         <p className="text-sm font-medium text-primary">{t("app.tagline")}</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-balance md:text-4xl">{t("home.greeting")}</h1>
-        <p className="mt-2 text-muted-foreground">{t("home.subtitle")}</p>
+        <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-balance sm:mt-2 sm:text-3xl md:text-4xl">
+          {t("home.greeting")}
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground sm:mt-2 sm:text-base">{t("home.subtitle")}</p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         <FeatureCard
           to="/video-maker"
           icon={Clapperboard}
@@ -85,7 +92,7 @@ export function HomePage() {
             className="mt-3"
             onOpened={() => void navigate("/video-maker")}
             empty={
-              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-12 text-center">
+              <div className="mt-3 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-4 py-8 text-center sm:px-6 sm:py-12">
                 <div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
                   <FolderOpen className="size-5" aria-hidden />
                 </div>

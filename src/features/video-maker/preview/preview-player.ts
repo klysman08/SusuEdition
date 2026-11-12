@@ -1,6 +1,7 @@
 import { clamp01, musicVolumeAt, type AudioMix } from "@/engine/audio";
 import {
   createWebGLCompositor,
+  cropDecodeTarget,
   layersAt,
   lookFilter,
   motionTransform,
@@ -219,12 +220,16 @@ export class PreviewPlayer {
       if (!media) continue;
       const fit = seg.fit ?? input.fit;
       // Movimento (Ken Burns) e filtro próprios da mídia, iguais aos do export.
-      const fx = { motion: motionTransform(seg.motion, layer.progress), filter: lookFilter(seg.look) };
+      const fx = {
+        motion: motionTransform(seg.motion, layer.progress),
+        filter: lookFilter(seg.look),
+        crop: seg.crop,
+      };
 
       if (media.kind === "image") {
         const bmp = this.images.get(
           { id: media.id, url: media.url, thumbUrl: media.thumbUrl, size: media.size },
-          target,
+          cropDecodeTarget(target, seg.crop),
           true,
         );
         if (bmp) {
@@ -271,7 +276,10 @@ export class PreviewPlayer {
       const media = input.media.get(seg.mediaId);
       if (!media) continue;
       if (media.kind === "image") {
-        this.images.prefetch({ id: media.id, url: media.url, thumbUrl: media.thumbUrl, size: media.size }, target);
+        this.images.prefetch(
+          { id: media.id, url: media.url, thumbUrl: media.thumbUrl, size: media.size },
+          cropDecodeTarget(target, seg.crop),
+        );
       } else if (protect.has(media.id)) {
         const el = this.videos.acquire(media.id, media.url, protect);
         if (el.paused && Math.abs(el.currentTime - seg.sourceInSec) > 0.05 && !el.seeking)

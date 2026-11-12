@@ -43,7 +43,7 @@ export function FormatPanel() {
   const color = background.kind === "color" ? background.color : "#000000";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <Section title={t("format.aspectTitle")} description={t("format.aspectDescription")}>
         <AspectPicker value={aspect} onChange={setAspect} compact />
       </Section>

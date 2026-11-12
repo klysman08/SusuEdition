@@ -66,8 +66,9 @@ function RenameDialog({ name, onClose }: { name: string; onClose: () => void }) 
 }
 
 /**
- * Nome do projeto na barra do editor, com o estado do salvamento automático e o menu:
- * renomear, novo projeto, abrir outro e apagar.
+ * Nome do projeto na barra do editor, com o estado do salvamento automático (telas
+ * largas; no celular ele aparece no botão Salvar) e o menu: renomear, novo projeto,
+ * abrir outro e apagar.
  */
 export function ProjectMenu() {
   const { t } = useTranslation();
@@ -96,7 +97,12 @@ export function ProjectMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="max-w-[46vw] min-w-0 gap-1 px-2 sm:max-w-xs" title={label}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="max-w-[46vw] min-w-0 shrink gap-1 px-2 sm:max-w-xs"
+            title={label}
+          >
             <span className="truncate text-sm font-semibold tracking-tight">{label}</span>
             <ChevronDown className="size-3.5 shrink-0 opacity-60" />
           </Button>
@@ -131,7 +137,7 @@ export function ProjectMenu() {
         role="status"
         aria-label={statusLabel}
         title={statusLabel}
-        className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
+        className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground max-md:hidden"
       >
         {status === "saving" || status === "loading" ? (
           <Loader2 className="size-3.5 animate-spin" aria-hidden />
@@ -140,7 +146,7 @@ export function ProjectMenu() {
         ) : status === "saved" ? (
           <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden />
         ) : null}
-        <span className="max-md:hidden">{statusLabel}</span>
+        <span>{statusLabel}</span>
       </span>
 
       <Dialog open={dialog === "rename"} onOpenChange={(o) => !o && setDialog(null)}>

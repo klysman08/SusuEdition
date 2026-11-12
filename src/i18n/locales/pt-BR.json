@@ -33,8 +33,16 @@
     "tools": {
       "media": "Mídias",
       "music": "Música",
-      "sync": "Ritmo",
-      "timing": "Tempo",
+      "timing": "Ritmo",
+      "audio": "Áudio",
+      "filters": "Filtros",
+      "format": "Formato",
+      "export": "Exportar"
+    },
+    "toolTitles": {
+      "media": "Mídias",
+      "music": "Música",
+      "timing": "Ritmo e tempo",
       "audio": "Áudio",
       "filters": "Filtros",
       "format": "Formato",
@@ -80,10 +88,27 @@
       "title": "Idioma",
       "description": "Idioma da interface."
     },
+    "updates": {
+      "title": "Atualizações",
+      "checking": "Conferindo se há versão nova…",
+      "upToDate": "Você está na versão mais recente.",
+      "available": "Nova versão {{version}} disponível",
+      "installed": "Instalada: {{version}}",
+      "published": "publicada em {{date}}",
+      "download": "Baixar",
+      "releaseNotes": "Ver novidades",
+      "check": "Verificar agora",
+      "error": "Não foi possível conferir agora. Verifique a conexão e tente de novo.",
+      "auto": "O app confere sozinho as versões publicadas no GitHub.",
+      "lastChecked": "Última conferência: {{when}}.",
+      "badge": "Nova versão disponível"
+    },
     "about": {
       "title": "Sobre",
       "version": "Versão {{version}}",
-      "platform": "Plataforma: {{platform}}"
+      "platform": "Plataforma: {{platform}}",
+      "createdBy": "Criado por",
+      "source": "Código no GitHub"
     }
   },
   "theme": {
@@ -228,7 +253,7 @@
     },
     "overflowHint": {
       "drop": "Usa as mídias na ordem até o fim do vídeo.",
-      "fit": "Reduz o tempo de todas (mínimo 0,5 s cada)."
+      "fit": "Reduz o tempo de todas (mínimo 0,2 s cada)."
     },
     "transitionTitle": "Transição",
     "transition": {
@@ -264,7 +289,7 @@
     "flexibility": "Flexibilidade",
     "flexibilityHint": "Quanto o tempo de cada mídia pode mudar para alcançar uma boa batida.",
     "photoMotionTitle": "Movimento das fotos",
-    "photoMotionHint": "Um zoom ou deslocamento lento enquanto a foto aparece. Cada mídia pode ter o seu."
+    "photoMotionHint": "Um zoom, deslocamento ou giro lento enquanto a foto aparece. Cada mídia pode ter o seu."
   },
   "preview": {
     "title": "Prévia",
@@ -291,7 +316,7 @@
     "volume": "Volume",
     "reset": "Restaurar padrões",
     "excluded": "Esta mídia não está no vídeo atual (sem tempo disponível).",
-    "trim": "Recortar vídeo",
+    "trim": "Recortar trecho",
     "motion": "Movimento",
     "look": "Filtro",
     "transition": "Transição de entrada",
@@ -303,7 +328,8 @@
       "unsupported": "Escolha um arquivo do mesmo tipo (foto ou vídeo).",
       "duplicate": "Esse arquivo já está no projeto.",
       "error": "Não foi possível ler esse arquivo"
-    }
+    },
+    "crop": "Cortar"
   },
   "motion": {
     "none": "Nenhum",
@@ -311,7 +337,13 @@
     "zoomIn": "Aproximar",
     "zoomOut": "Afastar",
     "panLeft": "Para a esquerda",
-    "panRight": "Para a direita"
+    "panRight": "Para a direita",
+    "panUp": "Para cima",
+    "panDown": "Para baixo",
+    "punch": "Impacto",
+    "pulse": "Pulsar",
+    "tiltLeft": "Girar à esquerda",
+    "tiltRight": "Girar à direita"
   },
   "timeline": {
     "label": "Faixa do tempo. As setas escolhem uma mídia, Enter abre.",
@@ -334,7 +366,8 @@
     "deselect": "Fechar",
     "split": "Dividir no cursor (S)",
     "addMarker": "Pôr um marcador aqui na música (M)",
-    "removeMarker": "Tirar este marcador (M)"
+    "removeMarker": "Tirar este marcador (M)",
+    "crop": "Cortar a imagem"
   },
   "trim": {
     "title": "Recortar vídeo",
@@ -348,6 +381,15 @@
     "reset": "Automático",
     "cancel": "Cancelar",
     "apply": "Aplicar"
+  },
+  "crop": {
+    "title": "Cortar mídia",
+    "area": "Área do corte. As setas movem; Shift + setas mudam o tamanho.",
+    "ratio": "Proporção do corte",
+    "free": "Livre",
+    "frame": "Quadro {{aspect}}",
+    "hint": "Arraste as alças para escolher a parte que aparece. Vale na prévia e na exportação.",
+    "reset": "Mídia inteira"
   },
   "videoFilters": {
     "title": "Filtro",
@@ -413,7 +455,8 @@
     "openError": "Não foi possível abrir o projeto",
     "duplicate": "Duplicar",
     "duplicateNamed": "Duplicar o projeto {{name}}",
-    "copyName": "{{name}} (cópia)"
+    "copyName": "{{name}} (cópia)",
+    "savedNow": "Projeto salvo"
   },
   "export": {
     "title": "Exportar vídeo",

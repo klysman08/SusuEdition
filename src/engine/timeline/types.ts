@@ -2,9 +2,43 @@ import type { FilterPresetId } from "../render/filters";
 import type { Beat, FitMode, MediaItem, MediaKind } from "../types";
 
 /** Movimento lento sobre a mídia (efeito Ken Burns). */
-export type MotionKind = "none" | "zoomIn" | "zoomOut" | "panLeft" | "panRight";
+export type MotionKind =
+  | "none"
+  | "zoomIn"
+  | "zoomOut"
+  | "panLeft"
+  | "panRight"
+  | "panUp"
+  | "panDown"
+  | "punch"
+  | "pulse"
+  | "tiltLeft"
+  | "tiltRight";
 
-export const MOTION_KINDS: readonly MotionKind[] = ["none", "zoomIn", "zoomOut", "panLeft", "panRight"];
+export const MOTION_KINDS: readonly MotionKind[] = [
+  "none",
+  "zoomIn",
+  "zoomOut",
+  "panLeft",
+  "panRight",
+  "panUp",
+  "panDown",
+  "punch",
+  "pulse",
+  "tiltLeft",
+  "tiltRight",
+];
+
+/**
+ * Corte da mídia: a parte da foto/vídeo que aparece, em fração (0..1) da largura e da
+ * altura já com a rotação aplicada. O enquadramento (fit/cover/fill) vale para essa parte.
+ */
+export interface ClipCrop {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 /** Filtro de cor de uma mídia: um preset com intensidade (o filtro global soma por cima). */
 export interface ClipLook {
@@ -19,6 +53,8 @@ export interface ClipOverrides {
   /** Ponto de início dentro do vídeo de origem. */
   sourceInSec?: number;
   fit?: FitMode;
+  /** Parte da mídia que aparece (ausente = inteira). */
+  crop?: ClipCrop;
   /** Manter o áudio original deste vídeo (padrão: TimelineSettings.keepVideoAudio). */
   keepAudio?: boolean;
   /** Ganho do áudio original 0..2 (1 = 100%). */
@@ -94,7 +130,7 @@ export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
   photoMotion: "none",
   keepVideoAudio: false,
   musicFadeOutSec: 3,
-  minClipSec: 0.5,
+  minClipSec: 0.2,
   beatSync: { enabled: true, preset: "dynamic", flexibility: 0.6 },
 };
 
@@ -110,6 +146,8 @@ export interface TimelineSegment {
   /** Transição de entrada (o primeiro segmento sempre é "cut"). */
   transitionIn: Transition;
   fit?: FitMode;
+  /** Ausente = a mídia inteira. */
+  crop?: ClipCrop;
   keepAudio: boolean;
   gain: number;
   look?: ClipLook;

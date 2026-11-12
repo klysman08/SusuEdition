@@ -85,6 +85,8 @@ export function withDefaults(saved: Partial<VideoProjectSettings>): VideoProject
       ...d.timeline,
       ...saved.timeline,
       beatSync: { ...d.timeline.beatSync, ...saved.timeline?.beatSync },
+      // Limite do motor, não uma escolha do usuário: projetos antigos seguem o atual.
+      minClipSec: d.timeline.minClipSec,
     },
     mix: { ...d.mix, ...saved.mix },
     overrides: { ...saved.overrides },

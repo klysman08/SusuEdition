@@ -25,6 +25,7 @@ import type { ProbeSource } from "../decode/probe-protocol";
 import { makeSource, sourceBlob } from "../decode/source";
 import {
   createWebGLCompositor,
+  cropDecodeTarget,
   decodeSize,
   layersAt,
   lookFilter,
@@ -188,7 +189,8 @@ async function run(job: ExportJob, port: MessagePort) {
       p = m
         ? sourceBlob(m.source)
             .then((blob) => {
-              const size = decodeSize(m.size, outSize);
+              // Foto cortada: decodifica maior, para a parte que aparece ter a resolução do quadro.
+              const size = decodeSize(m.size, cropDecodeTarget(outSize, job.segments[i]!.crop));
               return createImageBitmap(blob, {
                 imageOrientation: "from-image",
                 resizeWidth: size.width,
@@ -240,7 +242,11 @@ async function run(job: ExportJob, port: MessagePort) {
         const m = job.media[seg.mediaId];
         if (!m) continue;
         const fit = seg.fit ?? job.fit;
-        const fx = { motion: motionTransform(seg.motion, l.progress), filter: lookFilter(seg.look) };
+        const fx = {
+          motion: motionTransform(seg.motion, l.progress),
+          filter: lookFilter(seg.look),
+          crop: seg.crop,
+        };
         if (m.kind === "image") {
           const bmp = await loadImage(l.index);
           if (bmp) {

@@ -9,12 +9,11 @@ export function formatDuration(totalSec: number): string {
 
 /** 65.34 → "1:05.3" (com décimos) ou "1:05". */
 export function formatTime(sec: number, tenths = true): string {
-  const s = Math.max(0, sec);
-  const m = Math.floor(s / 60);
-  const rest = s - m * 60;
-  const whole = Math.floor(rest);
-  const base = `${m}:${String(whole).padStart(2, "0")}`;
-  return tenths ? `${base}.${Math.floor((rest - whole) * 10)}` : base;
+  // Em décimos inteiros: 1,2 s não pode virar "0:01.1" por erro de ponto flutuante.
+  const t = Math.floor(Math.max(0, sec) * 10 + 1e-6);
+  const whole = Math.floor(t / 10);
+  const base = `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+  return tenths ? `${base}.${t % 10}` : base;
 }
 
 const UNITS = ["B", "KB", "MB", "GB", "TB"];

@@ -205,7 +205,7 @@ export function ExportPanel({ timeline }: { timeline: TimelineResult }) {
   const empty = timeline.segments.length === 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <Section title={t("export.quality")} description={quality === "4k" ? t("export.hint4k") : undefined}>
         <div className="space-y-4">
           <ToggleGroup

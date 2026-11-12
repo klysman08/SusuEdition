@@ -74,18 +74,18 @@ export function MusicPanel({ store }: { store: MusicStore }) {
       <button
         type="button"
         onClick={() => void pick()}
-        className="group flex w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 py-16 text-center transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring md:py-24"
+        className="group flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring sm:gap-4 sm:px-6 sm:py-16 md:py-24"
       >
-        <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
-          <Music2 className="size-7" aria-hidden />
+        <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105 sm:size-14 sm:rounded-2xl">
+          <Music2 className="size-5 sm:size-7" aria-hidden />
         </span>
         <span>
-          <span className="block text-lg font-semibold">{t("music.emptyTitle")}</span>
+          <span className="block text-base font-semibold sm:text-lg">{t("music.emptyTitle")}</span>
           <span className="mx-auto mt-1 block max-w-md text-sm text-muted-foreground">
             {t("music.emptyDescription")}
           </span>
         </span>
-        <Button asChild size="lg" className="pointer-events-none">
+        <Button asChild className="pointer-events-none sm:h-9">
           <span>
             <Music2 />
             {t("music.choose")}
@@ -105,7 +105,7 @@ export function MusicPanel({ store }: { store: MusicStore }) {
     : "";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center gap-3 rounded-xl border bg-card p-3 sm:p-4">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-violet-500 text-white">
           <AudioLines className="size-5" aria-hidden />

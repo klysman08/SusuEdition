@@ -1,10 +1,10 @@
 /**
  * Projeto aberto no Video Maker: salvar, reabrir e autosave (RF-G5).
  *
- * Não existe botão "Salvar": assim que a primeira mídia entra, o projeto ganha um id e
- * passa a ser gravado sozinho a cada mudança. O arquivo guarda só os caminhos das
- * mídias e os ajustes (ver `project-file.ts`), então reabrir depois de fechar o
- * programa não exige copiar nada.
+ * Assim que a primeira mídia entra, o projeto ganha um id e passa a ser gravado sozinho
+ * a cada mudança; o botão "Salvar" do editor (Ctrl+S) só adianta essa gravação. O arquivo
+ * guarda só os caminhos das mídias e os ajustes (ver `project-file.ts`), então reabrir
+ * depois de fechar o programa não exige copiar nada.
  */
 import { createStore } from "zustand/vanilla";
 
@@ -186,7 +186,7 @@ async function writeCurrent(): Promise<void> {
   }
 }
 
-/** Grava agora (se houver mudanças). Usado ao sair do editor e ao fechar a janela. */
+/** Grava agora (se houver mudanças). Usado pelo botão Salvar, ao sair do editor e ao fechar a janela. */
 export function saveNow(): Promise<void> {
   return serial(writeCurrent);
 }

@@ -105,20 +105,20 @@ export function MediaLibrary({
         <button
           type="button"
           onClick={() => void pick()}
-          className="group flex w-full flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-6 py-16 text-center transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring md:py-24"
+          className="group flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition-colors outline-none hover:border-primary/50 hover:bg-primary/[0.03] focus-visible:ring-2 focus-visible:ring-ring sm:gap-4 sm:px-6 sm:py-16 md:py-24"
         >
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
-            <ImagePlus className="size-7" aria-hidden />
+          <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105 sm:size-14 sm:rounded-2xl">
+            <ImagePlus className="size-5 sm:size-7" aria-hidden />
           </span>
           <span>
-            <span className="block text-lg font-semibold">
+            <span className="block text-base font-semibold sm:text-lg">
               {imagesOnly ? t("mediaLibrary.emptyTitlePhotos") : t("mediaLibrary.emptyTitle")}
             </span>
             <span className="mx-auto mt-1 block max-w-md text-sm text-muted-foreground">
               {imagesOnly ? t("mediaLibrary.emptyDescriptionPhotos") : t("mediaLibrary.emptyDescription")}
             </span>
           </span>
-          <Button asChild size="lg" className="pointer-events-none">
+          <Button asChild className="pointer-events-none sm:h-9">
             <span>
               <Upload />
               {imagesOnly ? t("mediaLibrary.addPhotos") : t("mediaLibrary.addMedia")}

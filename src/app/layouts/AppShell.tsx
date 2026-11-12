@@ -1,9 +1,11 @@
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useMatches } from "react-router";
+import { useStore } from "zustand";
 
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { updateStore } from "@/features/settings/updates";
 import { ScrollContainerContext } from "@/lib/scroll-container";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,17 @@ export function AppShell() {
   const { t } = useTranslation();
   const mainRef = useRef<HTMLElement>(null);
   const immersive = useMatches().some((m) => (m.handle as { immersive?: boolean } | undefined)?.immersive);
+  /** Versão nova publicada: um ponto em "Ajustes", onde fica o download. */
+  const hasUpdate = useStore(updateStore, (s) => s.status === "available");
+  const badge = (to: string) =>
+    hasUpdate && to === "/settings" ? (
+      <span
+        role="img"
+        aria-label={t("settings.updates.badge")}
+        title={t("settings.updates.badge")}
+        className="absolute top-0 right-0 size-2 translate-x-1/2 -translate-y-1/3 rounded-full bg-primary ring-2 ring-background"
+      />
+    ) : null;
 
   return (
     <ScrollContainerContext value={mainRef}>
@@ -58,7 +71,10 @@ export function AppShell() {
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={cn("size-4.5", isActive && "text-sidebar-primary")} aria-hidden />
+                    <span className="relative flex">
+                      <Icon className={cn("size-4.5", isActive && "text-sidebar-primary")} aria-hidden />
+                      {badge(to)}
+                    </span>
                     {!immersive && t(labelKey)}
                   </>
                 )}
@@ -79,7 +95,7 @@ export function AppShell() {
               immersive && "hidden",
             )}
           >
-            <div className="flex h-14 items-center justify-between px-4">
+            <div className="flex h-12 items-center justify-between px-4">
               <Logo />
               <ThemeToggle />
             </div>
@@ -92,7 +108,7 @@ export function AppShell() {
             {immersive ? (
               <Outlet />
             ) : (
-              <div className="mx-auto w-full max-w-6xl px-4 py-6 pb-28 sm:px-6 md:px-10 md:py-10 md:pb-10">
+              <div className="mx-auto w-full max-w-6xl px-4 py-5 pb-24 sm:px-6 sm:py-6 md:px-10 md:py-10 md:pb-10">
                 <Outlet />
               </div>
             )}
@@ -114,12 +130,15 @@ export function AppShell() {
                     end={to === "/"}
                     className={({ isActive }) =>
                       cn(
-                        "flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors",
+                        "flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
                         isActive && "text-primary",
                       )
                     }
                   >
-                    <Icon className="size-5" aria-hidden />
+                    <span className="relative flex">
+                      <Icon className="size-5" aria-hidden />
+                      {badge(to)}
+                    </span>
                     {t(labelKey)}
                   </NavLink>
                 </li>

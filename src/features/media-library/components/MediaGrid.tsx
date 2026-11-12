@@ -23,7 +23,7 @@ import { MediaTile, TileContent } from "./MediaTile";
 function useGridLayout(width: number) {
   const compact = width < 640;
   const gap = compact ? 4 : 8;
-  const minTile = compact ? 96 : 136;
+  const minTile = compact ? 76 : 136;
   const cols = Math.max(3, Math.floor((width + gap) / (minTile + gap)));
   const tile = width > 0 ? (width - gap * (cols - 1)) / cols : minTile;
   return { gap, cols, rowHeight: tile + gap };

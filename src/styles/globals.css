@@ -141,6 +141,13 @@
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
+  /* Barras de rolagem escondidas (só o visual): roda do mouse, toque e teclado continuam rolando. */
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Android notch / gesture bar */

@@ -4,6 +4,23 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Added
+- **Cortar mídia**: em Ajustes da mídia (e na barra da mídia selecionada) dá para escolher a parte da foto ou do vídeo que aparece — alças nos cantos e lados, arrastar para mover, atalhos de proporção (livre, a do vídeo, 1:1). O enquadramento passa a valer para a parte cortada, na prévia e na exportação; fotos cortadas são decodificadas maiores para não perder nitidez.
+- **Mais movimentos das fotos**: para cima, para baixo, impacto (entra ampliada e assenta), pulsar e giro à esquerda/direita, além de aproximar, afastar e deslocar. Valem como padrão das fotos e por mídia.
+- **Botão Salvar** na barra do editor (e Ctrl+S): grava na hora o que o salvamento automático ainda não gravou. No celular o botão também mostra o estado do salvamento.
+- **Aviso de versão nova**: o app confere sozinho as releases do GitHub (ao abrir e a cada 6 h, com cache) e mostra em Ajustes quando há versão para baixar, com o instalador da plataforma e as novidades; um ponto em "Ajustes" na navegação e um aviso único por versão. "Verificar agora" confere na hora.
+- Créditos em Ajustes → Sobre: criado por [@klysman08](https://github.com/klysman08), com link para o código.
+
+### Changed
+- **Ritmo e Tempo viraram uma ferramenta só** ("Ritmo"): sincronia com as batidas, tempo de cada mídia, duração total, excesso de mídia, transição e movimento das fotos no mesmo painel.
+- **Tempo de cada mídia a partir de 0,2 s** (antes 0,5 s para fotos e 1 s para vídeos), em passos de 0,1 s. O mínimo de qualquer trecho da timeline também passou a 0,2 s.
+- Componentes shadcn animados com [Animate UI](https://github.com/imskyleen/animate-ui) (Motion): diálogos, gavetas, menus, seletores, dicas, interruptores, abas e grupos de botões.
+- **Barras de rolagem escondidas** em todo o app (só o visual; roda do mouse, toque e teclado continuam rolando).
+- **Celular**: barra do editor não corta mais o botão Exportar; cartões, blocos de ajustes, estados vazios e barras de navegação mais compactos; grade de mídias com 4 miniaturas por linha.
+
+### Fixed
+- Tempos como 1,2 s apareciam como "0:01.1" por erro de arredondamento.
+
 ## [0.8.0] — 2026-11-11 · M7 Polimento (parte 1)
 
 ### Added

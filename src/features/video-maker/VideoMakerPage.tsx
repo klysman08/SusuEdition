@@ -1,13 +1,13 @@
 import {
   Activity,
   ArrowLeft,
-  Clock,
   Download,
   Images,
   Loader2,
   Music,
   RectangleVertical,
   Redo2,
+  Save,
   Sparkles,
   Undo2,
   Volume2,
@@ -17,6 +17,7 @@ import {
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { toast } from "sonner";
 import { useStore } from "zustand";
 
 import { Button } from "@/components/ui/button";
@@ -27,10 +28,10 @@ import { ScrollContainerContext } from "@/lib/scroll-container";
 import { cn } from "@/lib/utils";
 
 import { AudioPanel } from "./components/AudioPanel";
+import { CropDialog } from "./components/CropDialog";
 import { FiltersPanel } from "./components/FiltersPanel";
 import { FormatPanel } from "./components/FormatPanel";
 import { ItemSheet } from "./components/ItemSheet";
-import { SyncPanel } from "./components/SyncPanel";
 import { TimingPanel } from "./components/TimingPanel";
 import { TrimDialog } from "./components/TrimDialog";
 import { splitClipAt } from "./clip-actions";
@@ -44,14 +45,13 @@ import { ProjectList } from "./projects/ProjectList";
 import { ProjectMenu } from "./projects/ProjectMenu";
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "./store";
 
-type ToolId = "media" | "music" | "timing" | "sync" | "audio" | "filters" | "format" | "export";
+type ToolId = "media" | "music" | "timing" | "audio" | "filters" | "format" | "export";
 
 /** Ferramentas da barra inferior ("export" fica no topo, como botão principal). */
 const TOOLS: { id: Exclude<ToolId, "export">; icon: LucideIcon }[] = [
   { id: "media", icon: Images },
   { id: "music", icon: Music },
-  { id: "sync", icon: Activity },
-  { id: "timing", icon: Clock },
+  { id: "timing", icon: Activity },
   { id: "audio", icon: Volume2 },
   { id: "filters", icon: Sparkles },
   { id: "format", icon: RectangleVertical },
@@ -70,7 +70,7 @@ function TopBar({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
   return (
     <header className="shrink-0 border-b bg-card pt-safe">
-      <div className="flex h-12 items-center gap-1.5 pr-3 pl-1 md:pl-3">
+      <div className="flex h-12 items-center gap-1 pr-2 pl-1 sm:gap-1.5 sm:pr-3 md:pl-3">
         <Button asChild variant="ghost" size="icon" className="md:hidden">
           <Link to="/" aria-label={t("videoMaker.exit")}>
             <ArrowLeft />
@@ -92,7 +92,7 @@ function StartScreen() {
         <h1 className="truncate pl-2 text-sm font-semibold tracking-tight">{t("videoMaker.title")}</h1>
       </TopBar>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-6 sm:px-6 md:py-10">
+        <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-4 sm:space-y-8 sm:px-6 sm:py-6 md:py-10">
           {loading ? (
             <div
               role="status"
@@ -134,6 +134,8 @@ function Editor() {
   const [tool, setTool] = useState<ToolId | null>(() => (isWideScreen() ? "media" : null));
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [trimItem, setTrimItem] = useState<string | null>(null);
+  const [cropItem, setCropItem] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [focus, setFocus] = useState(false);
   const timeline = useVideoTimeline();
@@ -152,18 +154,37 @@ function Editor() {
 
   const canUndo = useStore(historyStore, (s) => s.canUndo);
   const canRedo = useStore(historyStore, (s) => s.canRedo);
+  const saveStatus = useStore(projectSession, (s) => s.status);
   const timelineRef = useRef(timeline);
   useEffect(() => {
     timelineRef.current = timeline;
   }, [timeline]);
 
-  // Atalhos do editor: Espaço toca/pausa, Ctrl+Z / Ctrl+Shift+Z (ou Ctrl+Y) desfaz/refaz,
-  // S divide a mídia no cursor, M põe/tira um marcador na música, Esc sai da prévia ampliada.
+  /** Salvar à mão: grava agora o que o salvamento automático ainda não gravou. */
+  const save = useCallback(async () => {
+    setSaving(true);
+    try {
+      await saveNow();
+      if (projectSession.getState().status === "error") toast.error(t("projects.saveError"));
+      else toast.success(t("projects.savedNow"), { id: "project-saved", duration: 1800 });
+    } finally {
+      setSaving(false);
+    }
+  }, [t]);
+
+  // Atalhos do editor: Espaço toca/pausa, Ctrl+S salva, Ctrl+Z / Ctrl+Shift+Z (ou Ctrl+Y)
+  // desfaz/refaz, S divide a mídia no cursor, M põe/tira um marcador na música, Esc sai
+  // da prévia ampliada.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = e.target instanceof Element && e.target.closest(TYPING) !== null;
       if (e.key === "Escape" && focus && !(e.target instanceof Element && e.target.closest("[role=dialog]"))) {
         setFocus(false);
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (!e.repeat) void save();
         return;
       }
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !typing) {
@@ -196,7 +217,7 @@ function Editor() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [player, focus]);
+  }, [player, focus, save]);
 
   // Sair do editor grava o que estiver pendente.
   useEffect(() => () => void saveNow(), []);
@@ -206,6 +227,14 @@ function Editor() {
       player?.pause();
       setOpenItem(null);
       setTrimItem(id);
+    },
+    [player],
+  );
+  const openCrop = useCallback(
+    (id: string) => {
+      player?.pause();
+      setOpenItem(null);
+      setCropItem(id);
     },
     [player],
   );
@@ -228,8 +257,7 @@ function Editor() {
   const panels: Record<ToolId, ReactNode> = {
     media: <MediaLibrary store={videoMediaStore} onOpenItem={openSettings} embedded />,
     music: <MusicPanel store={videoMusicStore} />,
-    sync: <SyncPanel timeline={timeline} onGoToMusic={() => setTool("music")} />,
-    timing: <TimingPanel timeline={timeline} />,
+    timing: <TimingPanel timeline={timeline} onGoToMusic={() => setTool("music")} />,
     audio: <AudioPanel />,
     filters: <FiltersPanel />,
     format: <FormatPanel />,
@@ -245,6 +273,27 @@ function Editor() {
             {formatTime(timeline.durationSec, false)} · {aspect}
           </p>
           <span className="flex-1" />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={saving}
+            aria-label={t("projects.save")}
+            title={`${t("projects.save")} (Ctrl+S)`}
+            onClick={() => void save()}
+            className="relative"
+          >
+            {saving || saveStatus === "saving" ? <Loader2 className="animate-spin" /> : <Save />}
+            {/* No celular o estado do salvamento automático aparece aqui (o texto fica só em telas largas). */}
+            {(saveStatus === "saved" || saveStatus === "error") && (
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute top-0.5 right-0.5 size-1.5 rounded-full md:hidden",
+                  saveStatus === "error" ? "bg-destructive" : "bg-emerald-500",
+                )}
+              />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -294,6 +343,7 @@ function Editor() {
             onSelect={setPicked}
             onOpenItem={openFromTimeline}
             onTrim={openTrim}
+            onCrop={openCrop}
             onAdjust={openSettings}
             onOpenMusic={() => {
               setFocus(false);
@@ -304,7 +354,7 @@ function Editor() {
 
         {tool && !focus && (
           <aside
-            aria-label={t(`videoMaker.tools.${tool}`)}
+            aria-label={t(`videoMaker.toolTitles.${tool}`)}
             className="flex max-h-[38dvh] min-h-0 shrink flex-col border-t bg-background lg:max-h-none lg:w-[380px] lg:shrink-0 lg:border-t-0 lg:border-l xl:w-[420px]"
           >
             <button
@@ -316,7 +366,7 @@ function Editor() {
               <span className="h-1 w-9 rounded-full bg-border" />
             </button>
             <header className="hidden h-11 shrink-0 items-center justify-between border-b pr-2 pl-4 lg:flex">
-              <h2 className="text-sm font-semibold">{t(`videoMaker.tools.${tool}`)}</h2>
+              <h2 className="text-sm font-semibold">{t(`videoMaker.toolTitles.${tool}`)}</h2>
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -330,7 +380,7 @@ function Editor() {
               <div
                 key={tool}
                 ref={panelRef}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 lg:pt-4"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 sm:px-4 sm:pb-4 lg:pt-4"
               >
                 {panels[tool]}
               </div>
@@ -351,11 +401,11 @@ function Editor() {
                     type="button"
                     aria-pressed={active}
                     onClick={() => setTool(active ? null : id)}
-                    className="group flex h-13 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:text-foreground sm:h-15 sm:gap-1"
+                    className="group flex h-12 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:text-foreground sm:h-15 sm:gap-1"
                   >
                     <span
                       className={cn(
-                        "relative flex h-7 w-11 items-center justify-center rounded-full transition-colors sm:w-12",
+                        "relative flex h-6 w-10 items-center justify-center rounded-full transition-colors sm:h-7 sm:w-12",
                         active
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground group-hover:bg-accent-foreground/15",
@@ -380,8 +430,10 @@ function Editor() {
         timeline={timeline}
         onClose={() => setOpenItem(null)}
         onTrim={openTrim}
+        onCrop={openCrop}
         onRelinked={setOpenItem}
       />
+      <CropDialog id={cropItem} onClose={() => setCropItem(null)} />
       <TrimDialog id={trimItem} timeline={timeline} onClose={() => setTrimItem(null)} />
     </div>
   );

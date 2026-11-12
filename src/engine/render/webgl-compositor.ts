@@ -9,6 +9,8 @@
  */
 import type { FitBackground, FitMode, Size } from "../types";
 import { FILTER_GLSL, FILTER_KEYS, FILTER_UNIFORMS, isNeutralFilter, type FilterAdjust } from "./filters";
+import type { ClipCrop } from "../timeline/types";
+import { croppedSize } from "./crop";
 import { coversTarget, fitRect, type Rect } from "./fit";
 import { applyMotion, type MotionTransform } from "./motion";
 
@@ -24,7 +26,9 @@ export interface CompositorLayer {
   dynamic: boolean;
   fit: FitMode;
   alpha: number;
-  /** Zoom/deslocamento do momento (Ken Burns). */
+  /** Parte da fonte que aparece (fração do tamanho de exibição); ausente = inteira. */
+  crop?: ClipCrop | null;
+  /** Zoom/deslocamento/giro do momento (Ken Burns). */
   motion?: MotionTransform | null;
   /** Filtro de cor só desta camada (fonte e fundo desfocado dela). */
   filter?: FilterAdjust | null;
@@ -46,21 +50,31 @@ uniform vec4 u_rect;
 uniform vec2 u_res;
 uniform int u_rot;
 uniform bool u_flipV;
+uniform vec4 u_uv;
+uniform float u_angle;
 out vec2 v_uv;
+out vec2 v_pos;
 void main() {
-  vec2 p = u_rect.xy + a_pos * u_rect.zw;
+  // Giro em torno do centro do retângulo, em pixels (não distorce a proporção).
+  vec2 d = (a_pos - 0.5) * u_rect.zw;
+  float sn = sin(u_angle);
+  float cs = cos(u_angle);
+  vec2 p = u_rect.xy + 0.5 * u_rect.zw + vec2(d.x * cs - d.y * sn, d.x * sn + d.y * cs);
   gl_Position = vec4(p.x / u_res.x * 2.0 - 1.0, 1.0 - p.y / u_res.y * 2.0, 0.0, 1.0);
-  vec2 uv = a_pos;
+  // Corte: sub-retângulo da fonte, em coordenadas de exibição (antes da rotação da fonte).
+  vec2 uv = u_uv.xy + a_pos * u_uv.zw;
   if (u_rot == 1) uv = vec2(uv.y, 1.0 - uv.x);
   else if (u_rot == 2) uv = vec2(1.0 - uv.x, 1.0 - uv.y);
   else if (u_rot == 3) uv = vec2(1.0 - uv.y, uv.x);
   if (u_flipV) uv.y = 1.0 - uv.y;
   v_uv = uv;
+  v_pos = a_pos;
 }`;
 
 const FS = `#version 300 es
 precision highp float;
 in vec2 v_uv;
+in vec2 v_pos;
 uniform sampler2D u_tex;
 uniform float u_alpha;
 uniform float u_dim;
@@ -85,7 +99,7 @@ void main() {
     }
     c = acc / wsum;
   }
-  if (u_filter) c = applyFilter(c, v_uv);
+  if (u_filter) c = applyFilter(c, v_pos);
   o = vec4(c * u_dim, 1.0) * u_alpha;
 }`;
 
@@ -136,6 +150,8 @@ export function createWebGLCompositor(
     res: u("u_res"),
     rot: u("u_rot"),
     flipV: u("u_flipV"),
+    uv: u("u_uv"),
+    angle: u("u_angle"),
     tex: u("u_tex"),
     alpha: u("u_alpha"),
     dim: u("u_dim"),
@@ -245,12 +261,17 @@ export function createWebGLCompositor(
       radius?: number;
       tap?: [number, number];
       filter?: FilterAdjust;
+      crop?: ClipCrop | null;
+      angle?: number;
     },
   ) => {
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.uniform4f(U.rect, rect.x, rect.y, rect.w, rect.h);
     gl.uniform1i(U.rot, opts.rot ?? 0);
     gl.uniform1i(U.flipV, opts.flipV ? 1 : 0);
+    const c = opts.crop;
+    gl.uniform4f(U.uv, c?.x ?? 0, c?.y ?? 0, c?.w ?? 1, c?.h ?? 1);
+    gl.uniform1f(U.angle, opts.angle ?? 0);
     gl.uniform1f(U.alpha, opts.alpha ?? 1);
     gl.uniform1f(U.dim, opts.dim ?? 1);
     gl.uniform1i(U.radius, opts.radius ?? 0);
@@ -267,7 +288,10 @@ export function createWebGLCompositor(
   const drawLayer = (layer: CompositorLayer, background: FitBackground, target: Target) => {
     const tex = textureFor(layer);
     const rot = layer.quarterTurns ?? 0;
-    const rect = applyMotion(fitRect(layer.size, target.size, layer.fit), layer.motion);
+    const crop = layer.crop ?? null;
+    // Com corte, o que se enquadra é só a parte escolhida da fonte.
+    const shown = croppedSize(layer.size, crop);
+    const rect = applyMotion(fitRect(shown, target.size, layer.fit), layer.motion);
     const needsBg = !coversTarget(rect, target.size);
     const filter = layer.filter && !isNeutralFilter(layer.filter) ? layer.filter : undefined;
 
@@ -276,8 +300,14 @@ export function createWebGLCompositor(
       bindTarget(blurTarget);
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
-      const small = fitRect(layer.size, blurTarget.size, "cover");
-      quad(tex, small, { rot, radius: 2, tap: [0.5 / small.w, 0.5 / small.h], filter });
+      const small = fitRect(shown, blurTarget.size, "cover");
+      quad(tex, small, {
+        rot,
+        radius: 2,
+        tap: [(0.5 / small.w) * (crop?.w ?? 1), (0.5 / small.h) * (crop?.h ?? 1)],
+        filter,
+        crop,
+      });
       // 2) amplia para o alvo com borrão gaussiano e escurece
       bindTarget(target);
       const strength = Math.max(0.5, Math.min(2, background.strength));
@@ -297,7 +327,7 @@ export function createWebGLCompositor(
       gl.clearColor(r, g, b, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
-    quad(tex, rect, { rot, filter });
+    quad(tex, rect, { rot, filter, crop, angle: layer.motion?.rotation });
   };
 
   return {

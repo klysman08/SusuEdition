@@ -1,6 +1,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Crop,
   Lock,
   LockOpen,
   Minus,
@@ -26,13 +27,14 @@ const STEP = 0.1;
 
 /**
  * Ações da mídia selecionada na faixa do tempo: mudar de posição, ajustar a duração
- * em passos de 0,1 s, recortar (vídeos), abrir os demais ajustes e remover.
+ * em passos de 0,1 s, recortar (vídeos), cortar, abrir os demais ajustes e remover.
  */
 export function ClipToolbar({
   id,
   timeline,
   timeSec,
   onTrim,
+  onCrop,
   onAdjust,
   onClose,
 }: {
@@ -41,6 +43,7 @@ export function ClipToolbar({
   /** Posição do cursor de reprodução (onde "dividir" corta). */
   timeSec: number;
   onTrim: (id: string) => void;
+  onCrop: (id: string) => void;
   onAdjust: (id: string) => void;
   onClose: () => void;
 }) {
@@ -156,6 +159,16 @@ export function ClipToolbar({
           {t("timeline.trim")}
         </Button>
       )}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t("timeline.crop")}
+        title={t("timeline.crop")}
+        onClick={() => onCrop(id)}
+        className={seg.crop ? "text-primary" : undefined}
+      >
+        <Crop />
+      </Button>
       <Button
         variant="ghost"
         size="icon-sm"
