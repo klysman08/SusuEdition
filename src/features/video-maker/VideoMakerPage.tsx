@@ -1,31 +1,32 @@
-import {
-  Activity,
-  ArrowLeft,
-  Download,
-  Images,
-  Loader2,
-  Music,
-  RectangleVertical,
-  Redo2,
-  Save,
-  Sparkles,
-  Undo2,
-  Volume2,
-  X,
-  type LucideIcon,
-} from "lucide-react";
+import { AnimateIcon } from "@animate-ui/react/icons";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { useStore } from "zustand";
 
+import type { AnimatedIcon } from "@/app/navigation";
+import { Activity } from "@/components/animate-ui/icons/activity";
+import { ArrowLeft } from "@/components/animate-ui/icons/arrow-left";
+import { Download } from "@/components/animate-ui/icons/download";
+import { Image } from "@/components/animate-ui/icons/image";
+import { Music } from "@/components/animate-ui/icons/music";
+import { RectangleVertical } from "@/components/animate-ui/icons/rectangle-vertical";
+import { Redo2 } from "@/components/animate-ui/icons/redo-2";
+import { Save } from "@/components/animate-ui/icons/save";
+import { Sparkles } from "@/components/animate-ui/icons/sparkles";
+import { Undo2 } from "@/components/animate-ui/icons/undo-2";
+import { Volume2 } from "@/components/animate-ui/icons/volume-2";
+import { X } from "@/components/animate-ui/icons/x";
+import { WindowControls } from "@/components/common/WindowControls";
 import { Button } from "@/components/ui/button";
 import { MediaLibrary } from "@/features/media-library";
 import { MusicPanel } from "@/features/music";
 import { formatTime } from "@/lib/format";
 import { ScrollContainerContext } from "@/lib/scroll-container";
 import { cn } from "@/lib/utils";
+import { dragRegion } from "@/platform/window";
 
 import { AudioPanel } from "./components/AudioPanel";
 import { CropDialog } from "./components/CropDialog";
@@ -48,8 +49,8 @@ import { videoMediaStore, videoMusicStore, videoProjectStore } from "./store";
 type ToolId = "media" | "music" | "timing" | "audio" | "filters" | "format" | "export";
 
 /** Ferramentas da barra inferior ("export" fica no topo, como botão principal). */
-const TOOLS: { id: Exclude<ToolId, "export">; icon: LucideIcon }[] = [
-  { id: "media", icon: Images },
+const TOOLS: { id: Exclude<ToolId, "export">; icon: AnimatedIcon }[] = [
+  { id: "media", icon: Image },
   { id: "music", icon: Music },
   { id: "timing", icon: Activity },
   { id: "audio", icon: Volume2 },
@@ -66,18 +67,26 @@ const SPACE_OWNERS =
 
 const isWideScreen = () => typeof matchMedia === "function" && matchMedia("(min-width: 1024px)").matches;
 
+/**
+ * Barra do editor. No Windows ela também é a alça da janela (o espaço vazio arrasta,
+ * duplo clique maximiza) e termina nos controles da janela.
+ */
 function TopBar({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
+  const drag = dragRegion();
   return (
-    <header className="shrink-0 border-b bg-card pt-safe">
-      <div className="flex h-12 items-center gap-1 pr-2 pl-1 sm:gap-1.5 sm:pr-3 md:pl-3">
-        <Button asChild variant="ghost" size="icon" className="md:hidden">
-          <Link to="/" aria-label={t("videoMaker.exit")}>
-            <ArrowLeft />
-          </Link>
-        </Button>
+    <header {...drag} className="flex shrink-0 border-b bg-card pt-safe">
+      <div {...drag} className="flex h-12 min-w-0 flex-1 items-center gap-1 pr-2 pl-1 sm:gap-1.5 sm:pr-3 md:pl-3">
+        <AnimateIcon animateOnHover asChild>
+          <Button asChild variant="ghost" size="icon" className="md:hidden">
+            <Link to="/" aria-label={t("videoMaker.exit")}>
+              <ArrowLeft />
+            </Link>
+          </Button>
+        </AnimateIcon>
         {children}
       </div>
+      <WindowControls className="h-12 border-l border-border/60" />
     </header>
   );
 }
@@ -89,7 +98,10 @@ function StartScreen() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <TopBar>
-        <h1 className="truncate pl-2 text-sm font-semibold tracking-tight">{t("videoMaker.title")}</h1>
+        <h1 {...dragRegion()} className="truncate pl-2 text-sm font-semibold tracking-tight">
+          {t("videoMaker.title")}
+        </h1>
+        <span {...dragRegion()} className="h-full flex-1" />
       </TopBar>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-4 sm:space-y-8 sm:px-6 sm:py-6 md:py-10">
@@ -272,58 +284,66 @@ function Editor() {
           <p className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums max-sm:hidden">
             {formatTime(timeline.durationSec, false)} · {aspect}
           </p>
-          <span className="flex-1" />
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={saving}
-            aria-label={t("projects.save")}
-            title={`${t("projects.save")} (Ctrl+S)`}
-            onClick={() => void save()}
-            className="relative"
-          >
-            {saving || saveStatus === "saving" ? <Loader2 className="animate-spin" /> : <Save />}
-            {/* No celular o estado do salvamento automático aparece aqui (o texto fica só em telas largas). */}
-            {(saveStatus === "saved" || saveStatus === "error") && (
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute top-0.5 right-0.5 size-1.5 rounded-full md:hidden",
-                  saveStatus === "error" ? "bg-destructive" : "bg-emerald-500",
-                )}
-              />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={!canUndo}
-            aria-label={t("videoMaker.undo")}
-            title={`${t("videoMaker.undo")} (Ctrl+Z)`}
-            onClick={() => void undo()}
-          >
-            <Undo2 />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled={!canRedo}
-            aria-label={t("videoMaker.redo")}
-            title={`${t("videoMaker.redo")} (Ctrl+Shift+Z)`}
-            onClick={() => void redo()}
-            className="mr-1"
-          >
-            <Redo2 />
-          </Button>
-          <Button
-            size="sm"
-            variant={tool === "export" ? "secondary" : "default"}
-            aria-pressed={tool === "export"}
-            onClick={() => setTool((cur) => (cur === "export" ? null : "export"))}
-          >
-            <Download />
-            {t("videoMaker.tools.export")}
-          </Button>
+          <span {...dragRegion()} className="h-full flex-1" />
+          <AnimateIcon animateOnHover asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={saving}
+              aria-label={t("projects.save")}
+              title={`${t("projects.save")} (Ctrl+S)`}
+              onClick={() => void save()}
+              className="relative"
+            >
+              {saving || saveStatus === "saving" ? <Loader2 className="animate-spin" /> : <Save />}
+              {/* No celular o estado do salvamento automático aparece aqui (o texto fica só em telas largas). */}
+              {(saveStatus === "saved" || saveStatus === "error") && (
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute top-0.5 right-0.5 size-1.5 rounded-full md:hidden",
+                    saveStatus === "error" ? "bg-destructive" : "bg-emerald-500",
+                  )}
+                />
+              )}
+            </Button>
+          </AnimateIcon>
+          <AnimateIcon animateOnHover asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={!canUndo}
+              aria-label={t("videoMaker.undo")}
+              title={`${t("videoMaker.undo")} (Ctrl+Z)`}
+              onClick={() => void undo()}
+            >
+              <Undo2 />
+            </Button>
+          </AnimateIcon>
+          <AnimateIcon animateOnHover asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={!canRedo}
+              aria-label={t("videoMaker.redo")}
+              title={`${t("videoMaker.redo")} (Ctrl+Shift+Z)`}
+              onClick={() => void redo()}
+              className="mr-1"
+            >
+              <Redo2 />
+            </Button>
+          </AnimateIcon>
+          <AnimateIcon animateOnHover asChild>
+            <Button
+              size="sm"
+              variant={tool === "export" ? "secondary" : "default"}
+              aria-pressed={tool === "export"}
+              onClick={() => setTool((cur) => (cur === "export" ? null : "export"))}
+            >
+              <Download />
+              {t("videoMaker.tools.export")}
+            </Button>
+          </AnimateIcon>
         </TopBar>
       )}
 
@@ -367,14 +387,16 @@ function Editor() {
             </button>
             <header className="hidden h-11 shrink-0 items-center justify-between border-b pr-2 pl-4 lg:flex">
               <h2 className="text-sm font-semibold">{t(`videoMaker.toolTitles.${tool}`)}</h2>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("videoMaker.closePanel")}
-                onClick={() => setTool(null)}
-              >
-                <X />
-              </Button>
+              <AnimateIcon animateOnHover asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t("videoMaker.closePanel")}
+                  onClick={() => setTool(null)}
+                >
+                  <X />
+                </Button>
+              </AnimateIcon>
             </header>
             <ScrollContainerContext value={panelRef}>
               <div
@@ -397,27 +419,29 @@ function Editor() {
               const dot = (id === "music" && hasMusic) || (id === "filters" && hasFilter);
               return (
                 <li key={id} className="min-w-0 flex-1 sm:w-20 sm:flex-none">
-                  <button
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => setTool(active ? null : id)}
-                    className="group flex h-12 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:text-foreground sm:h-15 sm:gap-1"
-                  >
-                    <span
-                      className={cn(
-                        "relative flex h-6 w-10 items-center justify-center rounded-full transition-colors sm:h-7 sm:w-12",
-                        active
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-foreground group-hover:bg-accent-foreground/15",
-                      )}
+                  <AnimateIcon animateOnHover animateOnTap asChild>
+                    <button
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setTool(active ? null : id)}
+                      className="group flex h-12 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-[11px] font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring aria-pressed:text-foreground sm:h-15 sm:gap-1"
                     >
-                      <Icon className="size-4" aria-hidden />
-                      {dot && !active && (
-                        <span className="absolute top-0.5 right-1.5 size-1.5 rounded-full bg-primary" />
-                      )}
-                    </span>
-                    <span className="max-w-full truncate px-0.5">{t(`videoMaker.tools.${id}`)}</span>
-                  </button>
+                      <span
+                        className={cn(
+                          "relative flex h-6 w-10 items-center justify-center rounded-full transition-colors sm:h-7 sm:w-12",
+                          active
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground group-hover:bg-accent-foreground/15",
+                        )}
+                      >
+                        <Icon className="size-4" aria-hidden />
+                        {dot && !active && (
+                          <span className="absolute top-0.5 right-1.5 size-1.5 rounded-full bg-primary" />
+                        )}
+                      </span>
+                      <span className="max-w-full truncate px-0.5">{t(`videoMaker.tools.${id}`)}</span>
+                    </button>
+                  </AnimateIcon>
                 </li>
               );
             })}

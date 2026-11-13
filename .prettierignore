@@ -6,3 +6,4 @@ src-tauri/gen
 src/components/ui
 coverage
 *.md
+src/components/animate-ui

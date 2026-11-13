@@ -1,8 +1,13 @@
-import { CircleAlert, CircleCheck, Download, ExternalLink, Loader2, RefreshCw, Sparkles } from "lucide-react";
+import { AnimateIcon } from "@animate-ui/react/icons";
+import { CircleAlert, CircleCheck, Loader2 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
+import { Download } from "@/components/animate-ui/icons/download";
+import { ExternalLink } from "@/components/animate-ui/icons/external-link";
+import { RefreshCw } from "@/components/animate-ui/icons/refresh-cw";
+import { Sparkles } from "@/components/animate-ui/icons/sparkles";
 import { THEME_OPTIONS, type ThemeValue } from "@/components/common/theme-options";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -62,7 +67,7 @@ function UpdateStatus({ version }: { version: string }) {
     <div className="space-y-3">
       {status === "available" && latest ? (
         <div className="flex flex-col gap-3 rounded-lg border border-primary/40 bg-primary/5 p-3 sm:flex-row sm:items-center">
-          <Sparkles className="size-5 shrink-0 text-primary max-sm:hidden" aria-hidden />
+          <Sparkles animate loop loopDelay={2400} className="size-5 shrink-0 text-primary max-sm:hidden" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">{t("settings.updates.available", { version: latest.version })}</p>
             <p className="text-xs text-muted-foreground">
@@ -71,14 +76,18 @@ function UpdateStatus({ version }: { version: string }) {
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Button size="sm" onClick={() => downloadUpdate(latest)}>
-              <Download />
-              {t("settings.updates.download")}
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => void openExternal(latest.pageUrl)}>
-              {t("settings.updates.releaseNotes")}
-              <ExternalLink />
-            </Button>
+            <AnimateIcon animateOnHover asChild>
+              <Button size="sm" onClick={() => downloadUpdate(latest)}>
+                <Download />
+                {t("settings.updates.download")}
+              </Button>
+            </AnimateIcon>
+            <AnimateIcon animateOnHover asChild>
+              <Button size="sm" variant="outline" onClick={() => void openExternal(latest.pageUrl)}>
+                {t("settings.updates.releaseNotes")}
+                <ExternalLink />
+              </Button>
+            </AnimateIcon>
           </div>
         </div>
       ) : (
@@ -99,10 +108,12 @@ function UpdateStatus({ version }: { version: string }) {
       )}
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <Button size="sm" variant="outline" disabled={checking} onClick={() => void checkForUpdates({ force: true })}>
-          <RefreshCw className={checking ? "animate-spin" : undefined} />
-          {t("settings.updates.check")}
-        </Button>
+        <AnimateIcon animateOnHover animate={checking} loop={checking} asChild>
+          <Button size="sm" variant="outline" disabled={checking} onClick={() => void checkForUpdates({ force: true })}>
+            <RefreshCw />
+            {t("settings.updates.check")}
+          </Button>
+        </AnimateIcon>
         <p className="text-xs text-muted-foreground">
           {t("settings.updates.auto")}
           {checkedAt !== null && ` ${t("settings.updates.lastChecked", { when: date(checkedAt, true) })}`}
@@ -147,10 +158,12 @@ export function SettingsPage() {
                 aria-label={t("settings.appearance.title")}
               >
                 {THEME_OPTIONS.map(({ value, icon: Icon }) => (
-                  <ToggleGroupItem key={value} value={value} className="gap-1.5 px-3">
-                    <Icon className="size-4" aria-hidden />
-                    {t(`theme.${value}`)}
-                  </ToggleGroupItem>
+                  <AnimateIcon key={value} animateOnHover asChild>
+                    <ToggleGroupItem value={value} className="gap-1.5 px-3">
+                      <Icon className="size-4" aria-hidden />
+                      {t(`theme.${value}`)}
+                    </ToggleGroupItem>
+                  </AnimateIcon>
                 ))}
               </ToggleGroup>
             </SettingRow>

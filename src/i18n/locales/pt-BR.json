@@ -117,6 +117,12 @@
     "system": "Sistema",
     "toggle": "Alternar tema"
   },
+  "window": {
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Fechar"
+  },
   "common": {
     "comingSoon": "Em breve",
     "step": "Passo {{n}}"

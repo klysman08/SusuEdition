@@ -24,6 +24,11 @@ export default tseslint.config(
     rules: { "react-refresh/only-export-components": "off" },
   },
   {
+    // Ícones animados do registro do Animate UI exportam as animações junto do ícone.
+    files: ["src/components/animate-ui/**"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
+  {
     // O motor não pode depender de React nem do Tauri.
     files: ["src/engine/**"],
     rules: {
