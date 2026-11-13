@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T04:00:00Z",
+  "title": "Design System: SusuEdition",
+  "extensions": {
+    "colorMeta": {
+      "primary-rose": {
+        "role": "primary",
+        "displayName": "Rose Beat Signal (Dark)",
+        "canonical": "oklch(0.68 0.19 15)",
+        "tonalRamp": [
+          "oklch(0.22 0.09 15)",
+          "oklch(0.32 0.13 15)",
+          "oklch(0.42 0.17 15)",
+          "oklch(0.52 0.21 15)",
+          "oklch(0.62 0.20 15)",
+          "oklch(0.68 0.19 15)",
+          "oklch(0.80 0.12 15)",
+          "oklch(0.92 0.05 15)"
+        ]
+      },
+      "primary-rose-light": {
+        "role": "primary",
+        "displayName": "Rose Beat Signal (Light)",
+        "canonical": "oklch(0.514 0.222 16.935)",
+        "tonalRamp": [
+          "oklch(0.20 0.09 17)",
+          "oklch(0.30 0.14 17)",
+          "oklch(0.40 0.19 17)",
+          "oklch(0.514 0.222 16.935)",
+          "oklch(0.62 0.19 17)",
+          "oklch(0.74 0.14 17)",
+          "oklch(0.85 0.08 17)",
+          "oklch(0.95 0.03 17)"
+        ]
+      },
+      "spectrum-violet": {
+        "role": "secondary",
+        "displayName": "Spectrum Violet",
+        "canonical": "oklch(0.72 0.15 300)",
+        "tonalRamp": [
+          "oklch(0.22 0.08 300)",
+          "oklch(0.32 0.11 300)",
+          "oklch(0.42 0.14 300)",
+          "oklch(0.52 0.16 300)",
+          "oklch(0.62 0.16 300)",
+          "oklch(0.72 0.15 300)",
+          "oklch(0.84 0.09 300)",
+          "oklch(0.94 0.04 300)"
+        ]
+      },
+      "tauri-cyan": {
+        "role": "tertiary",
+        "displayName": "Tauri Cyan",
+        "canonical": "oklch(0.75 0.13 200)",
+        "tonalRamp": [
+          "oklch(0.22 0.06 200)",
+          "oklch(0.34 0.09 200)",
+          "oklch(0.46 0.11 200)",
+          "oklch(0.58 0.13 200)",
+          "oklch(0.68 0.13 200)",
+          "oklch(0.75 0.13 200)",
+          "oklch(0.86 0.08 200)",
+          "oklch(0.95 0.03 200)"
+        ]
+      },
+      "obsidian-bg": {
+        "role": "neutral",
+        "displayName": "Obsidian Canvas",
+        "canonical": "oklch(0.13 0.005 285)",
+        "tonalRamp": [
+          "oklch(0.13 0.005 285)",
+          "oklch(0.175 0.006 285)",
+          "oklch(0.22 0.008 285)",
+          "oklch(0.32 0.010 285)",
+          "oklch(0.48 0.012 285)",
+          "oklch(0.75 0.014 285)",
+          "oklch(0.92 0.006 285)",
+          "oklch(0.985 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero thesis headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Primary section headings (h2)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Screen showcase titles and stage headers (h3)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Lead paragraphs and feature specifications (62ch-65ch measure)."
+      },
+      "label": {
+        "displayName": "Telemetry Mono",
+        "purpose": "Tabular timecodes, BPM readouts, aspect ratios, and CLI commands."
+      }
+    },
+    "shadows": [
+      {
+        "name": "studio-elevation",
+        "value": "0 18px 42px -12px rgba(0, 0, 0, 0.42), 0 4px 12px -2px rgba(0, 0, 0, 0.24)",
+        "purpose": "Ambient directional depth under main studio monitor decks and preview frames."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-studio-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Exponential ease-out for timeline clip layout shifts and collage cell transitions."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Download CTA",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary conversion trigger for Windows 11 and GitHub Release downloads.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><rect x=\"3\" y=\"3\" width=\"8.2\" height=\"8.2\" rx=\"1.2\"/><rect x=\"12.8\" y=\"3\" width=\"8.2\" height=\"8.2\" rx=\"1.2\"/><rect x=\"3\" y=\"12.8\" width=\"8.2\" height=\"8.2\" rx=\"1.2\"/><rect x=\"12.8\" y=\"12.8\" width=\"8.2\" height=\"8.2\" rx=\"1.2\"/></svg><span>Download for Windows 11</span></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 20px; border-radius: 14px; border: none; background: oklch(0.68 0.19 15); color: oklch(0.13 0.02 15); font-family: 'Geist Variable', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.2s; } .ds-btn-primary:hover { opacity: 0.94; transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: 2px solid oklch(0.68 0.19 15); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Platform Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary platform action for Android APK and repository links.",
+      "html": "<button class=\"ds-btn-secondary\"><span>Android APK</span></button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background: oklch(0.175 0.006 285); color: oklch(0.985 0 0); font-family: 'Geist Variable', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; } .ds-btn-secondary:hover { background: oklch(0.22 0.008 285); } .ds-btn-secondary:focus-visible { outline: 2px solid oklch(0.68 0.19 15); outline-offset: 2px; }"
+    },
+    {
+      "name": "Beat Sync Status Chip",
+      "kind": "chip",
+      "refersTo": "studio-card",
+      "description": "Tabular telemetry pill indicating active beat synchronization.",
+      "html": "<span class=\"ds-chip-beat\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"oklch(0.68 0.19 15)\" stroke-width=\"2\"><path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\"/></svg>9/9 on beat · 120 BPM</span>",
+      "css": ".ds-chip-beat { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 9999px; border: 1px solid oklch(0.68 0.19 15 / 0.35); background: oklch(0.68 0.19 15 / 0.15); color: oklch(0.985 0 0); font-family: 'Geist Mono Variable', monospace; font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Studio Navigation Rail",
+      "kind": "nav",
+      "refersTo": "studio-card",
+      "description": "Segmented studio navigation bar with sliding highlight indicator.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-active\" href=\"#studio\">Beat Studio</a><a class=\"ds-nav-item\" href=\"#screens\">Screenshots</a><a class=\"ds-nav-item\" href=\"#collage\">Collage Lab</a></nav>",
+      "css": ".ds-nav { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: oklch(0.175 0.006 285); } .ds-nav-item { padding: 5px 12px; border-radius: 8px; font-family: 'Geist Variable', sans-serif; font-size: 12px; font-weight: 500; color: oklch(0.75 0.014 285); text-decoration: none; transition: color 0.15s, background 0.15s; } .ds-nav-item:hover, .ds-nav-item.ds-active { color: oklch(0.985 0 0); background: oklch(0.22 0.008 285); }"
+    },
+    {
+      "name": "Studio Deck Container",
+      "kind": "card",
+      "refersTo": "studio-card",
+      "description": "Frameless-inspired studio container with 1px hairline border and directional elevation.",
+      "html": "<div class=\"ds-studio-card\"><div class=\"ds-studio-header\"><span>Rhythm &amp; timing</span><span class=\"ds-mono\">120 BPM</span></div><p class=\"ds-studio-body\">Cuts land on the beats of the music automatically.</p></div>",
+      "css": ".ds-studio-card { border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); background: oklch(0.175 0.006 285); color: oklch(0.985 0 0); padding: 18px; box-shadow: 0 18px 42px -12px rgba(0, 0, 0, 0.42); font-family: 'Geist Variable', sans-serif; } .ds-studio-header { display: flex; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.12); font-size: 14px; font-weight: 600; } .ds-mono { font-family: 'Geist Mono Variable', monospace; font-size: 12px; color: oklch(0.75 0.014 285); } .ds-studio-body { margin-top: 10px; font-size: 12px; color: oklch(0.75 0.014 285); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Rhythm Studio Console",
+    "overview": "SusuEdition's visual system translates the tactile precision of a hardware-accelerated audio-visual editing deck into a clean, responsive interface across its native Tauri v2 application (src/) and its interactive web presentation stage (docs/). Rooted in the b4zjJi3lY shadcn/ui preset, the aesthetic defaults to a deep obsidian studio environment (oklch(0.13 0.005 285)) engineered so colorful photo collages, 9:16 vertical previews, and rose-coral beat markers command immediate visual authority without chromatic fatigue, while offering a crisp daylight counterpart (oklch(0.99 0.002 285)).\n\nEvery surface is structured like an instrument panel rather than a marketing brochure: frameless window chrome, 1px hairline structural dividers, tabular monospace timecode readouts (0:20.0 · 120 BPM · 9/9 on beat), and spring-physics interactive controls powered by Animate UI and Motion.",
+    "keyCharacteristics": [
+      "Frameless desktop studio geometry with hairline 1px borders (oklch(1 0 0 / 12%) in dark mode) and zero decorative clutter.",
+      "High-contrast Rose Signal (oklch(0.68 0.19 15)) reserved strictly for beat-cut markers, active transport triggers, and primary download actions.",
+      "Monospace tabular telemetry (Geist Mono Variable with tabular-nums) for BPM, durations, pixel dimensions, and performance budgets.",
+      "Purposeful tactile motion: spring-driven sliding selection highlights (@animate-ui/react Highlight and TabsHighlight), animated SVG icon strokes (AnimateIcon), and magnetic transport/download triggers."
+    ],
+    "rules": [
+      {
+        "name": "The Beat-Signal Discipline Rule",
+        "body": "Rose Beat Signal (--primary) appears only where timing, playback, or primary conversion occurs—playheads, beat-locked cut markers, active tool pills, and the primary Download CTA. Never spend primary rose on passive container backgrounds or decorative halos.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted Neutral Rule",
+        "body": "All dark and light neutrals carry a subtle 285 violet-slate hue angle (0.005–0.015 chroma) so dark surfaces harmonize with media previews and never read as dead flat #000000 or #808080.",
+        "section": "colors"
+      },
+      {
+        "name": "The Naked Heading Rule",
+        "body": "Headings (h1, h2, h3) always lead their container directly—never place an eyebrow, kicker, or category label above a heading. Supporting telemetry or status pills sit below the heading or in an adjacent toolbar column.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Timecode Rule",
+        "body": "Every numeric readout that changes or compares quantities (timecodes, BPM, clip durations, pixel margins, performance budgets) uses font-mono and tabular-nums (or @animate-ui SlidingNumber) so digits never jitter horizontally during playback or slider scrubbing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Single-Container Rule",
+        "body": "Never nest a bordered card inside another bordered card. Inside a studio deck, sub-regions are separated by 1px hairline dividers (border-t / divide-y) or subtle background shifts (bg-muted/35).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do wrap every interactive icon trigger in <AnimateIcon animateOnHover> from @animate-ui/react/icons.",
+      "Do pass controlledItems and className=\"inset-0 ...\" when using <Highlight> with explicit <HighlightItem> children, and set className=\"flex h-full w-full\" on <HighlightItem> in grid layouts.",
+      "Do keep relative overflow-hidden on any button or link child wrapped by <Shine asChild> so the specular sweep stays bounded inside the control.",
+      "Do theme browser surfaces (::selection, caret-color, custom scrollbars, text-underline-offset: 4px) from --primary and --background."
+    ],
+    "donts": [
+      "Don't place kickers, eyebrows, or small uppercase labels above h1, h2, or h3 headings.",
+      "Don't use CSS gradient text (bg-clip-text text-transparent); achieve emphasis through weight (font-bold) and solid text-primary color contrast.",
+      "Don't use decorative background grid-line patterns, zero-offset neon glow shadows, or nested cards.",
+      "Don't use Unicode emoji characters as icons; use @animate-ui SVG icon components exclusively."
+    ]
+  }
+}

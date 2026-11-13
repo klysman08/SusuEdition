@@ -7,3 +7,5 @@ src/components/ui
 coverage
 *.md
 src/components/animate-ui
+docs
+.impeccable
