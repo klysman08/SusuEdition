@@ -4,7 +4,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-13 · Desktop refinado
+
 ### Added
+- **Janela sem a barra de título do Windows**: o layout desenha os próprios controles (minimizar, maximizar/restaurar, fechar) no canto superior direito; o topo da sidebar, a faixa acima do conteúdo e a barra do editor arrastam a janela (duplo clique maximiza). No Android e no navegador nada muda.
+- **Ícones animados** com [Animate UI](https://github.com/imskyleen/animate-ui): navegação, tema, cartões do Início, barra e ferramentas do editor, Ajustes (o "Verificar agora" gira enquanto confere) e controles da janela animam ao passar o mouse ou tocar.
+- README novo em inglês, com capturas de tela, imagem de compartilhamento (OG) e tabela de recursos.
 - **Cortar mídia**: em Ajustes da mídia (e na barra da mídia selecionada) dá para escolher a parte da foto ou do vídeo que aparece — alças nos cantos e lados, arrastar para mover, atalhos de proporção (livre, a do vídeo, 1:1). O enquadramento passa a valer para a parte cortada, na prévia e na exportação; fotos cortadas são decodificadas maiores para não perder nitidez.
 - **Mais movimentos das fotos**: para cima, para baixo, impacto (entra ampliada e assenta), pulsar e giro à esquerda/direita, além de aproximar, afastar e deslocar. Valem como padrão das fotos e por mídia.
 - **Botão Salvar** na barra do editor (e Ctrl+S): grava na hora o que o salvamento automático ainda não gravou. No celular o botão também mostra o estado do salvamento.
@@ -12,6 +17,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 - Créditos em Ajustes → Sobre: criado por [@klysman08](https://github.com/klysman08), com link para o código.
 
 ### Changed
+- **Layout do desktop mais limpo**: sem barra no topo, sidebar um pouco mais estreita com uma marca discreta no item ativo e conteúdo começando mais perto do topo. Ícone da Colagem e do tema "Sistema" atualizados.
 - **Ritmo e Tempo viraram uma ferramenta só** ("Ritmo"): sincronia com as batidas, tempo de cada mídia, duração total, excesso de mídia, transição e movimento das fotos no mesmo painel.
 - **Tempo de cada mídia a partir de 0,2 s** (antes 0,5 s para fotos e 1 s para vídeos), em passos de 0,1 s. O mínimo de qualquer trecho da timeline também passou a 0,2 s.
 - Componentes shadcn animados com [Animate UI](https://github.com/imskyleen/animate-ui) (Motion): diálogos, gavetas, menus, seletores, dicas, interruptores, abas e grupos de botões.
