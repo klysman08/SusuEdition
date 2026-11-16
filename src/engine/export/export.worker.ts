@@ -24,12 +24,14 @@ import {
 import type { ProbeSource } from "../decode/probe-protocol";
 import { makeSource, sourceBlob } from "../decode/source";
 import {
+  beatPulseAt,
   createWebGLCompositor,
   cropDecodeTarget,
   decodeSize,
   layersAt,
   lookFilter,
   motionTransform,
+  withPulse,
   type CompositorLayer,
 } from "../render";
 import { AudioMixer } from "./audio-mixer";
@@ -237,15 +239,17 @@ async function run(job: ExportJob, port: MessagePort) {
 
       const toClose: VideoFrame[] = [];
       const layers: CompositorLayer[] = [];
+      const pulse = beatPulseAt(job.beats, t, job.effects.beatPulse);
       for (const l of layersAt(job.segments, t)) {
         const seg = l.segment;
         const m = job.media[seg.mediaId];
         if (!m) continue;
         const fit = seg.fit ?? job.fit;
         const fx = {
-          motion: motionTransform(seg.motion, l.progress),
+          motion: withPulse(motionTransform(seg.motion, l.progress), pulse),
           filter: lookFilter(seg.look),
           crop: seg.crop,
+          transition: l.transition,
         };
         if (m.kind === "image") {
           const bmp = await loadImage(l.index);
@@ -269,7 +273,7 @@ async function run(job: ExportJob, port: MessagePort) {
           });
         }
       }
-      compositor.draw(layers, job.background, job.filter);
+      compositor.draw(layers, job.background, job.filter, job.effects);
       compositor.retain(new Set(layers.map((l) => l.key)));
       for (const vf of toClose) vf.close();
       await video.add(t, 1 / fps);

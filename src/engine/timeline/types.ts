@@ -1,5 +1,7 @@
+import type { SfxKind } from "../audio/sfx";
 import type { FilterPresetId } from "../render/filters";
 import type { Beat, FitMode, MediaItem, MediaKind } from "../types";
+import type { TransitionKind } from "./transitions";
 
 /** Movimento lento sobre a mídia (efeito Ken Burns). */
 export type MotionKind =
@@ -64,7 +66,9 @@ export interface ClipOverrides {
   /** Movimento desta mídia (vence `TimelineSettings.photoMotion`). */
   motion?: MotionKind;
   /** Transição de entrada desta mídia (vence `TimelineSettings.transition`). */
-  transitionIn?: "cut" | "fade";
+  transitionIn?: "cut" | TransitionKind;
+  /** Som na entrada desta mídia (vence `TimelineSettings.transitionSound`). */
+  soundIn?: SfxKind | "none";
 }
 
 export interface TimelineItem {
@@ -74,7 +78,18 @@ export interface TimelineItem {
 
 export type TotalDuration = { mode: "music" } | { mode: "custom"; seconds: number } | { mode: "items" };
 
-export type Transition = { kind: "cut" } | { kind: "fade"; durationSec: number };
+/** Transição resolvida na entrada de um segmento. */
+export type Transition = { kind: "cut" } | { kind: TransitionKind; durationSec: number };
+
+/**
+ * Transição padrão do vídeo: uma só para todas as mídias ou "mix", que alterna entre
+ * várias na ordem (a mídia `i` entra com `kinds[(i − 1) % n]`).
+ */
+export type TransitionChoice =
+  Transition | { kind: "mix"; kinds: readonly (TransitionKind | "cut")[]; durationSec: number };
+
+/** Som tocado em cada transição: um efeito fixo, nenhum, ou o que combina com a transição. */
+export type TransitionSound = SfxKind | "none" | "auto";
 
 export interface MusicSelection {
   inSec: number;
@@ -87,9 +102,15 @@ export interface TimelineSettings {
   total: TotalDuration;
   /** O que fazer quando há mais mídia do que a duração total permite. */
   overflow: "drop" | "fit";
-  transition: Transition;
+  transition: TransitionChoice;
+  /** Efeito sonoro nas transições (clique, obturador, whoosh…). */
+  transitionSound: TransitionSound;
   /** Movimento padrão das fotos; "auto" alterna zoom e deslocamento a cada foto. */
   photoMotion: MotionKind | "auto";
+  /** Sequência usada pelo movimento "auto" (ausente = zoom e deslocamento alternados). */
+  motionSet?: readonly MotionKind[];
+  /** O movimento padrão vale também para os vídeos. */
+  motionOnVideos: boolean;
   keepVideoAudio: boolean;
   /** Fade-out aplicado quando a música é cortada antes do fim da seleção. */
   musicFadeOutSec: number;
@@ -127,7 +148,9 @@ export const DEFAULT_TIMELINE_SETTINGS: TimelineSettings = {
   total: { mode: "music" },
   overflow: "drop",
   transition: { kind: "cut" },
+  transitionSound: "none",
   photoMotion: "none",
+  motionOnVideos: false,
   keepVideoAudio: false,
   musicFadeOutSec: 3,
   minClipSec: 0.2,
@@ -153,6 +176,8 @@ export interface TimelineSegment {
   look?: ClipLook;
   /** Ausente = sem movimento. */
   motion?: MotionKind;
+  /** Efeito sonoro tocado na entrada deste segmento (ausente = nenhum). */
+  sfx?: SfxKind;
 }
 
 export interface AudioPlan {

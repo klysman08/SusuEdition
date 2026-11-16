@@ -4,15 +4,19 @@
  * Cada camada = fundo (cor sólida ou a própria fonte desfocada) + fonte enquadrada
  * (fit/cover/fill). Num fade, a segunda camada é renderizada num framebuffer e
  * misturada por cima com opacidade — mistura exata, sem "vazamento" entre fundos.
+ * Nas demais transições as duas camadas vão para framebuffers e um shader próprio
+ * (`transition-glsl.ts`) monta o quadro a partir delas.
  *
  * Funciona com HTMLCanvasElement (preview) e OffscreenCanvas em Worker (export).
  */
 import type { FitBackground, FitMode, Size } from "../types";
 import { FILTER_GLSL, FILTER_KEYS, FILTER_UNIFORMS, isNeutralFilter, type FilterAdjust } from "./filters";
+import { transitionIndex, type TransitionKind } from "../timeline/transitions";
 import type { ClipCrop } from "../timeline/types";
 import { croppedSize } from "./crop";
 import { coversTarget, fitRect, type Rect } from "./fit";
 import { applyMotion, type MotionTransform } from "./motion";
+import { TRANSITION_FS, TRANSITION_VS } from "./transition-glsl";
 
 export interface CompositorLayer {
   /** Chave estável da textura (ex.: `${mediaId}:full`). */
@@ -32,13 +36,29 @@ export interface CompositorLayer {
   motion?: MotionTransform | null;
   /** Filtro de cor só desta camada (fonte e fundo desfocado dela). */
   filter?: FilterAdjust | null;
+  /**
+   * Só na segunda camada: a transição com que ela entra (`alpha` é o progresso, 0 → 1).
+   * Ausente ou "fade" = mistura por opacidade.
+   */
+  transition?: TransitionKind;
+}
+
+/** Efeitos aplicados ao quadro pronto. */
+export interface FrameEffects {
+  /** Barras de cinema: fração da altura coberta por cada barra (0 = sem barras). */
+  letterbox?: number;
 }
 
 export interface Compositor {
   readonly size: Size;
   resize(size: Size): void;
   /** `filter`: ajuste de cor aplicado ao quadro inteiro (passe final); `null` = sem filtro. */
-  draw(layers: readonly CompositorLayer[], background: FitBackground, filter?: FilterAdjust | null): void;
+  draw(
+    layers: readonly CompositorLayer[],
+    background: FitBackground,
+    filter?: FilterAdjust | null,
+    effects?: FrameEffects | null,
+  ): void;
   /** Libera texturas de chaves que não estão em `keep`. */
   retain(keep: ReadonlySet<string>): void;
   dispose(): void;
@@ -137,11 +157,24 @@ export function createWebGLCompositor(
     if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh) ?? "shader");
     return sh;
   };
-  const prog = gl.createProgram()!;
-  gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
-  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) ?? "link");
+  const link = (vs: string, fs: string) => {
+    const p = gl.createProgram()!;
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+    // Os dois programas usam o mesmo quadrado (um VAO só).
+    gl.bindAttribLocation(p, 0, "a_pos");
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? "link");
+    return p;
+  };
+  const prog = link(VS, FS);
+  /** Programa das transições: compilado só quando a primeira aparece. */
+  let transition: {
+    prog: WebGLProgram;
+    p: WebGLUniformLocation | null;
+    kind: WebGLUniformLocation | null;
+    aspect: WebGLUniformLocation | null;
+  } | null = null;
   gl.useProgram(prog);
 
   const u = (name: string) => gl.getUniformLocation(prog, name);
@@ -170,9 +203,8 @@ export function createWebGLCompositor(
   const vbo = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, "a_pos");
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  gl.enableVertexAttribArray(0);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
   gl.uniform1i(U.tex, 0);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -205,6 +237,8 @@ export function createWebGLCompositor(
   let size: Size = { width: canvas.width, height: canvas.height };
   const screen = (): Target => ({ fb: null, tex: null, size });
   let layerTarget: Target | null = null;
+  /** Quadro da camada que sai, durante uma transição com shader. */
+  let fromTarget: Target | null = null;
   let blurTarget: Target | null = null;
   /** Quadro completo antes do filtro (só existe enquanto há filtro ativo). */
   let frameTarget: Target | null = null;
@@ -228,6 +262,47 @@ export function createWebGLCompositor(
       frameTarget = newTarget(size);
     }
     return frameTarget;
+  };
+  const ensureFromTarget = (): Target => {
+    if (!fromTarget || fromTarget.size.width !== size.width || fromTarget.size.height !== size.height) {
+      freeTarget(fromTarget);
+      fromTarget = newTarget(size);
+    }
+    return fromTarget;
+  };
+
+  /** Monta em `out` o quadro da transição `kind` entre as duas texturas, no ponto `progress`. */
+  const drawTransition = (from: Target, to: Target, out: Target, kind: TransitionKind, progress: number) => {
+    if (!transition) {
+      const p = link(TRANSITION_VS, TRANSITION_FS);
+      gl.useProgram(p);
+      gl.uniform1i(gl.getUniformLocation(p, "u_from"), 0);
+      gl.uniform1i(gl.getUniformLocation(p, "u_to"), 1);
+      transition = {
+        prog: p,
+        p: gl.getUniformLocation(p, "u_p"),
+        kind: gl.getUniformLocation(p, "u_kind"),
+        aspect: gl.getUniformLocation(p, "u_aspect"),
+      };
+    }
+    gl.useProgram(transition.prog);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, out.fb);
+    gl.viewport(0, 0, out.size.width, out.size.height);
+    gl.uniform1f(transition.p, progress);
+    gl.uniform1i(transition.kind, transitionIndex(kind));
+    gl.uniform1f(transition.aspect, out.size.width / Math.max(1, out.size.height));
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, to.tex);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, from.tex);
+    gl.disable(gl.BLEND);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.enable(gl.BLEND);
+    // Solta a segunda textura: ela é um framebuffer que volta a ser alvo de desenho.
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.useProgram(prog);
   };
 
   const textureFor = (layer: CompositorLayer): WebGLTexture => {
@@ -340,7 +415,7 @@ export function createWebGLCompositor(
       canvas.height = next.height;
       size = { ...next };
     },
-    draw(layers, background, filter) {
+    draw(layers, background, filter, effects) {
       if (gl.isContextLost()) return;
       ensureTargets();
       const [first, second] = layers;
@@ -354,11 +429,24 @@ export function createWebGLCompositor(
       const fx = filter && !isNeutralFilter(filter) ? filter : null;
       const out = fx ? ensureFrameTarget() : screen();
       const full = { x: 0, y: 0, w: size.width, h: size.height };
-      drawLayer(first, background, out);
-      if (second && second.alpha > 0) {
+      const shaded = second && second.alpha > 0 && second.transition && second.transition !== "fade";
+      if (second && shaded) {
+        // Transição com shader: as duas camadas inteiras viram texturas.
+        const from = ensureFromTarget();
+        drawLayer(first, background, from);
         drawLayer(second, background, layerTarget!);
-        bindTarget(out);
-        quad(layerTarget!.tex!, full, { flipV: true, alpha: second.alpha });
+        drawTransition(from, layerTarget!, out, second.transition!, second.alpha);
+      } else {
+        drawLayer(first, background, out);
+        if (second && second.alpha > 0) {
+          drawLayer(second, background, layerTarget!);
+          bindTarget(out);
+          quad(layerTarget!.tex!, full, { flipV: true, alpha: second.alpha });
+        }
+        if (fromTarget) {
+          freeTarget(fromTarget);
+          fromTarget = null;
+        }
       }
       if (fx) {
         bindTarget(screen());
@@ -366,6 +454,18 @@ export function createWebGLCompositor(
       } else if (frameTarget) {
         freeTarget(frameTarget);
         frameTarget = null;
+      }
+      // Barras de cinema por cima de tudo.
+      const bar = Math.round(size.height * Math.min(0.3, Math.max(0, effects?.letterbox ?? 0)));
+      if (bar > 0) {
+        bindTarget(screen());
+        gl.enable(gl.SCISSOR_TEST);
+        gl.clearColor(0, 0, 0, 1);
+        gl.scissor(0, 0, size.width, bar);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.scissor(0, size.height - bar, size.width, bar);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.disable(gl.SCISSOR_TEST);
       }
     },
     retain(keep) {
@@ -380,11 +480,13 @@ export function createWebGLCompositor(
       for (const entry of textures.values()) gl.deleteTexture(entry.tex);
       textures.clear();
       freeTarget(layerTarget);
+      freeTarget(fromTarget);
       freeTarget(blurTarget);
       freeTarget(frameTarget);
       gl.deleteBuffer(vbo);
       gl.deleteVertexArray(vao);
       gl.deleteProgram(prog);
+      if (transition) gl.deleteProgram(transition.prog);
     },
   };
 }

@@ -7,6 +7,7 @@ import { getMediaBackend, type MediaBackend } from "@/platform/media";
 
 import { useProject, useRhythm } from "../hooks";
 import { videoMediaStore, videoMusicStore } from "../store";
+import { timelineBeats } from "../timeline-input";
 import { PreviewPlayer, type PlayerState, type PreviewMedia } from "./preview-player";
 
 /** Lado menor máximo do canvas do preview (custo de GPU constante). */
@@ -48,6 +49,7 @@ export function usePreviewPlayer(
   const fit = useProject((s) => s.fit);
   const background = useProject((s) => s.background);
   const mix = useProject((s) => s.mix);
+  const effects = useProject((s) => s.effects);
   const filterSettings = useProject((s) => s.filter);
   const filter = useMemo(() => {
     const resolved = resolveFilter(filterSettings);
@@ -56,6 +58,11 @@ export function usePreviewPlayer(
   const items = useStore(videoMediaStore, (s) => s.items);
   const musicUrl = useStore(videoMusicStore, (s) => (s.status === "ready" ? (s.track?.url ?? null) : null));
   const fileBeats = useRhythm();
+  const detected = useStore(videoMusicStore, (s) => (s.status === "ready" ? s.analysis?.beats : undefined));
+  const pulseBeats = useMemo(
+    () => (effects.beatPulse > 0 && detected ? timelineBeats(detected, timeline.audio, timeline.durationSec) : []),
+    [effects.beatPulse, detected, timeline.audio, timeline.durationSec],
+  );
   const [aw, ah] = aspect.split(":").map(Number) as [number, number];
 
   useEffect(() => {
@@ -131,9 +138,11 @@ export function usePreviewPlayer(
       fit,
       background,
       filter,
+      effects,
+      beats: pulseBeats,
       mix,
     });
-  }, [player, timeline, media, musicUrl, fit, background, filter, mix]);
+  }, [player, timeline, media, musicUrl, fit, background, filter, effects, pulseBeats, mix]);
 
   // Pausa ao sair do editor.
   useEffect(() => () => player?.pause(), [player]);

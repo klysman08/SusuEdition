@@ -1,5 +1,7 @@
+import type { SfxKind } from "../audio/sfx";
 import { normalizeCrop } from "../render/crop";
-import { applyCuts, BEAT_SYNC_PRESETS, syncCutsToBeats } from "./beat-sync";
+import { applyCuts, BEAT_SYNC_PRESETS, clampTransition, syncCutsToBeats } from "./beat-sync";
+import { TRANSITIONS } from "./transitions";
 import type {
   AudioPlan,
   BuildTimelineInput,
@@ -16,26 +18,42 @@ const EPS = 1e-6;
 /** Diferença entre vídeo e trecho da música considerada "igual" (sem corte nem aviso). */
 const MUSIC_TOLERANCE_SEC = 0.05;
 
-/** Duração do fade quando só uma mídia pede fade e o padrão do vídeo é corte seco. */
-const DEFAULT_FADE_SEC = 0.5;
 /** Sequência do movimento "auto" das fotos. */
 const AUTO_MOTIONS: readonly MotionKind[] = ["zoomIn", "panLeft", "zoomOut", "panRight"];
 
-/** Transição desejada na entrada do item (antes de limitar pela duração dos vizinhos). */
-function wantedTransition(item: TimelineItem, s: TimelineSettings): Transition {
+/**
+ * Transição desejada na entrada do item `index` (antes de limitar pela duração dos
+ * vizinhos). Uma mídia com transição própria usa a duração padrão do vídeo — ou a
+ * natural daquela transição, quando o padrão é corte seco. No "mix", a posição escolhe.
+ */
+function wantedTransition(item: TimelineItem, index: number, s: TimelineSettings): Transition {
+  const base = s.transition;
   const o = item.overrides?.transitionIn;
   if (o === "cut") return { kind: "cut" };
-  if (o === "fade") {
-    return { kind: "fade", durationSec: s.transition.kind === "fade" ? s.transition.durationSec : DEFAULT_FADE_SEC };
-  }
-  return s.transition;
+  if (o) return { kind: o, durationSec: base.kind === "cut" ? TRANSITIONS[o].durationSec : base.durationSec };
+  if (base.kind !== "mix") return base;
+  if (base.kinds.length === 0 || index < 1) return { kind: "cut" };
+  const kind = base.kinds[(index - 1) % base.kinds.length]!;
+  return kind === "cut" ? { kind } : { kind, durationSec: base.durationSec };
 }
 
-/** Movimento do item: o próprio, ou o padrão das fotos ("auto" alterna pela posição). */
+/** Efeito sonoro na entrada do item: o próprio, o fixo do vídeo ou o que combina com a transição. */
+function soundFor(item: TimelineItem, wanted: Transition, s: TimelineSettings): SfxKind | undefined {
+  const o = item.overrides?.soundIn;
+  if (o === "none") return undefined;
+  if (o) return o;
+  if (s.transitionSound === "none") return undefined;
+  if (s.transitionSound === "auto") return wanted.kind === "cut" ? undefined : TRANSITIONS[wanted.kind].sound;
+  return s.transitionSound;
+}
+
+/** Movimento do item: o próprio, ou o padrão ("auto" alterna pela posição). */
 function motionFor(item: TimelineItem, index: number, s: TimelineSettings): MotionKind {
   if (item.overrides?.motion) return item.overrides.motion;
-  if (item.media.kind !== "image") return "none";
-  return s.photoMotion === "auto" ? AUTO_MOTIONS[index % AUTO_MOTIONS.length]! : s.photoMotion;
+  if (item.media.kind !== "image" && !s.motionOnVideos) return "none";
+  if (s.photoMotion !== "auto") return s.photoMotion;
+  const set = s.motionSet && s.motionSet.length > 0 ? s.motionSet : AUTO_MOTIONS;
+  return set[index % set.length]!;
 }
 
 /** Evita acúmulo de erro de ponto flutuante (resolução de microssegundos). */
@@ -138,13 +156,6 @@ function fitOverflow(items: Planned[], target: number, minClip: number): { kept:
   return { kept, dropped };
 }
 
-function clampTransition(t: Transition, prev: number, cur: number): Transition {
-  if (t.kind === "cut") return t;
-  // Fade centrado no corte: consome no máximo metade de cada segmento vizinho.
-  const d = Math.min(t.durationSec, prev, cur);
-  return d > EPS ? { kind: "fade", durationSec: r(d) } : { kind: "cut" };
-}
-
 /**
  * Constrói a timeline do Video Maker. Função pura e determinística (SPEC §2.6).
  *
@@ -178,7 +189,10 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       p.item.media.kind === "video" &&
       (p.item.media.hasAudio ?? true) &&
       (p.item.overrides?.keepAudio ?? s.keepVideoAudio);
-    const motion = motionFor(p.item, segments.length, s);
+    const index = segments.length;
+    const motion = motionFor(p.item, index, s);
+    const wanted = wantedTransition(p.item, index, s);
+    const sfx = prev ? soundFor(p.item, wanted, s) : undefined;
     const look = p.item.overrides?.look;
     const crop = normalizeCrop(p.item.overrides?.crop);
     segments.push({
@@ -188,13 +202,14 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
       durationSec: duration,
       sourceInSec: r(p.sourceInSec),
       sourceOutSec: r(p.sourceInSec + duration),
-      transitionIn: prev ? clampTransition(wantedTransition(p.item, s), prev.durationSec, duration) : { kind: "cut" },
+      transitionIn: prev ? clampTransition(wanted, prev.durationSec, duration) : { kind: "cut" },
       fit: p.item.overrides?.fit,
       ...(crop ? { crop } : {}),
       keepAudio,
       gain: p.item.overrides?.gain ?? 1,
       ...(look && look.preset !== "none" && look.intensity > 0 ? { look } : {}),
       ...(motion !== "none" ? { motion } : {}),
+      ...(sfx ? { sfx } : {}),
     });
     cursor += duration;
   }
@@ -217,7 +232,7 @@ export function buildTimeline(input: BuildTimelineInput): TimelineResult {
     segments = applyCuts(
       segments,
       cuts,
-      kept.map((p) => wantedTransition(p.item, s)),
+      kept.map((p, i) => wantedTransition(p.item, i, s)),
     );
     beatSync = stats;
   }

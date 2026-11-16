@@ -1,6 +1,7 @@
 /**
  * Mixagem do áudio final em blocos (48 kHz estéreo): trecho da música + áudio
- * original dos vídeos que mantêm o som, com fade-out, ducking e volumes.
+ * original dos vídeos que mantêm o som + efeitos sonoros das transições, com fade-out,
+ * ducking e volumes.
  * Cada fonte é lida em streaming (nada inteiro na memória).
  */
 import { ALL_FORMATS, AudioSampleSink, Input, type AudioSample } from "mediabunny";
@@ -8,6 +9,7 @@ import { ALL_FORMATS, AudioSampleSink, Input, type AudioSample } from "mediabunn
 import { musicGainAt, videoGainAt } from "../audio/envelope";
 import type { AudioMix } from "../audio/mix";
 import { StereoResampler } from "../audio/resampler";
+import { mixSfxInto, sfxEvents, type SfxEvent } from "../audio/sfx";
 import type { ProbeSource } from "../decode/probe-protocol";
 import { makeSource } from "../decode/source";
 import type { AudioPlan, TimelineSegment } from "../timeline";
@@ -109,15 +111,21 @@ export interface MixerInput {
 export class AudioMixer {
   private music: TrackReader | null;
   private readers = new Map<number, TrackReader>();
+  private sfx: SfxEvent[];
 
   constructor(private readonly input: MixerInput) {
+    this.sfx = input.mix.sfxGain > 0 ? sfxEvents(input.segments) : [];
     const plan = input.audio;
     this.music = plan && input.music ? new TrackReader(input.music, plan.musicInSec, plan.musicOutSec) : null;
   }
 
   /** O vídeo final tem trilha de áudio? */
   static hasAudio(input: MixerInput): boolean {
-    return (!!input.audio && !!input.music) || input.segments.some((s) => s.keepAudio);
+    return (
+      (!!input.audio && !!input.music) ||
+      input.segments.some((s) => s.keepAudio) ||
+      (input.mix.sfxGain > 0 && input.segments.some((s) => s.sfx))
+    );
   }
 
   /** Renderiza `frames` amostras a partir de `t0` (s). Retorna [L, R]. */
@@ -171,6 +179,8 @@ export class AudioMixer {
         this.readers.delete(i);
       }
     }
+
+    mixSfxInto(L, R, this.sfx, t0, frames, rate, mix.sfxGain);
 
     for (let j = 0; j < frames; j++) {
       L[j] = Math.max(-1, Math.min(1, L[j]!));

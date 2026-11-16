@@ -7,9 +7,11 @@ export interface AudioMix {
   videoGain: number;
   /** Volume relativo da música enquanto um vídeo com som está tocando. */
   duckingGain: number;
+  /** Volume dos efeitos sonoros das transições. */
+  sfxGain: number;
 }
 
-export const DEFAULT_AUDIO_MIX: AudioMix = { musicGain: 1, videoGain: 1, duckingGain: 0.35 };
+export const DEFAULT_AUDIO_MIX: AudioMix = { musicGain: 1, videoGain: 1, duckingGain: 0.35, sfxGain: 0.7 };
 
 /** Fator 0..1 do fade-out da música no instante `t` da timeline. */
 export function musicFadeAt(t: number, durationSec: number, fadeOutSec: number): number {

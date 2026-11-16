@@ -8,6 +8,7 @@ import { ArrowRight } from "@/components/animate-ui/icons/arrow-right";
 import { Clapperboard } from "@/components/animate-ui/icons/clapperboard";
 import { FolderOpen } from "@/components/animate-ui/icons/folder-open";
 import { LayoutDashboard } from "@/components/animate-ui/icons/layout-dashboard";
+import { Sparkles } from "@/components/animate-ui/icons/sparkles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +73,7 @@ export function HomePage() {
         <p className="mt-1.5 text-sm text-muted-foreground sm:mt-2 sm:text-base">{t("home.subtitle")}</p>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <section className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         <FeatureCard
           to="/video-maker"
           icon={Clapperboard}
@@ -80,6 +81,14 @@ export function HomePage() {
           description={t("home.videoMaker.description")}
           cta={t("home.videoMaker.cta")}
           accentClassName="bg-gradient-to-br from-rose-500 to-orange-400"
+        />
+        <FeatureCard
+          to="/templates"
+          icon={Sparkles}
+          title={t("home.templates.title")}
+          description={t("home.templates.description")}
+          cta={t("home.templates.cta")}
+          accentClassName="bg-gradient-to-br from-amber-500 to-rose-500"
         />
         <FeatureCard
           to="/photo-collage"

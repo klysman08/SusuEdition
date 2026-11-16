@@ -12,6 +12,7 @@ export * from "./mix";
 export * from "./peaks";
 export * from "./resampler";
 export * from "./selection";
+export * from "./sfx";
 
 /** Resultado da análise de uma música (espelha `AudioAnalysis` do Rust). */
 export interface AudioAnalysis {

@@ -1,4 +1,4 @@
-import type { TimelineSegment } from "../timeline";
+import type { TimelineSegment, TransitionKind } from "../timeline";
 
 /** Uma fonte visível no instante `t`. */
 export interface ActiveLayer {
@@ -10,19 +10,28 @@ export interface ActiveLayer {
   alpha: number;
   /** Posição dentro do segmento: 0 no início, 1 no fim (passa um pouco disso nos fades). */
   progress: number;
+  /**
+   * Só na camada que está entrando: a transição em andamento (`alpha` é o progresso dela,
+   * 0 → 1). Ausente = a camada aparece inteira.
+   */
+  transition?: TransitionKind;
 }
 
-function fadeHalf(seg: TimelineSegment | undefined): number {
-  return seg?.transitionIn.kind === "fade" ? seg.transitionIn.durationSec / 2 : 0;
+/** Metade da transição de entrada do segmento (ela é centrada no corte); 0 = corte seco. */
+export function transitionHalf(seg: TimelineSegment | undefined): number {
+  return seg && seg.transitionIn.kind !== "cut" ? seg.transitionIn.durationSec / 2 : 0;
 }
 
-function layer(index: number, seg: TimelineSegment, t: number, alpha: number): ActiveLayer {
+const fadeHalf = transitionHalf;
+
+function layer(index: number, seg: TimelineSegment, t: number, alpha: number, entering = false): ActiveLayer {
   return {
     index,
     segment: seg,
     sourceTimeSec: Math.max(0, seg.sourceInSec + (t - seg.startSec)),
     alpha,
     progress: seg.durationSec > 0 ? (t - seg.startSec) / seg.durationSec : 0,
+    ...(entering && seg.transitionIn.kind !== "cut" ? { transition: seg.transitionIn.kind } : {}),
   };
 }
 
@@ -40,8 +49,8 @@ export function segmentIndexAt(segments: readonly TimelineSegment[], t: number):
 }
 
 /**
- * Camadas visíveis em `t`. Um fade de duração `d` na entrada do segmento `i` é
- * centrado no corte: vai de `start_i - d/2` a `start_i + d/2`, misturando `i-1` → `i`.
+ * Camadas visíveis em `t`. Uma transição de duração `d` na entrada do segmento `i` é
+ * centrada no corte: vai de `start_i - d/2` a `start_i + d/2`, levando de `i-1` a `i`.
  * Usado igualmente pelo preview e pelo export.
  */
 export function layersAt(segments: readonly TimelineSegment[], t: number): ActiveLayer[] {
@@ -53,13 +62,13 @@ export function layersAt(segments: readonly TimelineSegment[], t: number): Activ
   const nextHalf = fadeHalf(next);
   if (next && nextHalf > 0 && t >= next.startSec - nextHalf) {
     const mix = (t - (next.startSec - nextHalf)) / (2 * nextHalf);
-    return [layer(i, cur, t, 1), layer(i + 1, next, t, Math.min(1, mix))];
+    return [layer(i, cur, t, 1), layer(i + 1, next, t, Math.min(1, mix), true)];
   }
   const half = fadeHalf(cur);
   const prev = segments[i - 1];
   if (prev && half > 0 && t < cur.startSec + half) {
     const mix = (t - (cur.startSec - half)) / (2 * half);
-    return [layer(i - 1, prev, t, 1), layer(i, cur, t, Math.max(0, mix))];
+    return [layer(i - 1, prev, t, 1), layer(i, cur, t, Math.max(0, mix), true)];
   }
   return [layer(i, cur, t, 1)];
 }

@@ -126,7 +126,7 @@ const Clips = memo(function Clips({
               touchAction: selected || !zoomed ? "none" : "pan-x",
             }}
           >
-            {seg.transitionIn.kind === "fade" && (
+            {seg.transitionIn.kind !== "cut" && (
               <span className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-background/80 to-transparent" />
             )}
             {w >= 40 && (

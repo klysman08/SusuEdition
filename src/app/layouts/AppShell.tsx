@@ -157,7 +157,7 @@ export function AppShell() {
               immersive && "hidden",
             )}
           >
-            <ul className="grid grid-cols-4">
+            <ul className="grid" style={{ gridTemplateColumns: `repeat(${NAV_ITEMS.length}, minmax(0, 1fr))` }}>
               {NAV_ITEMS.map(({ to, labelKey, icon: Icon }) => (
                 <AnimateIcon key={to} animateOnHover animateOnTap asChild>
                   <li>
@@ -166,7 +166,7 @@ export function AppShell() {
                       end={to === "/"}
                       className={({ isActive }) =>
                         cn(
-                          "flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
+                          "flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[11px] font-medium text-muted-foreground transition-colors",
                           isActive && "text-primary",
                         )
                       }
@@ -175,7 +175,7 @@ export function AppShell() {
                         <Icon className="size-5" aria-hidden />
                         {badge(to)}
                       </span>
-                      {t(labelKey)}
+                      <span className="max-w-full truncate">{t(labelKey)}</span>
                     </NavLink>
                   </li>
                 </AnimateIcon>

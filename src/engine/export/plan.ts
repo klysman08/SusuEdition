@@ -57,7 +57,7 @@ export interface VideoFramePlan {
 }
 
 const fadeHalf = (s: TimelineSegment | undefined) =>
-  s?.transitionIn.kind === "fade" ? s.transitionIn.durationSec / 2 : 0;
+  s && s.transitionIn.kind !== "cut" ? s.transitionIn.durationSec / 2 : 0;
 
 /** Quadros de saída (inclusive) em que o segmento `i` aparece, contando os fades. */
 export function segmentFrameRange(

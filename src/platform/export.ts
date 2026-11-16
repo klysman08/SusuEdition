@@ -6,16 +6,24 @@
  */
 import { getPlatform, isMobilePlatform, isTauri } from "./index";
 
-/** `video` → Vídeos/SusuEdition · `image` → Imagens/SusuEdition. */
-export type ExportKind = "video" | "image";
+/** `video` → Vídeos/SusuEdition · `image` → Imagens/SusuEdition · `audio` → Músicas/SusuEdition. */
+export type ExportKind = "video" | "image" | "audio";
 
 const FILTERS: Record<string, { name: string; extensions: string[] }> = {
   mp4: { name: "MP4", extensions: ["mp4"] },
   jpg: { name: "JPEG", extensions: ["jpg", "jpeg"] },
   png: { name: "PNG", extensions: ["png"] },
+  m4a: { name: "M4A", extensions: ["m4a"] },
+  wav: { name: "WAV", extensions: ["wav"] },
 };
 
-const MIME: Record<string, string> = { mp4: "video/mp4", jpg: "image/jpeg", png: "image/png" };
+const MIME: Record<string, string> = {
+  mp4: "video/mp4",
+  jpg: "image/jpeg",
+  png: "image/png",
+  m4a: "audio/mp4",
+  wav: "audio/wav",
+};
 const ext = (fileName: string) => fileName.split(".").pop()?.toLowerCase() ?? "";
 
 export interface ExportTargetInfo {

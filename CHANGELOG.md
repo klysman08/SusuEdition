@@ -4,6 +4,13 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Added
+- **Templates** (novo item no menu lateral): 12 edições prontas — Cinematic Beat Sync, FrameShift, Grid Effect, Velocity, Glitch Cyber, Sessão de fotos, Memórias, Filme antigo, Diário de viagem, Recap 15 s, Noir e Pulse Party. Cada cartão mostra a prévia animada do template de verdade; ao escolher, basta adicionar fotos e vídeos (e a música) que a edição é aplicada sozinha. Também dá para aplicar ao projeto aberto (Ctrl+Z desfaz).
+- **21 transições** em quatro grupos (Suaves, Impacto, Veloz, Efeitos), além do corte seco: flash, impacto, tremor, salto, chicotes nas quatro direções, giro, zoom veloz, glitch, pixels, cortina, íris, queima de filme, FrameShift, fatias e grade. "Misturar" alterna entre as do grupo; cada mídia pode ter a sua.
+- **Efeitos sonoros nas transições**: clique, câmera fotográfica, whoosh, swish, impacto, pop, glitch e sino — sintetizados no app, iguais na prévia e na exportação. Modo automático (o som que combina com cada transição), som por mídia e volume próprio em Áudio.
+- **Extrair áudio dos vídeos** na ferramenta Áudio: usar o som de um vídeo como a música do projeto ou salvá-lo em M4A/WAV.
+- **Efeitos** em Filtros: barras de cinema e pulsar na batida. O movimento (Ken Burns) agora pode valer também para os vídeos.
+
 ## [0.9.0] — 2026-11-13 · Desktop refinado
 
 ### Added

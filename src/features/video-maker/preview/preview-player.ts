@@ -1,19 +1,23 @@
 import { clamp01, musicVolumeAt, type AudioMix } from "@/engine/audio";
 import {
+  beatPulseAt,
   createWebGLCompositor,
   cropDecodeTarget,
   layersAt,
   lookFilter,
   motionTransform,
   upcomingSegments,
+  withPulse,
   type Compositor,
   type CompositorLayer,
   type FilterAdjust,
+  type VideoEffects,
 } from "@/engine/render";
 import type { AudioPlan, TimelineSegment } from "@/engine/timeline";
-import type { FitBackground, FitMode, Size } from "@/engine/types";
+import type { Beat, FitBackground, FitMode, Size } from "@/engine/types";
 
 import { ImageCache } from "@/engine/decode/image-cache";
+import { SfxPlayer } from "./sfx-player";
 import { VideoPool } from "./video-pool";
 
 export interface PreviewMedia {
@@ -35,6 +39,10 @@ export interface PreviewInput {
   background: FitBackground;
   /** Filtro global já resolvido; `null` = sem filtro. */
   filter: FilterAdjust | null;
+  /** Barras de cinema e pulso na batida. */
+  effects: VideoEffects;
+  /** Batidas da música em tempo de timeline, em ordem (para o pulso na batida). */
+  beats: readonly Beat[];
   mix: AudioMix;
 }
 
@@ -62,6 +70,7 @@ export class PreviewPlayer {
   private images: ImageCache;
   private videos: VideoPool;
   private music: HTMLAudioElement;
+  private sfx = new SfxPlayer();
   private input: PreviewInput | null = null;
   private time = 0;
   private playing = false;
@@ -102,6 +111,7 @@ export class PreviewPlayer {
       if (this.playing) this.syncMusic(true);
     }
     if (this.time > input.durationSec) this.time = input.durationSec;
+    this.sfx.setSegments(input.segments, this.time);
     this.settle();
     this.emit(true);
   }
@@ -119,6 +129,7 @@ export class PreviewPlayer {
     this.timeStart = this.time;
     this.wallStart = performance.now();
     this.syncMusic(true);
+    this.sfx.rewind(this.time);
     this.invalidate();
     this.emit(true);
   }
@@ -127,6 +138,7 @@ export class PreviewPlayer {
     if (!this.playing) return;
     this.playing = false;
     this.music.pause();
+    this.sfx.stop();
     this.videos.pauseAll();
     this.invalidate();
     this.emit(true);
@@ -144,7 +156,9 @@ export class PreviewPlayer {
       this.timeStart = this.time;
       this.wallStart = performance.now();
       this.syncMusic(true);
+      this.sfx.stop();
     }
+    this.sfx.rewind(this.time);
     this.settle();
     this.emit(true);
   }
@@ -155,6 +169,7 @@ export class PreviewPlayer {
     this.music.pause();
     this.music.removeAttribute("src");
     this.music.load();
+    this.sfx.dispose();
     this.videos.dispose();
     this.images.dispose();
     this.compositor.dispose();
@@ -213,6 +228,7 @@ export class PreviewPlayer {
 
     const drawn: CompositorLayer[] = [];
     let duck = 0;
+    const pulse = beatPulseAt(input.beats, t, input.effects.beatPulse);
 
     for (const layer of layers) {
       const seg = layer.segment;
@@ -221,9 +237,10 @@ export class PreviewPlayer {
       const fit = seg.fit ?? input.fit;
       // Movimento (Ken Burns) e filtro próprios da mídia, iguais aos do export.
       const fx = {
-        motion: motionTransform(seg.motion, layer.progress),
+        motion: withPulse(motionTransform(seg.motion, layer.progress), pulse),
         filter: lookFilter(seg.look),
         crop: seg.crop,
+        transition: layer.transition,
       };
 
       if (media.kind === "image") {
@@ -288,12 +305,15 @@ export class PreviewPlayer {
     }
 
     this.videos.pauseExcept(activeIds);
-    this.compositor.draw(drawn, input.background, input.filter);
+    this.compositor.draw(drawn, input.background, input.filter, input.effects);
     this.compositor.retain(new Set(drawn.map((d) => d.key)));
 
     // Música: volume com fade-out e ducking; corrige deriva do relógio.
     this.music.volume = musicVolumeAt(t, input.audio, input.durationSec, input.mix, duck);
-    if (this.playing) this.syncMusic(false);
+    if (this.playing) {
+      this.syncMusic(false);
+      this.sfx.tick(t, input.mix.sfxGain);
+    }
   }
 
   private syncVideo(el: HTMLVideoElement, sourceTime: number, seg: TimelineSegment, alpha: number, mix: AudioMix) {

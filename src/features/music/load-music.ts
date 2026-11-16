@@ -63,8 +63,21 @@ async function loadRegistered(
   if (outcome.kind !== "audio" && outcome.kind !== "video") {
     return "unsupported";
   }
+  return loadRegisteredMusic(store, backend, outcome);
+}
 
+/**
+ * Usa como música um arquivo que já está registrado — por exemplo, a trilha de áudio de
+ * um vídeo do projeto. Mostra o nome na hora e a waveform quando a análise termina.
+ */
+export async function loadRegisteredMusic(
+  store: MusicStore,
+  backend: MediaBackend,
+  media: { id: string; name: string; uri?: string; size: number },
+): Promise<LoadMusicResult> {
+  const outcome = media;
   const previous = store.getState().track;
+  if (previous?.id === outcome.id && store.getState().status === "ready") return "ok";
   store.getState().startLoading({
     id: outcome.id,
     name: outcome.name,

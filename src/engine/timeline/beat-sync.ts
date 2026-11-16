@@ -270,10 +270,19 @@ export function syncCutsToBeats(
   return { cuts, stats };
 }
 
-function clampTransition(t: Transition, prev: number, cur: number): Transition {
+/** Fração de cada segmento vizinho que uma transição (que não seja fade) pode ocupar. */
+const TRANSITION_SHARE = 0.7;
+
+/**
+ * Limita a transição pela duração dos vizinhos. Ela é centrada no corte: metade em cada
+ * lado. Um fade pode tomar o segmento inteiro; as demais deixam um trecho da mídia
+ * parado no meio, senão cortes rápidos viram um borrão contínuo.
+ */
+export function clampTransition(t: Transition, prev: number, cur: number): Transition {
   if (t.kind === "cut") return t;
-  const d = Math.min(t.durationSec, prev, cur);
-  return d > EPS ? { kind: "fade", durationSec: r(d) } : { kind: "cut" };
+  const share = t.kind === "fade" ? 1 : TRANSITION_SHARE;
+  const d = Math.min(t.durationSec, prev * share, cur * share);
+  return d > EPS ? { kind: t.kind, durationSec: r(d) } : { kind: "cut" };
 }
 
 /**

@@ -21,13 +21,15 @@ pub struct ExportInfo {
     pub default_dir: Option<String>,
 }
 
-/// Pasta padrão no desktop: `Vídeos/SusuEdition` ou, para `kind = "image"`, `Imagens/SusuEdition`.
+/// Pasta padrão no desktop: `Vídeos/SusuEdition`; para `kind = "image"`, `Imagens/SusuEdition`;
+/// para `kind = "audio"` (áudio extraído de um vídeo), `Músicas/SusuEdition`.
 fn default_dir<R: Runtime>(app: &AppHandle<R>, kind: Option<&str>) -> Option<std::path::PathBuf> {
     if cfg!(mobile) {
         return None;
     }
     let base = match kind {
         Some("image") => app.path().picture_dir(),
+        Some("audio") => app.path().audio_dir(),
         _ => app.path().video_dir(),
     };
     base.ok().map(|d| d.join("SusuEdition"))

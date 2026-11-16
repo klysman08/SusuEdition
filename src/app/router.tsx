@@ -26,6 +26,10 @@ export const router = createHashRouter([
         lazy: () => import("@/features/video-maker").then((m) => ({ Component: m.VideoMakerPage })),
       },
       {
+        path: "templates",
+        lazy: () => import("@/features/templates").then((m) => ({ Component: m.TemplatesPage })),
+      },
+      {
         path: "photo-collage",
         lazy: () => import("@/features/photo-collage").then((m) => ({ Component: m.PhotoCollagePage })),
       },

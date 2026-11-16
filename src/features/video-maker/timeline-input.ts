@@ -7,7 +7,22 @@ import {
 } from "@/engine/timeline";
 import type { LibraryItem } from "@/features/media-library";
 import type { Selection } from "@/engine/audio";
-import type { RhythmBeat } from "@/engine/timeline";
+import type { AudioPlan, RhythmBeat } from "@/engine/timeline";
+import type { Beat } from "@/engine/types";
+
+/**
+ * Batidas da música em tempo de timeline (0 = início do vídeo), só as que caem dentro
+ * do vídeo. Alimenta o "pulsar na batida" da prévia e da exportação.
+ */
+export function timelineBeats(beats: readonly Beat[], plan: AudioPlan | null, durationSec: number): Beat[] {
+  if (!plan) return [];
+  const out: Beat[] = [];
+  for (const b of beats) {
+    const timeSec = b.timeSec - plan.musicInSec;
+    if (timeSec >= 0 && timeSec <= durationSec) out.push({ timeSec, strength: b.strength });
+  }
+  return out;
+}
 
 /** Mídias prontas e decodificáveis, na ordem da biblioteca. */
 export function timelineItems(

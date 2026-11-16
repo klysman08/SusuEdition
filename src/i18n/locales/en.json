@@ -7,7 +7,8 @@
     "home": "Home",
     "videoMaker": "Video",
     "photoCollage": "Collage",
-    "settings": "Settings"
+    "settings": "Settings",
+    "templates": "Templates"
   },
   "home": {
     "greeting": "What are we creating today?",
@@ -23,7 +24,12 @@
       "cta": "Create collage"
     },
     "recent": "Recent projects",
-    "noRecent": "Your projects will show up here."
+    "noRecent": "Your projects will show up here.",
+    "templates": {
+      "title": "Templates",
+      "description": "Ready-made edits: pick a style, add your media and the video builds itself.",
+      "cta": "Browse templates"
+    }
   },
   "videoMaker": {
     "title": "Video Maker",
@@ -264,9 +270,29 @@
     "transitionTitle": "Transition",
     "transition": {
       "cut": "Hard cut",
-      "fade": "Fade"
+      "fade": "Fade",
+      "mix": "Mix",
+      "dipBlack": "Dip to black",
+      "blur": "Blur",
+      "flash": "Flash",
+      "punch": "Punch",
+      "shake": "Shake",
+      "bounce": "Bounce",
+      "whipLeft": "Whip ←",
+      "whipRight": "Whip →",
+      "whipUp": "Whip ↑",
+      "whipDown": "Whip ↓",
+      "spin": "Spin",
+      "warp": "Warp zoom",
+      "glitch": "Glitch",
+      "pixelate": "Pixelate",
+      "wipe": "Wipe",
+      "iris": "Iris",
+      "burn": "Film burn",
+      "frameShift": "FrameShift",
+      "slices": "Slices",
+      "grid": "Grid"
     },
-    "fadeDuration": "Fade length",
     "audioTitle": "Audio",
     "keepVideoAudio": "Keep video sound",
     "musicVolume": "Music volume",
@@ -294,8 +320,26 @@
     },
     "flexibility": "Flexibility",
     "flexibilityHint": "How much the time of each item may change to reach a good beat.",
-    "photoMotionTitle": "Photo motion",
-    "photoMotionHint": "A slow zoom, pan or tilt while each photo is on screen. Each item can have its own."
+    "photoMotionTitle": "Motion",
+    "photoMotionHint": "A slow zoom, pan or tilt while the clip is on screen. Each clip can have its own.",
+    "transitionHint": "How one clip gives way to the next. Each clip can have its own in its settings.",
+    "transitionGroup": "Transition group",
+    "transitionCategory": {
+      "smooth": "Smooth",
+      "impact": "Impact",
+      "speed": "Speed",
+      "effects": "Effects"
+    },
+    "transitionMixHint": "Cycles through every transition in this group, one per clip.",
+    "transitionMixCustom": "Mix in use: {{list}}",
+    "transitionDuration": "Transition length",
+    "soundTitle": "Sound effect",
+    "soundHint": "A sound on every change of clip. Its volume lives in the Audio tool.",
+    "soundAutoHint": "Automatic: each transition plays the sound that suits it (hard cuts stay silent).",
+    "soundPreview": "Play the effect",
+    "sfxVolume": "Sound effects volume",
+    "sfxVolumeHint": "Pick a sound effect under Rhythm › Transition to hear it.",
+    "motionOnVideos": "Apply to videos too"
   },
   "preview": {
     "title": "Preview",
@@ -335,7 +379,8 @@
       "duplicate": "That file is already in the project.",
       "error": "Couldn't read that file"
     },
-    "crop": "Crop"
+    "crop": "Crop",
+    "sound": "Entrance sound"
   },
   "motion": {
     "none": "None",
@@ -559,6 +604,140 @@
       "open": "Open image",
       "summaryTitle": "Summary",
       "download": "Browser downloads"
+    }
+  },
+  "sfx": {
+    "none": "None",
+    "auto": "Automatic",
+    "click": "Click",
+    "shutter": "Camera shutter",
+    "whoosh": "Whoosh",
+    "swish": "Swish",
+    "impact": "Impact",
+    "pop": "Pop",
+    "glitch": "Glitch",
+    "chime": "Chime"
+  },
+  "effects": {
+    "title": "Effects",
+    "description": "Applied to the whole video, in the preview and the export.",
+    "off": "Off",
+    "letterbox": "Cinema bars",
+    "beatPulse": "Pulse on the beat",
+    "beatPulseHint": "The picture gives a small zoom kick on every beat of the music.",
+    "beatPulseNoMusic": "Needs a song with detected beats."
+  },
+  "audioExtract": {
+    "title": "Extract audio from videos",
+    "description": "Use a video's sound as the project music or save it to a file.",
+    "format": "File format",
+    "formatHint": {
+      "m4a": "M4A: small file. When the video already has AAC audio, it is an exact copy.",
+      "wav": "WAV: uncompressed, larger file."
+    },
+    "empty": "No videos with sound in this project.",
+    "useAsMusic": "Use as music",
+    "isMusic": "It's the video's music",
+    "save": "Save {{format}}",
+    "saving": "Extracting… {{percent}}%",
+    "saved": "Audio saved: {{name}}",
+    "usedAsMusic": "The audio from {{name}} is now the video's music",
+    "noAudio": "Couldn't read this video's audio.",
+    "error": "Couldn't extract the audio",
+    "musicError": "Couldn't use this audio as music",
+    "pickOther": "Use the audio from another file…"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Ready-made edits. Pick a style, add your photos and videos and the template builds the video.",
+    "filter": "Filter templates",
+    "tags": {
+      "all": "All",
+      "beat": "On the beat",
+      "fast": "Fast paced",
+      "calm": "Calm",
+      "sound": "With sounds",
+      "photos": "Great for photos"
+    },
+    "whatItDoes": "What this template does",
+    "aspect": "Aspect ratio",
+    "aspectHint": "Suggested for this template: {{aspect}}. You can change it later under Format.",
+    "howItWorks": "The template sets up the whole editor. It works with any amount of media, keeps applying as you add or reorder, and everything can be adjusted afterwards.",
+    "create": "Create a video with this template",
+    "applyToCurrent": "Apply to “{{name}}”",
+    "applied": "Template {{name}} applied",
+    "appliedHint": "Ctrl+Z undoes it. Per-clip adjustments were kept.",
+    "error": "Couldn't apply the template",
+    "change": "Change template",
+    "feature": {
+      "beat": "Cuts synced to the beats ({{style}})",
+      "noBeat": "Its own pace, independent of the beats",
+      "cuts": "Hard cuts, one after another",
+      "transitions": "Transitions: {{list}}",
+      "motion": "Motion on photos: {{list}}",
+      "motionAll": "Motion on photos and videos: {{list}}",
+      "filter": "{{name}} filter",
+      "effects": "Effects: {{list}}",
+      "sound": "Transition sound: {{name}}",
+      "pace": "{{photo}} s per photo · {{video}} s per video",
+      "total": "{{seconds}} s video: clips shrink to fit"
+    },
+    "banner": {
+      "label": "Chosen template",
+      "title": "Template: {{name}}",
+      "hint": "Add photos and videos: the edit is applied automatically.",
+      "hintBeats": "Add photos and videos and choose a song: the cuts follow the beats.",
+      "remove": "Start without a template"
+    },
+    "items": {
+      "cinematicBeat": {
+        "name": "Cinematic Beat Sync",
+        "description": "Cuts on the strong beats, punch zooms, flashes and cinema bars."
+      },
+      "frameShift": {
+        "name": "FrameShift",
+        "description": "Columns and slices of the frame slide in opposite directions on every bar."
+      },
+      "grid": {
+        "name": "Grid Effect",
+        "description": "The next clip appears cell by cell in a grid, with a click on each change."
+      },
+      "velocity": {
+        "name": "Velocity",
+        "description": "Whip pans in every direction and zoom dives."
+      },
+      "glitch": {
+        "name": "Glitch Cyber",
+        "description": "Digital interference: displaced slices, split colours and pixel blocks."
+      },
+      "photoShoot": {
+        "name": "Photo shoot",
+        "description": "A flash and a shutter sound on every photo, like a studio session."
+      },
+      "memories": {
+        "name": "Memories",
+        "description": "Long photos, slow motion and soft dissolves in warm tones."
+      },
+      "vintage": {
+        "name": "Old film",
+        "description": "Faded colours, film burns and the click of a projector."
+      },
+      "travel": {
+        "name": "Travel diary",
+        "description": "Landscape 16:9, wipes and whips, keeping the videos' original sound."
+      },
+      "recap": {
+        "name": "15 s recap",
+        "description": "Everything in 15 seconds: fast hard cuts, ready for Stories."
+      },
+      "noir": {
+        "name": "Noir",
+        "description": "High-contrast black and white, cinema bars and dips to black."
+      },
+      "party": {
+        "name": "Pulse Party",
+        "description": "Spins, bounces and shakes, with the picture pulsing on every beat."
+      }
     }
   }
 }

@@ -12,30 +12,46 @@ import {
   Metronome,
   RotateCcw,
   RotateCw,
+  Scissors,
   Shuffle,
+  Volume2,
   Zap,
   ZoomIn,
   ZoomOut,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 
 import { LabeledValue, Section } from "@/components/common/Section";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SFX_KINDS, type SfxKind } from "@/engine/audio";
 import {
   BEAT_SYNC_PRESETS,
+  isTransitionKind,
   MOTION_KINDS,
+  TRANSITION_CATEGORIES,
+  TRANSITIONS,
+  transitionsIn,
   type BeatSyncPreset,
   type MotionKind,
   type TimelineResult,
+  type TransitionCategory,
+  type TransitionKind,
+  type TransitionSound,
 } from "@/engine/timeline";
 import { cn } from "@/lib/utils";
 
 import { useProject } from "../hooks";
+import { playSfx } from "../preview/sfx-player";
 import { videoMusicStore, videoProjectStore } from "../store";
+import { sameKinds, TRANSITION_ICONS } from "./transition-ui";
 
 const PRESETS: { id: BeatSyncPreset; icon: LucideIcon }[] = [
   { id: "dynamic", icon: AudioWaveform },
@@ -167,46 +183,163 @@ export function BeatSyncSection({ timeline, onGoToMusic }: { timeline: TimelineR
   );
 }
 
-/** Transição padrão entre as mídias (cada mídia pode ter a sua). */
+/** Duração usada quando se escolhe "misturar" um grupo de transições. */
+const MIX_DURATION_SEC = 0.45;
+const SOUNDS: readonly TransitionSound[] = ["none", "auto", ...SFX_KINDS];
+
+const tile =
+  "flex min-h-13 flex-col items-center justify-center gap-1 rounded-lg border px-1 py-1.5 text-center text-[11px] leading-tight transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
+const tileOn = "border-primary bg-primary/5 text-primary hover:bg-primary/10";
+
+/**
+ * Transição padrão entre as mídias (cada mídia pode ter a sua): corte seco, uma das
+ * transições dos grupos ou "misturar", que alterna entre as de um grupo. Junto vem o
+ * efeito sonoro que toca em cada troca.
+ */
 export function TransitionSection() {
   const { t } = useTranslation();
-  const settings = useProject((s) => s.timeline);
+  const transition = useProject((s) => s.timeline.transition);
+  const sound = useProject((s) => s.timeline.transitionSound);
+  const sfxGain = useProject((s) => s.mix.sfxGain);
   const { patchTimeline } = videoProjectStore.getState();
-  const fade = settings.transition.kind === "fade" ? settings.transition.durationSec : 0.5;
+  const current: TransitionKind | null =
+    transition.kind === "cut" || transition.kind === "mix" ? null : transition.kind;
+  const [picked, setPicked] = useState<TransitionCategory | null>(null);
+  const group =
+    picked ??
+    (current
+      ? TRANSITIONS[current].category
+      : transition.kind === "mix"
+        ? (TRANSITION_CATEGORIES.find((c) => sameKinds(transition.kinds, transitionsIn(c))) ??
+          TRANSITIONS[transition.kinds.find(isTransitionKind) ?? "fade"].category)
+        : "smooth");
+  const kinds = transitionsIn(group);
+  const mixed = transition.kind === "mix" && sameKinds(transition.kinds, kinds);
+  const customMix =
+    transition.kind === "mix" && !TRANSITION_CATEGORIES.some((c) => sameKinds(transition.kinds, transitionsIn(c)));
+  const duration = transition.kind === "cut" ? 0.5 : transition.durationSec;
+  /** Som de exemplo do botão "ouvir": o escolhido ou, no automático, o da transição atual. */
+  const audible: SfxKind | null =
+    sound === "none" ? null : sound === "auto" ? TRANSITIONS[current ?? kinds[0]!].sound : sound;
 
   return (
-    <Section title={t("timing.transitionTitle")}>
+    <Section title={t("timing.transitionTitle")} description={t("timing.transitionHint")}>
       <div className="space-y-4">
+        <button
+          type="button"
+          aria-pressed={transition.kind === "cut"}
+          onClick={() => patchTimeline({ transition: { kind: "cut" } })}
+          className={cn(tile, "min-h-10 w-full flex-row gap-2 text-sm", transition.kind === "cut" && tileOn)}
+        >
+          <Scissors className="size-4" aria-hidden />
+          {t("timing.transition.cut")}
+        </button>
+
         <ToggleGroup
           type="single"
           variant="outline"
-          value={settings.transition.kind}
-          onValueChange={(v) => {
-            if (v === "cut") patchTimeline({ transition: { kind: "cut" } });
-            else if (v === "fade") patchTimeline({ transition: { kind: "fade", durationSec: fade } });
-          }}
+          value={group}
+          onValueChange={(v) => v && setPicked(v as TransitionCategory)}
+          aria-label={t("timing.transitionGroup")}
           className="w-full"
         >
-          {(["cut", "fade"] as const).map((k) => (
-            <ToggleGroupItem key={k} value={k} className="flex-1">
-              {t(`timing.transition.${k}`)}
+          {TRANSITION_CATEGORIES.map((c) => (
+            <ToggleGroupItem key={c} value={c} className="flex-1 px-1 text-xs">
+              {t(`timing.transitionCategory.${c}`)}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        {settings.transition.kind === "fade" && (
-          <LabeledValue label={t("timing.fadeDuration")} value={secs(fade)}>
+
+        <div
+          role="radiogroup"
+          aria-label={t("timing.transitionTitle")}
+          className="grid grid-cols-3 gap-1.5 sm:grid-cols-4"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={mixed}
+            title={t("timing.transitionMixHint")}
+            onClick={() => patchTimeline({ transition: { kind: "mix", kinds, durationSec: MIX_DURATION_SEC } })}
+            className={cn(tile, mixed && tileOn)}
+          >
+            <Shuffle className={cn("size-4", !mixed && "text-muted-foreground")} aria-hidden />
+            {t("timing.transition.mix")}
+          </button>
+          {kinds.map((k) => {
+            const Icon = TRANSITION_ICONS[k];
+            const selected = current === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => patchTimeline({ transition: { kind: k, durationSec: TRANSITIONS[k].durationSec } })}
+                className={cn(tile, selected && tileOn)}
+              >
+                <Icon className={cn("size-4", !selected && "text-muted-foreground")} aria-hidden />
+                {t(`timing.transition.${k}`)}
+              </button>
+            );
+          })}
+        </div>
+
+        {customMix && transition.kind === "mix" && (
+          <p className="text-xs text-primary">
+            {t("timing.transitionMixCustom", {
+              list: transition.kinds.map((k) => t(`timing.transition.${k}`)).join(" · "),
+            })}
+          </p>
+        )}
+
+        {transition.kind !== "cut" && (
+          <LabeledValue label={t("timing.transitionDuration")} value={secs(duration)}>
             <Slider
               min={0.2}
               max={2}
-              step={0.1}
-              value={[fade]}
+              step={0.05}
+              value={[duration]}
               onValueChange={([v]) =>
-                v !== undefined && patchTimeline({ transition: { kind: "fade", durationSec: v } })
+                v !== undefined && patchTimeline({ transition: { ...transition, durationSec: v } })
               }
-              aria-label={t("timing.fadeDuration")}
+              aria-label={t("timing.transitionDuration")}
             />
           </LabeledValue>
         )}
+
+        <div className="space-y-2 border-t pt-4">
+          <Label htmlFor="transition-sound" className="text-sm font-normal">
+            {t("timing.soundTitle")}
+          </Label>
+          <div className="flex items-center gap-2">
+            <Select value={sound} onValueChange={(v) => patchTimeline({ transitionSound: v as TransitionSound })}>
+              <SelectTrigger id="transition-sound" className="min-w-0 flex-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SOUNDS.map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {t(`sfx.${k}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={!audible}
+              aria-label={t("timing.soundPreview")}
+              title={t("timing.soundPreview")}
+              onClick={() => audible && playSfx(audible, Math.max(0.3, sfxGain))}
+            >
+              <Volume2 />
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t(sound === "auto" ? "timing.soundAutoHint" : "timing.soundHint")}
+          </p>
+        </div>
       </div>
     </Section>
   );
@@ -216,10 +349,21 @@ export function TransitionSection() {
 export function PhotoMotionSection() {
   const { t } = useTranslation();
   const photoMotion = useProject((s) => s.timeline.photoMotion);
+  const onVideos = useProject((s) => s.timeline.motionOnVideos);
   const { patchTimeline } = videoProjectStore.getState();
 
   return (
     <Section title={t("timing.photoMotionTitle")} description={t("timing.photoMotionHint")}>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <Label htmlFor="motion-on-videos" className="text-sm font-normal">
+          {t("timing.motionOnVideos")}
+        </Label>
+        <Switch
+          id="motion-on-videos"
+          checked={onVideos}
+          onCheckedChange={(v) => patchTimeline({ motionOnVideos: v })}
+        />
+      </div>
       <div
         role="radiogroup"
         aria-label={t("timing.photoMotionTitle")}
@@ -234,7 +378,7 @@ export function PhotoMotionSection() {
               type="button"
               role="radio"
               aria-checked={selected}
-              onClick={() => patchTimeline({ photoMotion: m })}
+              onClick={() => patchTimeline({ photoMotion: m, motionSet: undefined })}
               className={cn(
                 "flex min-h-13 flex-col items-center justify-center gap-1 rounded-lg border px-1 py-1.5 text-center text-[11px] leading-tight transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring",
                 selected && "border-primary bg-primary/5 text-primary hover:bg-primary/10",

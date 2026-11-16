@@ -1,6 +1,7 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 
 import { DEFAULT_AUDIO_MIX, type AudioMix } from "@/engine/audio";
+import { DEFAULT_VIDEO_EFFECTS, type VideoEffects } from "@/engine/render/effects";
 import { DEFAULT_FILTER, NEUTRAL_ADJUST, type FilterAdjust, type FilterSettings } from "@/engine/render/filters";
 import { DEFAULT_TIMELINE_SETTINGS, type ClipOverrides, type TimelineSettings } from "@/engine/timeline";
 import type { AspectRatio, FitBackground, FitMode, FrameRate, QualityPreset } from "@/engine/types";
@@ -16,6 +17,10 @@ export interface VideoProjectSettings {
   overrides: Record<string, ClipOverrides>;
   /** Filtro de cor aplicado ao vídeo inteiro. */
   filter: FilterSettings;
+  /** Barras de cinema e pulso na batida. */
+  effects: VideoEffects;
+  /** Template de edição aplicado por último (`null` = nenhum). */
+  templateId: string | null;
   /** Marcadores manuais na música (s, tempo do arquivo): a sincronia prefere cortar neles. */
   markers: number[];
   exportQuality: QualityPreset;
@@ -42,6 +47,12 @@ export interface VideoProjectState extends VideoProjectSettings {
   patchFilter: (patch: Partial<Omit<FilterSettings, "adjust">>) => void;
   setFilterAdjust: (key: keyof FilterAdjust, value: number) => void;
   resetFilter: () => void;
+  patchEffects: (patch: Partial<VideoEffects>) => void;
+  /**
+   * Troca vários ajustes de uma vez (aplicar um template): uma única mudança no
+   * histórico, então um "desfazer" volta tudo.
+   */
+  replaceSettings: (settings: Partial<VideoProjectSettings>) => void;
   setExport: (patch: Partial<Pick<VideoProjectState, "exportQuality" | "exportFps" | "askDestination">>) => void;
   /** Carrega um projeto salvo (campos ausentes ficam no padrão). */
   hydrate: (settings: Partial<VideoProjectSettings>) => void;
@@ -59,6 +70,8 @@ export const DEFAULT_VIDEO_PROJECT: VideoProjectSettings = {
   mix: DEFAULT_AUDIO_MIX,
   overrides: {},
   filter: DEFAULT_FILTER,
+  effects: DEFAULT_VIDEO_EFFECTS,
+  templateId: null,
   markers: [],
   exportQuality: "1080p",
   exportFps: 30,
@@ -89,6 +102,8 @@ export function withDefaults(saved: Partial<VideoProjectSettings>): VideoProject
       minClipSec: d.timeline.minClipSec,
     },
     mix: { ...d.mix, ...saved.mix },
+    effects: { ...d.effects, ...saved.effects },
+    templateId: typeof saved.templateId === "string" ? saved.templateId : null,
     overrides: { ...saved.overrides },
     markers: Array.isArray(saved.markers) ? saved.markers.filter((m) => typeof m === "number" && m >= 0) : [],
     filter: {
@@ -160,6 +175,8 @@ export function createVideoProjectStore(): VideoProjectStore {
     setFilterAdjust: (key, value) =>
       set((s) => ({ filter: { ...s.filter, adjust: { ...s.filter.adjust, [key]: value } } })),
     resetFilter: () => set({ filter: DEFAULT_FILTER }),
+    patchEffects: (patch) => set((s) => ({ effects: { ...s.effects, ...patch } })),
+    replaceSettings: (settings) => set((s) => withDefaults({ ...pickSettings(s), ...settings })),
     hydrate: (settings) => set(withDefaults(settings)),
     reset: () => set(DEFAULT_VIDEO_PROJECT),
   }));

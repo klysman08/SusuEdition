@@ -23,6 +23,7 @@ import { WindowControls } from "@/components/common/WindowControls";
 import { Button } from "@/components/ui/button";
 import { MediaLibrary } from "@/features/media-library";
 import { MusicPanel } from "@/features/music";
+import { isTemplateId } from "@/features/templates/catalog";
 import { formatTime } from "@/lib/format";
 import { ScrollContainerContext } from "@/lib/scroll-container";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ import { CropDialog } from "./components/CropDialog";
 import { FiltersPanel } from "./components/FiltersPanel";
 import { FormatPanel } from "./components/FormatPanel";
 import { ItemSheet } from "./components/ItemSheet";
+import { TemplateBanner } from "./components/TemplateBanner";
 import { TimingPanel } from "./components/TimingPanel";
 import { TrimDialog } from "./components/TrimDialog";
 import { splitClipAt } from "./clip-actions";
@@ -115,6 +117,7 @@ function StartScreen() {
             </div>
           ) : (
             <>
+              <TemplateBanner />
               <MediaLibrary store={videoMediaStore} />
               <section aria-labelledby="recent-projects" className="empty:hidden">
                 <ProjectList
@@ -157,8 +160,13 @@ function Editor() {
   const aspect = useProject((s) => s.aspect);
   const hasMusic = useStore(videoMusicStore, (s) => s.track !== null);
   const hasFilter = useProject(
-    (s) => s.filter.preset !== "none" || Object.values(s.filter.adjust).some((v) => v !== 0),
+    (s) =>
+      s.filter.preset !== "none" ||
+      Object.values(s.filter.adjust).some((v) => v !== 0) ||
+      s.effects.letterbox > 0 ||
+      s.effects.beatPulse > 0,
   );
+  const templateId = useProject((s) => s.templateId);
   const panelRef = useRef<HTMLDivElement>(null);
   const { player } = preview;
   // A mídia selecionada some da seleção se sair do vídeo (removida ou sem tempo).
@@ -284,6 +292,16 @@ function Editor() {
           <p className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground tabular-nums max-sm:hidden">
             {formatTime(timeline.durationSec, false)} · {aspect}
           </p>
+          {isTemplateId(templateId) && (
+            <Link
+              to="/templates"
+              title={t("templates.change")}
+              className="flex min-w-0 shrink items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary outline-none hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring max-lg:hidden"
+            >
+              <Sparkles className="size-3 shrink-0" aria-hidden />
+              <span className="truncate">{t(`templates.items.${templateId}.name`)}</span>
+            </Link>
+          )}
           <span {...dragRegion()} className="h-full flex-1" />
           <AnimateIcon animateOnHover asChild>
             <Button

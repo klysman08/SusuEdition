@@ -7,7 +7,8 @@
     "home": "Início",
     "videoMaker": "Vídeo",
     "photoCollage": "Colagem",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "templates": "Templates"
   },
   "home": {
     "greeting": "O que vamos criar hoje?",
@@ -23,7 +24,12 @@
       "cta": "Criar colagem"
     },
     "recent": "Projetos recentes",
-    "noRecent": "Seus projetos aparecerão aqui."
+    "noRecent": "Seus projetos aparecerão aqui.",
+    "templates": {
+      "title": "Templates",
+      "description": "Edições prontas: escolha um estilo, adicione as mídias e o vídeo sai montado.",
+      "cta": "Ver templates"
+    }
   },
   "videoMaker": {
     "title": "Video Maker",
@@ -264,9 +270,29 @@
     "transitionTitle": "Transição",
     "transition": {
       "cut": "Corte seco",
-      "fade": "Fade"
+      "fade": "Fade",
+      "mix": "Misturar",
+      "dipBlack": "Mergulho no preto",
+      "blur": "Desfoque",
+      "flash": "Flash",
+      "punch": "Impacto",
+      "shake": "Tremor",
+      "bounce": "Salto",
+      "whipLeft": "Chicote ←",
+      "whipRight": "Chicote →",
+      "whipUp": "Chicote ↑",
+      "whipDown": "Chicote ↓",
+      "spin": "Giro",
+      "warp": "Zoom veloz",
+      "glitch": "Glitch",
+      "pixelate": "Pixels",
+      "wipe": "Cortina",
+      "iris": "Íris",
+      "burn": "Queima de filme",
+      "frameShift": "FrameShift",
+      "slices": "Fatias",
+      "grid": "Grade"
     },
-    "fadeDuration": "Duração do fade",
     "audioTitle": "Áudio",
     "keepVideoAudio": "Manter o som dos vídeos",
     "musicVolume": "Volume da música",
@@ -294,8 +320,26 @@
     },
     "flexibility": "Flexibilidade",
     "flexibilityHint": "Quanto o tempo de cada mídia pode mudar para alcançar uma boa batida.",
-    "photoMotionTitle": "Movimento das fotos",
-    "photoMotionHint": "Um zoom, deslocamento ou giro lento enquanto a foto aparece. Cada mídia pode ter o seu."
+    "photoMotionTitle": "Movimento",
+    "photoMotionHint": "Um zoom, deslocamento ou giro lento enquanto a mídia aparece. Cada mídia pode ter o seu.",
+    "transitionHint": "Como uma mídia dá lugar à seguinte. Cada mídia pode ter a sua nos ajustes dela.",
+    "transitionGroup": "Grupo de transições",
+    "transitionCategory": {
+      "smooth": "Suaves",
+      "impact": "Impacto",
+      "speed": "Veloz",
+      "effects": "Efeitos"
+    },
+    "transitionMixHint": "Alterna entre todas as transições deste grupo, uma por mídia.",
+    "transitionMixCustom": "Mistura em uso: {{list}}",
+    "transitionDuration": "Duração da transição",
+    "soundTitle": "Efeito sonoro",
+    "soundHint": "Um som em cada troca de mídia. O volume fica na ferramenta Áudio.",
+    "soundAutoHint": "Automático: cada transição toca o som que combina com ela (cortes secos ficam em silêncio).",
+    "soundPreview": "Ouvir o efeito",
+    "sfxVolume": "Volume dos efeitos sonoros",
+    "sfxVolumeHint": "Escolha um efeito sonoro em Ritmo › Transição para ouvir.",
+    "motionOnVideos": "Aplicar também aos vídeos"
   },
   "preview": {
     "title": "Prévia",
@@ -335,7 +379,8 @@
       "duplicate": "Esse arquivo já está no projeto.",
       "error": "Não foi possível ler esse arquivo"
     },
-    "crop": "Cortar"
+    "crop": "Cortar",
+    "sound": "Som de entrada"
   },
   "motion": {
     "none": "Nenhum",
@@ -559,6 +604,140 @@
       "open": "Abrir imagem",
       "summaryTitle": "Resumo",
       "download": "Downloads do navegador"
+    }
+  },
+  "sfx": {
+    "none": "Nenhum",
+    "auto": "Automático",
+    "click": "Clique",
+    "shutter": "Câmera fotográfica",
+    "whoosh": "Whoosh",
+    "swish": "Swish",
+    "impact": "Impacto",
+    "pop": "Pop",
+    "glitch": "Glitch",
+    "chime": "Sino"
+  },
+  "effects": {
+    "title": "Efeitos",
+    "description": "Valem para o vídeo inteiro, na prévia e na exportação.",
+    "off": "Desligado",
+    "letterbox": "Barras de cinema",
+    "beatPulse": "Pulsar na batida",
+    "beatPulseHint": "A imagem dá um leve salto de zoom a cada batida da música.",
+    "beatPulseNoMusic": "Precisa de uma música com batidas detectadas."
+  },
+  "audioExtract": {
+    "title": "Extrair áudio dos vídeos",
+    "description": "Use o som de um vídeo como a música do projeto ou salve-o num arquivo.",
+    "format": "Formato do arquivo",
+    "formatHint": {
+      "m4a": "M4A: arquivo pequeno. Quando o vídeo já tem áudio AAC, é uma cópia exata.",
+      "wav": "WAV: sem compressão, arquivo maior."
+    },
+    "empty": "Nenhum vídeo com som neste projeto.",
+    "useAsMusic": "Usar como música",
+    "isMusic": "É a música do vídeo",
+    "save": "Salvar {{format}}",
+    "saving": "Extraindo… {{percent}}%",
+    "saved": "Áudio salvo: {{name}}",
+    "usedAsMusic": "O áudio de {{name}} agora é a música do vídeo",
+    "noAudio": "Não foi possível ler o áudio deste vídeo.",
+    "error": "Não foi possível extrair o áudio",
+    "musicError": "Não foi possível usar este áudio como música",
+    "pickOther": "Usar o áudio de outro arquivo…"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Edições prontas. Escolha um estilo, adicione suas fotos e vídeos e o template monta o vídeo.",
+    "filter": "Filtrar templates",
+    "tags": {
+      "all": "Todos",
+      "beat": "Na batida",
+      "fast": "Ritmo rápido",
+      "calm": "Calmo",
+      "sound": "Com sons",
+      "photos": "Ideal para fotos"
+    },
+    "whatItDoes": "O que este template faz",
+    "aspect": "Proporção",
+    "aspectHint": "Sugerida para este template: {{aspect}}. Dá para trocar depois em Formato.",
+    "howItWorks": "O template configura o editor inteiro. Vale para qualquer quantidade de mídias, continua valendo quando você adiciona ou reordena, e tudo pode ser ajustado depois.",
+    "create": "Criar vídeo com este template",
+    "applyToCurrent": "Aplicar em “{{name}}”",
+    "applied": "Template {{name}} aplicado",
+    "appliedHint": "Ctrl+Z desfaz. Os ajustes de cada mídia foram mantidos.",
+    "error": "Não foi possível aplicar o template",
+    "change": "Trocar de template",
+    "feature": {
+      "beat": "Cortes sincronizados com as batidas ({{style}})",
+      "noBeat": "Ritmo próprio, sem depender das batidas",
+      "cuts": "Cortes secos, um atrás do outro",
+      "transitions": "Transições: {{list}}",
+      "motion": "Movimento nas fotos: {{list}}",
+      "motionAll": "Movimento em fotos e vídeos: {{list}}",
+      "filter": "Filtro {{name}}",
+      "effects": "Efeitos: {{list}}",
+      "sound": "Som nas transições: {{name}}",
+      "pace": "{{photo}} s por foto · {{video}} s por vídeo",
+      "total": "Vídeo de {{seconds}} s: as mídias se ajustam para caber"
+    },
+    "banner": {
+      "label": "Template escolhido",
+      "title": "Template: {{name}}",
+      "hint": "Adicione fotos e vídeos: a edição é aplicada sozinha.",
+      "hintBeats": "Adicione fotos e vídeos e escolha uma música: os cortes seguem as batidas.",
+      "remove": "Começar sem template"
+    },
+    "items": {
+      "cinematicBeat": {
+        "name": "Cinematic Beat Sync",
+        "description": "Cortes nas batidas fortes, zoom de impacto, clarões e barras de cinema."
+      },
+      "frameShift": {
+        "name": "FrameShift",
+        "description": "Colunas e fatias do quadro deslizam em sentidos alternados a cada compasso."
+      },
+      "grid": {
+        "name": "Grid Effect",
+        "description": "A próxima mídia surge célula por célula numa grade, com um clique a cada troca."
+      },
+      "velocity": {
+        "name": "Velocity",
+        "description": "Chicotes de câmera em todas as direções e mergulhos de zoom."
+      },
+      "glitch": {
+        "name": "Glitch Cyber",
+        "description": "Interferência digital: fatias fora do lugar, cores separadas e blocos de pixels."
+      },
+      "photoShoot": {
+        "name": "Sessão de fotos",
+        "description": "Clarão de flash e som de obturador a cada foto, como num ensaio."
+      },
+      "memories": {
+        "name": "Memórias",
+        "description": "Fotos longas, movimento lento e fusões suaves em tons quentes."
+      },
+      "vintage": {
+        "name": "Filme antigo",
+        "description": "Cores desbotadas, queima de película e o clique do projetor."
+      },
+      "travel": {
+        "name": "Diário de viagem",
+        "description": "Paisagem em 16:9, cortinas e chicotes, com o som original dos vídeos."
+      },
+      "recap": {
+        "name": "Recap 15 s",
+        "description": "Tudo em 15 segundos: cortes secos e rápidos, prontos para os Stories."
+      },
+      "noir": {
+        "name": "Noir",
+        "description": "Preto e branco contrastado, barras de cinema e mergulhos no preto."
+      },
+      "party": {
+        "name": "Pulse Party",
+        "description": "Giros, saltos e tremores, com a imagem pulsando em cada batida."
+      }
     }
   }
 }

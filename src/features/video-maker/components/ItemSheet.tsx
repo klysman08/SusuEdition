@@ -7,14 +7,30 @@ import { useStore } from "zustand";
 import { LabeledValue } from "@/components/common/Section";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { isFullCrop } from "@/engine/render/crop";
 import { FILTER_PRESET_IDS, type FilterPresetId } from "@/engine/render/filters";
-import { MOTION_KINDS, type MotionKind, type TimelineResult } from "@/engine/timeline";
+import { SFX_KINDS, type SfxKind } from "@/engine/audio";
+import {
+  MOTION_KINDS,
+  TRANSITION_CATEGORIES,
+  transitionsIn,
+  type MotionKind,
+  type TimelineResult,
+  type TransitionKind,
+} from "@/engine/timeline";
 import type { FitMode } from "@/engine/types";
 import { formatTime } from "@/lib/format";
 
@@ -279,26 +295,62 @@ export function ItemSheet({
                 )}
 
                 {!isFirst && (
-                  <div className="space-y-2">
-                    <p className="text-sm">{t("item.transition")}</p>
-                    <ToggleGroup
-                      type="single"
-                      variant="outline"
-                      value={override.transitionIn ?? "default"}
-                      onValueChange={(v) =>
-                        v && patchOverride(id, { transitionIn: v === "default" ? undefined : (v as "cut" | "fade") })
-                      }
-                      className="w-full"
-                    >
-                      <ToggleGroupItem value="default" className="flex-1 px-2 text-xs">
-                        {t("item.fitDefault")}
-                      </ToggleGroupItem>
-                      {(["cut", "fade"] as const).map((k) => (
-                        <ToggleGroupItem key={k} value={k} className="flex-1 px-2 text-xs">
-                          {t(`timing.transition.${k}`)}
-                        </ToggleGroupItem>
-                      ))}
-                    </ToggleGroup>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="item-transition" className="text-sm font-normal">
+                        {t("item.transition")}
+                      </Label>
+                      <Select
+                        value={override.transitionIn ?? "default"}
+                        onValueChange={(v) =>
+                          patchOverride(id, {
+                            transitionIn: v === "default" ? undefined : (v as "cut" | TransitionKind),
+                          })
+                        }
+                      >
+                        <SelectTrigger id="item-transition" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">{t("item.fitDefault")}</SelectItem>
+                          <SelectItem value="cut">{t("timing.transition.cut")}</SelectItem>
+                          {TRANSITION_CATEGORIES.map((c) => (
+                            <SelectGroup key={c}>
+                              <SelectLabel>{t(`timing.transitionCategory.${c}`)}</SelectLabel>
+                              {transitionsIn(c).map((k) => (
+                                <SelectItem key={k} value={k}>
+                                  {t(`timing.transition.${k}`)}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="item-sound" className="text-sm font-normal">
+                        {t("item.sound")}
+                      </Label>
+                      <Select
+                        value={override.soundIn ?? "default"}
+                        onValueChange={(v) =>
+                          patchOverride(id, { soundIn: v === "default" ? undefined : (v as SfxKind | "none") })
+                        }
+                      >
+                        <SelectTrigger id="item-sound" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">{t("item.fitDefault")}</SelectItem>
+                          <SelectItem value="none">{t("sfx.none")}</SelectItem>
+                          {SFX_KINDS.map((k) => (
+                            <SelectItem key={k} value={k}>
+                              {t(`sfx.${k}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 

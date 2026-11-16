@@ -17,6 +17,7 @@ import { getExportPlatform } from "@/platform/export";
 import { getMediaBackend } from "@/platform/media";
 
 import { videoMediaStore, videoMusicStore, videoProjectStore } from "../store";
+import { timelineBeats } from "../timeline-input";
 
 export type ExportStatus = "idle" | "running" | "saving" | "done" | "error" | "cancelled";
 
@@ -91,6 +92,11 @@ export async function buildJob(timeline: TimelineResult): Promise<ExportJob> {
     fit: project.fit,
     background: project.background,
     filter: isNeutralFilter(filter) ? null : filter,
+    effects: project.effects,
+    beats:
+      project.effects.beatPulse > 0 && music.status === "ready" && music.analysis
+        ? timelineBeats(music.analysis.beats, timeline.audio, timeline.durationSec)
+        : [],
     mix: project.mix,
     candidates,
   };

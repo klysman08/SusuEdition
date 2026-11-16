@@ -1,8 +1,9 @@
 import type { AudioMix } from "../audio/mix";
 import type { ProbeSource } from "../decode/probe-protocol";
+import type { VideoEffects } from "../render/effects";
 import type { FilterAdjust } from "../render/filters";
 import type { AudioPlan, TimelineSegment } from "../timeline";
-import type { FitBackground, FitMode, Size } from "../types";
+import type { Beat, FitBackground, FitMode, Size } from "../types";
 import type { ResolvedExport } from "./plan";
 
 export interface ExportMedia {
@@ -23,6 +24,10 @@ export interface ExportJob {
   background: FitBackground;
   /** Filtro global já resolvido (`resolveFilter`); `null` = sem filtro. */
   filter: FilterAdjust | null;
+  /** Barras de cinema e pulso na batida. */
+  effects: VideoEffects;
+  /** Batidas da música em tempo de timeline, em ordem (para o pulso na batida). */
+  beats: Beat[];
   mix: AudioMix;
   /** Configuração desejada primeiro, depois alternativas menores (fallback). */
   candidates: ResolvedExport[];
