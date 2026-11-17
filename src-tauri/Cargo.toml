@@ -1,6 +1,6 @@
 [package]
 name = "susuedition"
-version = "0.9.4"
+version = "0.9.5"
 description = "SusuEdition — editor de vídeos e fotos"
 authors = ["klysman08"]
 license = "UNLICENSED"

@@ -4,6 +4,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-11-17 · Formatos de mídia
+
 ### Added
 - **Fotos HEIC/HEIF e AVIF**: convertidas uma vez para JPEG (libheif em WebAssembly, num worker) e guardadas no cache; a cópia é servida no lugar do original em toda parte (prévia, exportação, colagem). A orientação vem aplicada e a data da foto continua sendo lida do arquivo original.
 
