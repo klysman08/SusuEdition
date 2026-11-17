@@ -1,6 +1,7 @@
 import type { Selection } from "@/engine/audio";
 import { releaseMedia, type MediaBackend, type PickedMedia, type RegisterOutcome } from "@/platform/media";
 
+import { analyzeAudioWithFallback } from "./audio-fallback";
 import type { MusicStore } from "./store";
 
 export type LoadMusicResult = "ok" | "cancelled" | "unsupported" | "error";
@@ -63,7 +64,7 @@ async function loadRegistered(
   if (outcome.kind !== "audio" && outcome.kind !== "video") {
     return "unsupported";
   }
-  return loadRegisteredMusic(store, backend, outcome);
+  return loadRegisteredMusic(store, backend, { ...outcome, kind: outcome.kind });
 }
 
 /**
@@ -73,7 +74,7 @@ async function loadRegistered(
 export async function loadRegisteredMusic(
   store: MusicStore,
   backend: MediaBackend,
-  media: { id: string; name: string; uri?: string; size: number },
+  media: { id: string; name: string; uri?: string; size: number; kind: "audio" | "video" },
 ): Promise<LoadMusicResult> {
   const outcome = media;
   const previous = store.getState().track;
@@ -88,9 +89,13 @@ export async function loadRegisteredMusic(
   if (previous && previous.id !== outcome.id) void releaseMedia([previous.id]);
 
   try {
-    const analysis = await backend.analyzeAudio(outcome.id);
+    const analysis = await analyzeAudioWithFallback(backend, outcome.id, outcome.kind);
     // Usuário trocou de música enquanto analisava? Descarta.
     if (store.getState().track?.id !== outcome.id) return "cancelled";
+    // O arquivo pode ter virado uma cópia WAV (navegador: outra URL de blob).
+    const track = store.getState().track;
+    const url = backend.mediaUrl(outcome.id);
+    if (track && track.url !== url) store.getState().startLoading({ ...track, url });
     store.getState().setAnalysis(analysis);
     return "ok";
   } catch (err) {

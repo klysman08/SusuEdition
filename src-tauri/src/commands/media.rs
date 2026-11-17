@@ -7,7 +7,7 @@ use tauri::{AppHandle, Runtime, State};
 use crate::error::{AppError, AppResult};
 use crate::services::cache::MediaCache;
 use crate::services::jobs;
-use crate::services::media_types::{MediaMeta, ProcessEvent, RegisteredMedia};
+use crate::services::media_types::{AudioAnalysis, MediaMeta, ProcessEvent, RegisteredMedia};
 use crate::services::registry::MediaRegistry;
 
 #[derive(Debug, Serialize)]
@@ -63,6 +63,44 @@ pub fn media_process_images<R: Runtime>(
 #[tauri::command]
 pub fn media_cache_get(cache: State<'_, MediaCache>, ids: Vec<String>) -> Vec<Option<MediaMeta>> {
     ids.iter().map(|id| cache.get_meta(id)).collect()
+}
+
+/// Recebe a cópia convertida pelo WebView (JPEG de uma foto HEIC, WAV de um áudio que o
+/// Symphonia não lê). Ela fica no cache e passa a ser servida no lugar do original.
+/// Corpo: bytes. Cabeçalhos: `x-media-id`, `x-ext` (`jpg` ou `wav`). Retorna o novo MIME.
+#[tauri::command]
+pub fn media_put_converted(
+    cache: State<'_, MediaCache>,
+    registry: State<'_, MediaRegistry>,
+    request: Request<'_>,
+) -> AppResult<String> {
+    let header = |name: &str| {
+        request
+            .headers()
+            .get(name)
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_string)
+            .ok_or_else(|| AppError::Unsupported(format!("cabeçalho ausente: {name}")))
+    };
+    let id = header("x-media-id")?;
+    let ext = header("x-ext")?;
+    registry.entry(&id)?;
+    let InvokeBody::Raw(bytes) = request.body() else {
+        return Err(AppError::Unsupported("corpo deve ser binário".into()));
+    };
+    let (path, mime) = cache.put_converted(&id, &ext, bytes)?;
+    registry.attach_converted(&id, path, mime)?;
+    Ok(mime.to_string())
+}
+
+/// Grava a análise de áudio feita pelo WebView (vídeo cujo áudio o Symphonia não lê).
+#[tauri::command]
+pub fn audio_cache_put(
+    cache: State<'_, MediaCache>,
+    id: String,
+    analysis: AudioAnalysis,
+) -> AppResult<()> {
+    cache.put_audio(&id, &analysis)
 }
 
 /// Grava no cache o thumbnail gerado pelo WebView (vídeos).

@@ -10,7 +10,7 @@ use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager, Runtime};
 
 use super::cache::MediaCache;
-use super::image::process_image;
+use super::image::{exif_captured_at, process_image};
 use super::media_types::ProcessEvent;
 use super::registry::MediaRegistry;
 
@@ -74,7 +74,14 @@ fn process_one<R: Runtime>(
         Err(e) => return failed(e.to_string()),
     };
     match process_image(file, &entry.mime) {
-        Ok((meta, thumb)) => {
+        Ok((mut meta, thumb)) => {
+            // Cópia convertida (HEIC → JPEG): a data da foto está no arquivo original.
+            if entry.original.is_some()
+                && let Ok(orig) = registry.open_original(app, id)
+            {
+                let mut r = std::io::BufReader::new(orig);
+                meta.captured_at = exif_captured_at(&mut r).or(meta.captured_at);
+            }
             if let Err(e) = cache.put(id, &meta, &thumb) {
                 log::warn!("falha ao gravar cache de {id}: {e}");
             }

@@ -25,8 +25,8 @@ fn not_found(id: &str) -> AppError {
     AppError::Unsupported(format!("exportação desconhecida: {id}"))
 }
 
-/// Extensões aceitas na saída (vídeo e colagem).
-const EXTENSIONS: [&str; 4] = [".mp4", ".jpg", ".jpeg", ".png"];
+/// Extensões aceitas na saída (vídeo, colagem e áudio extraído de um vídeo).
+const EXTENSIONS: [&str; 6] = [".mp4", ".jpg", ".jpeg", ".png", ".m4a", ".wav"];
 
 /// Nome de arquivo seguro (sem separadores de caminho), com extensão de saída
 /// conhecida (`.mp4` se não houver).
@@ -185,6 +185,9 @@ mod tests {
         assert_eq!(sanitize_file_name("colagem.jpg"), "colagem.jpg");
         assert_eq!(sanitize_file_name("colagem.png"), "colagem.png");
         assert_eq!(sanitize_file_name("x.exe"), "x.exe.mp4");
+        // Áudio extraído de um vídeo mantém a própria extensão.
+        assert_eq!(sanitize_file_name("Férias.m4a"), "Férias.m4a");
+        assert_eq!(sanitize_file_name("voz.WAV"), "voz.WAV");
     }
 
     #[test]

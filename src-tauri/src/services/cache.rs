@@ -1,6 +1,9 @@
 //! Cache em disco de thumbnails e metadados, indexado pelo id da mídia.
 //!
-//! Layout: `<app_cache_dir>/media/{thumbs,meta}/<id>.<ext>`
+//! Layout: `<app_cache_dir>/media/{thumbs,meta,audio,converted}/<id>.<ext>`
+//!
+//! `converted/` guarda cópias em formato que o app lê (JPEG de uma foto HEIC, WAV de um
+//! áudio que o Symphonia não decodifica), feitas uma vez pelo WebView.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -13,7 +16,11 @@ pub struct MediaCache {
     thumbs: PathBuf,
     meta: PathBuf,
     audio: PathBuf,
+    converted: PathBuf,
 }
+
+/// Formatos das cópias convertidas: extensão e MIME.
+const CONVERTED: [(&str, &str); 2] = [("jpg", "image/jpeg"), ("wav", "audio/wav")];
 
 /// Versão do formato da análise de áudio: mudar o algoritmo invalida o cache antigo.
 const AUDIO_ANALYSIS_VERSION: u32 = 1;
@@ -32,13 +39,16 @@ impl MediaCache {
         let thumbs = root.join("media").join("thumbs");
         let meta = root.join("media").join("meta");
         let audio = root.join("media").join("audio");
+        let converted = root.join("media").join("converted");
         fs::create_dir_all(&thumbs)?;
         fs::create_dir_all(&meta)?;
         fs::create_dir_all(&audio)?;
+        fs::create_dir_all(&converted)?;
         Ok(Self {
             thumbs,
             meta,
             audio,
+            converted,
         })
     }
 
@@ -89,6 +99,39 @@ impl MediaCache {
         let json = serde_json::to_vec(analysis).expect("AudioAnalysis é serializável");
         write_atomic(&path, &json)?;
         Ok(())
+    }
+
+    /// Grava a cópia convertida de uma mídia. Retorna o caminho e o MIME dela.
+    pub fn put_converted(
+        &self,
+        id: &str,
+        ext: &str,
+        bytes: &[u8],
+    ) -> AppResult<(PathBuf, &'static str)> {
+        let invalid =
+            || crate::error::AppError::Unsupported(format!("conversão inválida: {id}.{ext}"));
+        let mime = CONVERTED
+            .iter()
+            .find(|(e, _)| *e == ext)
+            .map(|(_, m)| *m)
+            .ok_or_else(invalid)?;
+        if !is_valid_id(id) || bytes.is_empty() {
+            return Err(invalid());
+        }
+        let path = self.converted.join(format!("{id}.{ext}"));
+        write_atomic(&path, bytes)?;
+        Ok((path, mime))
+    }
+
+    /// Cópia convertida de uma mídia, se já existir.
+    pub fn find_converted(&self, id: &str) -> Option<(PathBuf, &'static str)> {
+        if !is_valid_id(id) {
+            return None;
+        }
+        CONVERTED.iter().find_map(|(ext, mime)| {
+            let p = self.converted.join(format!("{id}.{ext}"));
+            p.exists().then_some((p, *mime))
+        })
     }
 
     pub fn thumb_path(&self, id: &str, ext: &str) -> Option<PathBuf> {
@@ -149,6 +192,14 @@ mod tests {
         assert!(cache.thumb_path("../etc/passwd", "jpg").is_none());
         assert!(cache.thumb_path("abc123", "exe").is_none());
         assert!(cache.put("../x", &meta(), b"").is_err());
+        // cópias convertidas
+        assert!(cache.find_converted("abc123").is_none());
+        let (path, mime) = cache.put_converted("abc123", "jpg", b"jpeg").unwrap();
+        assert_eq!(mime, "image/jpeg");
+        assert_eq!(cache.find_converted("abc123"), Some((path, "image/jpeg")));
+        assert!(cache.put_converted("abc123", "exe", b"x").is_err());
+        assert!(cache.put_converted("../x", "wav", b"x").is_err());
+        assert!(cache.put_converted("abc124", "wav", b"").is_err());
         let _ = fs::remove_dir_all(dir);
     }
 }

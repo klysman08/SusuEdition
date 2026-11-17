@@ -9,6 +9,7 @@ import type { Beat } from "../types";
 export * from "./beat-detect";
 export * from "./envelope";
 export * from "./mix";
+export * from "./pcm";
 export * from "./peaks";
 export * from "./resampler";
 export * from "./selection";

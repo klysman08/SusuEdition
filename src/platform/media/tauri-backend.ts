@@ -1,6 +1,7 @@
 import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 
 import type { AudioAnalysis } from "@/engine/audio";
+import { convertibleImage, convertImageToJpeg } from "@/engine/decode/convert-image";
 import type { MediaMeta } from "@/engine/types";
 
 import { AUDIO_EXTENSIONS, IMAGE_EXTENSIONS, SUPPORTED_EXTENSIONS } from "./formats";
@@ -12,6 +13,40 @@ const REOPEN_BATCH = 200;
 const susu = (path: string) => convertFileSrc(path, "susu");
 
 export function createTauriBackend(isMobile: boolean): MediaBackend {
+  /** MIME efetivo de cada mídia registrada (`image/jpeg` quando uma foto HEIC já foi convertida). */
+  const mimes = new Map<string, string>();
+  const remember = (outcomes: RegisterOutcome[]) => {
+    for (const o of outcomes) if (o.status === "ok") mimes.set(o.id, o.mime);
+    return outcomes;
+  };
+
+  const storeConverted = async (id: string, data: Blob, ext: "jpg" | "wav") => {
+    const bytes = new Uint8Array(await data.arrayBuffer());
+    const mime = await invoke<string>("media_put_converted", bytes, { headers: { "x-media-id": id, "x-ext": ext } });
+    mimes.set(id, mime);
+  };
+
+  /** Fotos HEIC/AVIF: converte no WebView antes do processamento nativo. */
+  const convertImages = async (ids: string[], onEvent: (e: ProcessEvent) => void): Promise<string[]> => {
+    const ready: string[] = [];
+    await Promise.all(
+      ids.map(async (id) => {
+        // Só pelo MIME: o Rust já devolve `image/jpeg` quando a cópia convertida existe
+        // (a extensão `.heic` do nome continua igual).
+        const format = convertibleImage(mimes.get(id));
+        if (!format) return ready.push(id);
+        try {
+          const original = await (await fetch(susu(`media/${id}`))).blob();
+          await storeConverted(id, await convertImageToJpeg(original, format), "jpg");
+          ready.push(id);
+        } catch (err) {
+          onEvent({ type: "failed", id, error: err instanceof Error ? err.message : String(err) });
+        }
+      }),
+    );
+    return ready;
+  };
+
   return {
     name: "tauri",
     videoProbeConcurrency: isMobile ? 2 : 3,
@@ -46,26 +81,34 @@ export function createTauriBackend(isMobile: boolean): MediaBackend {
       return invoke<AudioAnalysis>("audio_analyze", { id });
     },
 
-    register(picked) {
+    async register(picked) {
       const uris = picked.flatMap((p) => (p.type === "native" ? [p.uri] : []));
-      return invoke<RegisterOutcome[]>("media_register", { uris });
+      return remember(await invoke<RegisterOutcome[]>("media_register", { uris }));
     },
 
     async reopen(refs) {
       const out: RegisterOutcome[] = [];
       for (let i = 0; i < refs.length; i += REOPEN_BATCH) {
         const uris = refs.slice(i, i + REOPEN_BATCH).map((r) => r.uri);
-        out.push(...(await invoke<RegisterOutcome[]>("media_register", { uris })));
+        out.push(...remember(await invoke<RegisterOutcome[]>("media_register", { uris })));
       }
       return out;
     },
 
     async unregister(ids) {
+      for (const id of ids) mimes.delete(id);
       await invoke("media_unregister", { ids });
     },
 
-    processImages(ids, onEvent) {
-      if (ids.length === 0) return Promise.resolve();
+    storeConverted,
+
+    async cacheAudioAnalysis(id, analysis) {
+      await invoke("audio_cache_put", { id, analysis });
+    },
+
+    async processImages(all, onEvent) {
+      const ids = await convertImages(all, onEvent);
+      if (ids.length === 0) return;
       return new Promise<void>((resolve) => {
         let remaining = ids.length;
         const channel = new Channel<ProcessEvent>();

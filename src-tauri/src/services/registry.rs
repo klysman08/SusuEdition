@@ -6,6 +6,7 @@
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::UNIX_EPOCH;
@@ -13,6 +14,7 @@ use std::time::UNIX_EPOCH;
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_fs::{FilePath, FsExt, OpenOptions};
 
+use super::cache::MediaCache;
 use super::media_types::{MediaKind, RegisteredMedia};
 use crate::error::{AppError, AppResult};
 
@@ -23,10 +25,20 @@ const MAX_OPEN_FILES: usize = 24;
 #[derive(Debug)]
 pub struct Entry {
     pub uri: String,
+    /// O que é lido e servido: o arquivo do usuário ou a cópia convertida dele.
     pub path: FilePath,
     pub mime: String,
     pub kind: MediaKind,
+    /// Tamanho de `path`.
     pub size: u64,
+    /// O arquivo do usuário, quando `path` é uma cópia convertida (ex.: JPEG de uma foto
+    /// HEIC). Os metadados (data da foto) continuam vindo dele.
+    pub original: Option<FilePath>,
+}
+
+/// Formatos que só entram no app depois de convertidos pelo WebView.
+pub fn needs_conversion(mime: &str) -> bool {
+    matches!(mime, "image/heif" | "image/heic" | "image/avif")
 }
 
 #[derive(Default)]
@@ -83,6 +95,7 @@ pub fn sniff_kind(header: &[u8], name: &str) -> (MediaKind, String) {
         "webp" => (MediaKind::Image, "image/webp".into()),
         "gif" => (MediaKind::Image, "image/gif".into()),
         "heic" | "heif" => (MediaKind::Image, "image/heif".into()),
+        "avif" => (MediaKind::Image, "image/avif".into()),
         "mp4" | "m4v" => (MediaKind::Video, "video/mp4".into()),
         "mov" => (MediaKind::Video, "video/quicktime".into()),
         "webm" => (MediaKind::Video, "video/webm".into()),
@@ -90,7 +103,9 @@ pub fn sniff_kind(header: &[u8], name: &str) -> (MediaKind, String) {
         "mp3" => (MediaKind::Audio, "audio/mpeg".into()),
         "m4a" | "aac" => (MediaKind::Audio, "audio/mp4".into()),
         "wav" => (MediaKind::Audio, "audio/wav".into()),
-        "ogg" | "oga" => (MediaKind::Audio, "audio/ogg".into()),
+        "ogg" | "oga" | "opus" => (MediaKind::Audio, "audio/ogg".into()),
+        "aif" | "aiff" => (MediaKind::Audio, "audio/aiff".into()),
+        "caf" => (MediaKind::Audio, "audio/x-caf".into()),
         "flac" => (MediaKind::Audio, "audio/flac".into()),
         _ => (MediaKind::Unknown, "application/octet-stream".into()),
     }
@@ -125,14 +140,32 @@ impl MediaRegistry {
         let (kind, mime) = sniff_kind(&header[..n], &name);
 
         let id = media_id(uri, size, modified_ms);
-        let entry = Arc::new(Entry {
+        let mut entry = Entry {
             uri: uri.to_string(),
             path,
-            mime: mime.clone(),
+            mime,
             kind,
             size,
-        });
-        self.entries.write().unwrap().insert(id.clone(), entry);
+            original: None,
+        };
+        // Já convertido numa sessão anterior: usa a cópia direto.
+        if let Some((converted, mime)) =
+            tauri::Manager::try_state::<MediaCache>(app).and_then(|cache| cache.find_converted(&id))
+            && let Ok(meta) = std::fs::metadata(&converted)
+        {
+            entry.original = Some(std::mem::replace(
+                &mut entry.path,
+                FilePath::Path(converted),
+            ));
+            entry.mime = mime.to_string();
+            entry.size = meta.len();
+        }
+        let mime = entry.mime.clone();
+        self.entries
+            .write()
+            .unwrap()
+            .insert(id.clone(), Arc::new(entry));
+        self.forget_handle(&id);
 
         Ok(RegisteredMedia {
             id,
@@ -143,6 +176,48 @@ impl MediaRegistry {
             size,
             modified_ms,
         })
+    }
+
+    /// Passa a ler e servir `converted` no lugar do arquivo do usuário.
+    pub fn attach_converted(&self, id: &str, converted: PathBuf, mime: &str) -> AppResult<()> {
+        let size = std::fs::metadata(&converted)?.len();
+        let mut entries = self.entries.write().unwrap();
+        let old = entries
+            .get(id)
+            .cloned()
+            .ok_or_else(|| AppError::MediaNotFound(id.to_string()))?;
+        let original = old.original.clone().unwrap_or_else(|| old.path.clone());
+        entries.insert(
+            id.to_string(),
+            Arc::new(Entry {
+                uri: old.uri.clone(),
+                path: FilePath::Path(converted),
+                mime: mime.to_string(),
+                kind: old.kind,
+                size,
+                original: Some(original),
+            }),
+        );
+        drop(entries);
+        self.forget_handle(id);
+        Ok(())
+    }
+
+    /// Abre o arquivo do usuário (mesmo quando a mídia é servida por uma cópia convertida).
+    pub fn open_original<R: Runtime>(&self, app: &AppHandle<R>, id: &str) -> AppResult<File> {
+        let entry = self.entry(id)?;
+        Ok(Self::open_path(
+            app,
+            entry.original.as_ref().unwrap_or(&entry.path),
+        )?)
+    }
+
+    /// Fecha o handle compartilhado de `id` (o arquivo por trás dele mudou).
+    fn forget_handle(&self, id: &str) {
+        let mut open = self.open_files.lock().unwrap();
+        if open.map.remove(id).is_some() {
+            open.order.retain(|x| x != id);
+        }
     }
 
     pub fn get(&self, id: &str) -> Option<Arc<Entry>> {
@@ -259,5 +334,8 @@ mod tests {
             MediaKind::Audio
         );
         assert_eq!(sniff_kind(&[], "song.flac").0, MediaKind::Audio);
+        assert_eq!(sniff_kind(&[], "IMG_0001.HEIC").1, "image/heif");
+        assert!(needs_conversion("image/heif"));
+        assert!(!needs_conversion("image/jpeg"));
     }
 }

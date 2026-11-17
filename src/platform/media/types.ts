@@ -2,6 +2,9 @@ import type { MediaKind, MediaMeta } from "@/engine/types";
 import type { AudioAnalysis } from "@/engine/audio";
 import type { ProbeSource } from "@/engine/decode";
 
+/** Formatos das cópias convertidas. */
+export type ConvertedExt = "jpg" | "wav";
+
 /** Arquivo escolhido pelo usuário, antes do registro. */
 export type PickedMedia = { type: "native"; uri: string } | { type: "web"; file: File };
 
@@ -60,6 +63,13 @@ export interface MediaBackend {
   mediaUrl(id: string): string;
   /** Arquivos soltos sobre a janela (desktop). Retorna função para cancelar. */
   onFileDrop(cb: (picked: PickedMedia[]) => void, onHover?: (hovering: boolean) => void): Promise<() => void>;
+  /**
+   * Guarda uma cópia convertida pelo WebView (JPEG de uma foto HEIC, WAV de um áudio que
+   * o leitor nativo não abre). Daí em diante a mídia é lida e servida por essa cópia.
+   */
+  storeConverted(id: string, data: Blob, ext: ConvertedExt): Promise<void>;
+  /** Grava a análise de áudio feita no WebView (para não refazê-la). */
+  cacheAudioAnalysis(id: string, analysis: AudioAnalysis): Promise<void>;
   /** Workers de vídeo recomendados para o dispositivo. */
   readonly videoProbeConcurrency: number;
 }

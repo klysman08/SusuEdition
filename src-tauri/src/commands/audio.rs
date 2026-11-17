@@ -3,7 +3,7 @@
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::error::{AppError, AppResult};
-use crate::services::audio::{ANALYSIS_RATE, decode_to_analysis, peaks};
+use crate::services::audio::{ANALYSIS_RATE, decode_to_analysis_with, peaks};
 use crate::services::beat;
 use crate::services::cache::MediaCache;
 use crate::services::media_types::AudioAnalysis;
@@ -27,7 +27,6 @@ fn analyze_blocking<R: Runtime>(app: &AppHandle<R>, id: &str) -> AppResult<Audio
     }
     let registry = app.state::<MediaRegistry>();
     let entry = registry.entry(id)?;
-    let file = registry.open_new(app, id)?;
     let ext = entry.mime.rsplit('/').next().map(|m| match m {
         "mpeg" => "mp3",
         "mp4" | "x-m4a" | "m4a" => "m4a",
@@ -36,8 +35,15 @@ fn analyze_blocking<R: Runtime>(app: &AppHandle<R>, id: &str) -> AppResult<Audio
     });
 
     let started = std::time::Instant::now();
-    let decoded =
-        decode_to_analysis(file, ext).map_err(|e| AppError::Unsupported(e.to_string()))?;
+    let decoded = decode_to_analysis_with(
+        || {
+            registry
+                .open_new(app, id)
+                .map_err(|e| std::io::Error::other(e.to_string()))
+        },
+        ext,
+    )
+    .map_err(|e| AppError::Unsupported(e.to_string()))?;
     let beats = beat::analyze(&decoded.samples, ANALYSIS_RATE);
     let analysis = AudioAnalysis {
         duration_sec: decoded.duration_sec(),

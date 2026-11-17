@@ -45,6 +45,8 @@ pub fn run() {
             commands::media::media_process_images,
             commands::media::media_cache_get,
             commands::media::media_cache_put,
+            commands::media::media_put_converted,
+            commands::media::audio_cache_put,
             commands::project::project_list,
             commands::project::project_read,
             commands::project::project_write,

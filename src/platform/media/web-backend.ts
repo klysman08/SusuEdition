@@ -1,5 +1,6 @@
 import { computePeaks, detectBeats, type AudioAnalysis } from "@/engine/audio";
 import { createProbePool, type ProbePool } from "@/engine/decode";
+import { convertibleImage, convertImageToJpeg } from "@/engine/decode/convert-image";
 import type { MediaKind } from "@/engine/types";
 
 import { ACCEPT_ATTRIBUTE, AUDIO_ACCEPT_ATTRIBUTE } from "./formats";
@@ -16,7 +17,8 @@ function fnv1a(input: string): string {
 }
 
 function kindOf(file: File): MediaKind | "audio" | "unknown" {
-  if (file.type.startsWith("image/")) return "image";
+  // HEIC muitas vezes chega sem tipo (o navegador não o conhece).
+  if (file.type.startsWith("image/") || convertibleImage(file.type, file.name)) return "image";
   if (file.type.startsWith("video/")) return "video";
   if (file.type.startsWith("audio/")) return "audio";
   return "unknown";
@@ -59,6 +61,19 @@ export function createWebBackend(): MediaBackend {
   const mediaUrls = new Map<string, string>();
   let imagePool: ProbePool | null = null;
   const pool = () => (imagePool ??= createProbePool(Math.max(2, Math.min(4, navigator.hardwareConcurrency >> 1))));
+
+  const storeConverted = async (id: string, data: Blob, ext: "jpg" | "wav") => {
+    const file = files.get(id);
+    if (!file) throw new Error(`arquivo não registrado: ${id}`);
+    const converted = new File([data], file.name.replace(/\.[^.]+$/, "") + "." + ext, {
+      type: ext === "jpg" ? "image/jpeg" : "audio/wav",
+      lastModified: file.lastModified,
+    });
+    files.set(id, converted);
+    const url = mediaUrls.get(id);
+    if (url) URL.revokeObjectURL(url);
+    mediaUrls.delete(id);
+  };
 
   return {
     name: "web",
@@ -124,12 +139,23 @@ export function createWebBackend(): MediaBackend {
       }
     },
 
+    storeConverted,
+
+    async cacheAudioAnalysis() {
+      // Sem cache persistente no navegador.
+    },
+
     async processImages(ids, onEvent) {
       await Promise.all(
         ids.map(async (id) => {
-          const file = files.get(id);
+          let file = files.get(id);
           if (!file) return onEvent({ type: "failed", id, error: "arquivo não registrado" });
           try {
+            const format = convertibleImage(file.type, file.name);
+            if (format) {
+              await storeConverted(id, await convertImageToJpeg(file, format), "jpg");
+              file = files.get(id)!;
+            }
             const res = await pool().run({ id, kind: "image", source: { type: "blob", blob: file } });
             if (!res.ok) return onEvent({ type: "failed", id, error: res.error });
             if (res.thumb) thumbs.set(id, URL.createObjectURL(res.thumb));

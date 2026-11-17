@@ -38,7 +38,9 @@ imagesize = "0.15.0"
 blake3 = "1.8.7"
 infer = "0.22.0"
 percent-encoding = "2.3.2"
-symphonia = { version = "0.6.1", features = ["mp3", "aac", "isomp4"] }
+# Todos os codecs e contêineres do Symphonia (MP1/MP2/MP3, AAC, ALAC, FLAC, Vorbis, PCM,
+# ADPCM; WAV, AIFF, CAF, MP4/M4A, MKV/WebM, Ogg). O que ainda falhar é convertido no WebView.
+symphonia = { version = "0.6.1", features = ["all"] }
 rustfft = "6.4.1"
 fs4 = { version = "1.1.0", features = ["sync"] }
 

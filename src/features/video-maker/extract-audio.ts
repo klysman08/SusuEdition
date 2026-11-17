@@ -117,5 +117,6 @@ export async function setVideoAudioAsMusic(id: string): Promise<LoadMusicResult>
     name: item.name,
     uri: item.uri,
     size: item.size,
+    kind: "video",
   });
 }

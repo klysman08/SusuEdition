@@ -67,6 +67,11 @@ fn read_exif<R: BufRead + Seek>(r: &mut R) -> ExifInfo {
     info
 }
 
+/// Data da foto (EXIF) de qualquer contêiner que o `kamadak-exif` lê, inclusive HEIF.
+pub fn exif_captured_at<R: BufRead + Seek>(r: &mut R) -> Option<i64> {
+    read_exif(r).captured_at
+}
+
 /// Data/hora "civil" (sem fuso, como no EXIF) → epoch ms. Algoritmo de Howard Hinnant.
 fn epoch_ms(y: i64, m: u32, d: u32, hh: u8, mm: u8, ss: u8) -> i64 {
     let y = if m <= 2 { y - 1 } else { y };

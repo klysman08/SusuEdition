@@ -89,7 +89,34 @@ pub fn decode_to_analysis<S: MediaSource + 'static>(
     source: S,
     hint_ext: Option<&str>,
 ) -> Result<DecodedAudio, AudioError> {
-    let mss = MediaSourceStream::new(Box::new(source), Default::default());
+    decode_stream(
+        MediaSourceStream::new(Box::new(source), Default::default()),
+        hint_ext,
+    )
+}
+
+/// Como `decode_to_analysis`, mas reabre a fonte para tentar de novo sem a dica de
+/// extensão quando ela atrapalha (arquivo renomeado, MIME genérico).
+pub fn decode_to_analysis_with<S: MediaSource + 'static>(
+    open: impl Fn() -> std::io::Result<S>,
+    hint_ext: Option<&str>,
+) -> Result<DecodedAudio, AudioError> {
+    let first = decode_to_analysis(
+        open().map_err(|e| AudioError::Decode(e.to_string()))?,
+        hint_ext,
+    );
+    match first {
+        Err(AudioError::Unsupported) if hint_ext.is_some() => {
+            decode_to_analysis(open().map_err(|e| AudioError::Decode(e.to_string()))?, None)
+        }
+        other => other,
+    }
+}
+
+fn decode_stream(
+    mss: MediaSourceStream,
+    hint_ext: Option<&str>,
+) -> Result<DecodedAudio, AudioError> {
     let mut hint = Hint::new();
     if let Some(ext) = hint_ext {
         hint.with_extension(ext);
@@ -228,6 +255,17 @@ pub(crate) mod tests {
             "duração {}",
             decoded.duration_sec()
         );
+    }
+
+    #[test]
+    fn retries_without_a_misleading_hint() {
+        let rate = 22_050;
+        let samples: Vec<f32> = (0..rate).map(|i| (i as f32 * 0.05).sin() * 0.5).collect();
+        let bytes = wav(&samples, rate, 1);
+        // Um WAV com a dica "mp3" (arquivo renomeado) ainda é lido.
+        let decoded =
+            decode_to_analysis_with(|| Ok(Cursor::new(bytes.clone())), Some("mp3")).unwrap();
+        assert!((decoded.duration_sec() - 1.0).abs() < 0.01);
     }
 
     #[test]

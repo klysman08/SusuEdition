@@ -4,6 +4,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e
 
 ## [Unreleased]
 
+### Added
+- **Fotos HEIC/HEIF e AVIF**: convertidas uma vez para JPEG (libheif em WebAssembly, num worker) e guardadas no cache; a cópia é servida no lugar do original em toda parte (prévia, exportação, colagem). A orientação vem aplicada e a data da foto continua sendo lida do arquivo original.
+
+### Fixed
+- **Músicas que davam "formato não suportado"**: quando o leitor nativo não abre o arquivo, o WebView decodifica a faixa. Cobre áudio HE-AAC dentro de MP4 (comum em áudio baixado do Instagram, mesmo com extensão `.mp3`), Opus/OGG, WAV RF64 e MP3 dentro de WAV. Arquivos de áudio viram uma cópia WAV no cache; o áudio de um MP4 só é analisado. O resultado fica em cache: da segunda vez é instantâneo.
+- Leitor nativo com todos os codecs e contêineres do Symphonia (ALAC, AIFF, CAF, MP1/MP2…) e nova tentativa sem a dica de extensão quando o arquivo foi renomeado.
+- **Extrair áudio dos vídeos** salvava `nome.m4a.mp4` / `nome.wav.mp4` no app instalado: agora salva `.m4a` e `.wav`.
+
 ## [0.9.4] — 2026-11-17 · Templates, transições e sons
 
 ### Added
